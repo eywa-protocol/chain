@@ -110,9 +110,15 @@ func TestSaveTransaction(t *testing.T) {
 		TxType:  types.Invoke,
 		Payload: invoke,
 	}
+	sink := common.NewZeroCopySink(nil)
+	err := tx.SerializeUnsigned(sink)
+	if err != nil {
+		t.Errorf("TestSaveTransaction SerializeUnsigned error:%s", err)
+		return
+	}
+	_ = tx.Deserialization(common.NewZeroCopySource(sink.Bytes()))
 
 	blockHeight := uint32(1)
-
 	txHash := tx.Hash()
 	t.Log(txHash)
 	exist, err := testBlockStore.ContainTransaction(txHash)
@@ -139,7 +145,7 @@ func TestSaveTransaction(t *testing.T) {
 		return
 	}
 
-	t.Log(txHash)
+	t.Log("\n", txHash)
 	tx1, height, err := testBlockStore.GetTransaction(txHash)
 	if err != nil {
 		t.Errorf("GetTransaction error %s", err)
@@ -154,6 +160,7 @@ func TestSaveTransaction(t *testing.T) {
 		return
 	}
 	tx1Hash := tx1.Hash()
+
 	if txHash != tx1Hash {
 		t.Errorf("TestSaveTransaction failed TxHash %x != %x", tx1Hash, txHash)
 		return
@@ -296,7 +303,15 @@ func TestBlock(t *testing.T) {
 		TxType:  types.Invoke,
 		Payload: invoke,
 	}
-	fmt.Print(tx.Hash())
+	sink := common.NewZeroCopySink(nil)
+	err = tx.SerializeUnsigned(sink)
+	if err != nil {
+		t.Errorf("TestBlock SerializeUnsigned error:%s", err)
+		return
+	}
+	_ = tx.Deserialization(common.NewZeroCopySource(sink.Bytes()))
+
+	t.Log(tx.Hash())
 
 	if err != nil {
 		t.Errorf("TestBlock transferTx error:%s", err)
@@ -311,8 +326,6 @@ func TestBlock(t *testing.T) {
 	tx1Hash := tx.Hash()
 
 	testBlockStore.NewBatch()
-	//t.Log(block.Hash())
-	//t.Log(block.Type())
 
 	err = testBlockStore.SaveBlock(block)
 	if err != nil {
@@ -351,7 +364,7 @@ func TestBlock(t *testing.T) {
 		return
 	}
 	if b.Transactions[0].Hash() != tx1Hash {
-		t.Errorf("TestBlock failed transaction1 hash %x != %x", b.Transactions[0].Hash(), tx1Hash)
+		t.Errorf("\nTestBlock failed transaction1 hash %x != %x", b.Transactions[0].Hash(), tx1Hash)
 		return
 	}
 }

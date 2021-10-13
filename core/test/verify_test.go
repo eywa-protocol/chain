@@ -2,8 +2,8 @@ package test
 
 import (
 	"github.com/ontio/ontology-crypto/keypair"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/account"
 	"github.com/stretchr/testify/assert"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/account"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/cmd/utils"
 
 	//"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/cmd/utils"
@@ -13,6 +13,16 @@ import (
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/types"
 	"testing"
 )
+
+func TestSign(t *testing.T) {
+	acc := account.NewAccount("")
+	data := []byte{1, 2, 3}
+	sig, err := utils.Sign(data, acc)
+	assert.Nil(t, err)
+
+	err = signature.Verify(acc.PublicKey, data, sig)
+	assert.Nil(t, err)
+}
 
 func TestVerifyTx(t *testing.T) {
 	acc1 := account.NewAccount("123")

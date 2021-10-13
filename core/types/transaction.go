@@ -125,7 +125,12 @@ func (tx *Transaction) Deserialization(source *common.ZeroCopySource) error {
 	pos := source.Pos()
 	lenUnsigned := pos - pstart
 	source.BackUp(lenUnsigned)
-	tx.hash = tx.Hash()
+	rawUnsigned, eof := source.NextBytes(lenUnsigned)
+	if eof {
+		return fmt.Errorf("read unsigned code error")
+	}
+	temp := sha256.Sum256(rawUnsigned)
+	tx.hash = sha256.Sum256(temp[:])
 	l, eof := source.NextVarUint()
 	if eof {
 		return errors.New("[Deserialization] read sigs length error")
@@ -320,7 +325,7 @@ func (tx *Transaction) ToArray() []byte {
 }
 
 func (tx *Transaction) Hash() common.Uint256 {
-	return  sha256.Sum256(tx.ToArray()[:])
+	return tx.hash
 }
 
 func (tx *Transaction) Type() common.InventoryType {
