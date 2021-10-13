@@ -22,9 +22,11 @@ import (
 	"fmt"
 	"github.com/ontio/ontology-crypto/keypair"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/account"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/config"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/log"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/genesis"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/types"
 	"os"
 	"testing"
 )
@@ -90,15 +92,19 @@ func TestInitLedgerStoreWithGenesisBlock(t *testing.T) {
 	acc7 := account.NewAccount("")
 
 	bookkeepers := []keypair.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey, acc4.PublicKey, acc5.PublicKey, acc6.PublicKey, acc7.PublicKey}
-	//bookkeeper, err := types.AddressFromBookkeepers(bookkeepers)
-	//if err != nil {
-	//	t.Errorf("AddressFromBookkeepers error %s", err)
-	//	return
-	//}
+	bookkeeper, err := types.AddressFromBookkeepers(bookkeepers)
+	if err != nil {
+		t.Errorf("AddressFromBookkeepers error %s", err)
+		return
+	}
+	if bookkeeper == common.ADDRESS_EMPTY {
+		t.Errorf("AddressFromBookkeepers error %s", fmt.Errorf("empty address %v", bookkeeper.ToHexString()))
+		return
+	}
 	genesisConfig := config.DefConfig.Genesis
 	block, err := genesis.BuildGenesisBlock(bookkeepers, genesisConfig)
 	//header := &types.Header{
-	//	Version:          123,
+	//	Version:          0,
 	//	PrevBlockHash:    common.Uint256{},
 	//	TransactionsRoot: common.Uint256{},
 	//	Timestamp:        uint32(uint32(time.Date(2017, time.February, 23, 0, 0, 0, 0, time.UTC).Unix())),
@@ -106,6 +112,7 @@ func TestInitLedgerStoreWithGenesisBlock(t *testing.T) {
 	//	ConsensusData:    1234567890,
 	//	NextBookkeeper:   bookkeeper,
 	//}
+	//block.Header = header
 	//block := &types.Block{
 	//	Header:       header,
 	//	Transactions: []*types.Transaction{},
@@ -132,8 +139,20 @@ func TestInitLedgerStoreWithGenesisBlock(t *testing.T) {
 		t.Errorf("TestInitLedgerStoreWithGenesisBlock failed GetBlockByHeight error %s", err)
 		return
 	}
+
 	if block1.Hash() != block.Hash() {
 		t.Errorf("TestInitLedgerStoreWithGenesisBlock failed blockhash %x != %x", block1.Hash(), block.Hash())
+		return
+	}
+
+	blockByHash, err := testLedgerStore.GetBlockByHash(curBlockHash)
+	if err != nil {
+		t.Errorf("TestInitLedgerStoreWithGenesisBlock failed GetBlockByHash error %s", err)
+		return
+	}
+
+	if blockByHash.Hash() != block.Hash() {
+		t.Errorf("TestInitLedgerStoreWithGenesisBlock failed blockhash %x != %x", blockByHash.Hash(), block.Hash())
 		return
 	}
 }
