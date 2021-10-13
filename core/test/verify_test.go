@@ -54,9 +54,7 @@ func TestVerifyTx(t *testing.T) {
 	assert.Equal(t, acc1.Address, addr[0])
 }
 
-// TODO fix testMultiVerifyTx test
-
-func testMultiVerifyTx(t *testing.T) {
+func TestMultiVerifyTx(t *testing.T) {
 	acc1 := account.NewAccount("123")
 	acc2 := account.NewAccount("123")
 	acc3 := account.NewAccount("123")
@@ -78,11 +76,11 @@ func testMultiVerifyTx(t *testing.T) {
 	tx, err = types.TransactionFromRawBytes(sink.Bytes())
 	assert.NoError(t, err)
 
-	//err = utils.MultiSigTransaction(tx, 2, []keypair.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, acc1)
-	//assert.NoError(t, err)
-	//
-	//err = utils.MultiSigTransaction(tx, 2, []keypair.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, acc2)
-	//assert.NoError(t, err)
+	err = utils.MultiSigTransaction(tx, 2, []keypair.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, acc1)
+	assert.NoError(t, err)
+
+	err = utils.MultiSigTransaction(tx, 2, []keypair.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, acc2)
+	assert.NoError(t, err)
 
 	hash := tx.Hash()
 	err = signature.VerifyMultiSignature(hash.ToArray(), tx.Sigs[0].PubKeys, 2, tx.Sigs[0].SigData)
