@@ -1,8 +1,8 @@
-module gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain
+module gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain
 
-go 1.16
+go 1.1
 
-replace gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain => ./
+replace gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain => ./
 
 require (
 	github.com/ethereum/go-ethereum v1.9.25

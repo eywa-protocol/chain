@@ -26,7 +26,7 @@ import (
 	"os"
 
 	"github.com/ontio/ontology-crypto/keypair"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 )
 
 /** AccountData - for wallet read and save, no crypto object included **/

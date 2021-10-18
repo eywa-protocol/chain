@@ -19,7 +19,7 @@
 package account
 
 import (
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 )
 
 type ClientStore interface {

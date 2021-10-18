@@ -22,8 +22,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/golang-lru"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/types"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 )
 
 const (

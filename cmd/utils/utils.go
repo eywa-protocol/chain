@@ -23,8 +23,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/constants"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/signature"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/constants"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/signature"
 	"io/ioutil"
 	"os"
 	"sort"
@@ -32,8 +32,8 @@ import (
 
 	"github.com/ontio/ontology-crypto/keypair"
 	sig "github.com/ontio/ontology-crypto/signature"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/account"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/types"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 )
 
 func GetJsonObjectFromFile(filePath string, jsonObject interface{}) error {

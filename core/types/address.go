@@ -20,7 +20,7 @@ package types
 
 import (
 	"github.com/ontio/ontology-crypto/keypair"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 )
 
 func AddressFromPubKey(pubkey keypair.PublicKey) common.Address {

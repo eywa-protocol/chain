@@ -28,8 +28,8 @@ import (
 
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/types"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 )
 
 //Client of wallet

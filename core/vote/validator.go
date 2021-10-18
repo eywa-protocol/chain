@@ -20,8 +20,8 @@ package vote
 
 import (
 	"github.com/ontio/ontology-crypto/keypair"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/genesis"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/types"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/genesis"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 )
 
 func GetValidators(txs []*types.Transaction) ([]keypair.PublicKey, error) {

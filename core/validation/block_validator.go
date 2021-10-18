@@ -21,11 +21,11 @@ package validation
 import (
 	"errors"
 	"fmt"
-	ontErrors "gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/errors"
+	ontErrors "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/errors"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/ledger"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/signature"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/types"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/ledger"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/signature"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 )
 
 // VerifyBlock checks whether the block is valid

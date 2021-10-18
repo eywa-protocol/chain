@@ -19,13 +19,13 @@ package native
 
 import (
 	"fmt"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/log"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/types"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/merkle"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/native/event"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/native/states"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/native/storage"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/merkle"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/event"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/states"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/storage"
 )
 
 type (

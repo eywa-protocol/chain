@@ -20,12 +20,12 @@ package store
 
 import (
 	"github.com/ontio/ontology-crypto/keypair"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/states"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/store/overlaydb"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/types"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/native/event"
-	cstates "gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/native/states"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/states"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/overlaydb"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/event"
+	cstates "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/states"
 )
 
 type ExecuteResult struct {

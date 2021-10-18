@@ -18,10 +18,10 @@
 package storage
 
 import (
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/store/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/store/leveldbstore"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/store/overlaydb"
 	"github.com/stretchr/testify/assert"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/leveldbstore"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/overlaydb"
 	"math/rand"
 	"testing"
 )

@@ -23,8 +23,8 @@ import (
 	"testing"
 
 	"github.com/ontio/ontology-crypto/keypair"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
 	"github.com/stretchr/testify/assert"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 )
 
 func TestHeader_Serialize(t *testing.T) {

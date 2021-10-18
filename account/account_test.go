@@ -18,8 +18,8 @@
 package account
 
 import (
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/types"
 	"github.com/stretchr/testify/assert"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 	"os"
 	"testing"
 )

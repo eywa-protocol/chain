@@ -19,10 +19,10 @@ package genesis
 
 import (
 	"github.com/ontio/ontology-crypto/keypair"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/config"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/log"
 	"github.com/stretchr/testify/assert"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/config"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
 	"os"
 	"testing"
 )

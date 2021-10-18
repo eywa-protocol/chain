@@ -23,12 +23,12 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/log"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/serialization"
-	scom "gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/store/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/store/leveldbstore"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/native/event"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/serialization"
+	scom "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/leveldbstore"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/event"
 )
 
 //Saving event notifies gen by smart contract execution

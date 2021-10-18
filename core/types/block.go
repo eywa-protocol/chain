@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"io"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 )
 
 type Block struct {

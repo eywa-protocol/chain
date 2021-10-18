@@ -28,7 +28,7 @@ import (
 
 	base58 "github.com/itchyny/base58-go"
 	"github.com/ontio/ontology-crypto/keypair"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/types"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 	"golang.org/x/crypto/ripemd160"
 )
 

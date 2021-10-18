@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"io"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/serialization"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/serialization"
 )
 
 type StateBase struct {

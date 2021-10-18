@@ -21,12 +21,12 @@ package ledgerstore
 import (
 	"fmt"
 	"github.com/ontio/ontology-crypto/keypair"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/account"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/config"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/log"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/genesis"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/types"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/config"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/genesis"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 	"os"
 	"testing"
 )

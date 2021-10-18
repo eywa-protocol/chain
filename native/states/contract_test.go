@@ -20,7 +20,7 @@ package states
 import (
 	"testing"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 )
 
 func TestContract_Serialize_Deserialize(t *testing.T) {

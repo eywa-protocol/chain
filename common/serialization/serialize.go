@@ -22,7 +22,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"io"
 	"math"
 )

@@ -22,14 +22,14 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/ontio/ontology-crypto/keypair"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/log"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/states"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/store"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/store/ledgerstore"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/types"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/native/event"
-	cstate "gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/native/states"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/states"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/ledgerstore"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/event"
+	cstate "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/states"
 )
 
 var DefLedger *Ledger

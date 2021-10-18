@@ -18,9 +18,9 @@
 package test
 
 import (
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"testing"
 )
 
 func TestUint64Slice(t *testing.T) {

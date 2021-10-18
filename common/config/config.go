@@ -25,9 +25,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ontio/ontology-crypto/keypair"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/constants"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/log"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/constants"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
 )
 
 var Version = "" //Set value when build project

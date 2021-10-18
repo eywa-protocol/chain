@@ -23,8 +23,8 @@ import (
 	"strconv"
 	"testing"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/store/leveldbstore"
 	"github.com/stretchr/testify/assert"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/leveldbstore"
 )
 
 func makeKey(i int) []byte {

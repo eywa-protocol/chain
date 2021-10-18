@@ -23,8 +23,8 @@ import (
 	"bytes"
 	"crypto/rand"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
 	"github.com/stretchr/testify/assert"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 )
 
 func TestStorageKey_Deserialize_Serialize(t *testing.T) {

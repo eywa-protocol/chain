@@ -19,9 +19,9 @@
 package storage
 
 import (
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/store/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/store/overlaydb"
 	"github.com/syndtr/goleveldb/leveldb/util"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/overlaydb"
 )
 
 // CacheDB is smart contract execute cache, it contain transaction cache and block cache

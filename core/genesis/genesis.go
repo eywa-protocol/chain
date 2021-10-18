@@ -20,16 +20,16 @@ package genesis
 
 import (
 	"fmt"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/native/service/utils"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/service/utils"
 	"time"
 
 	"github.com/ontio/ontology-crypto/keypair"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/config"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/constants"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/payload"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/types"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/native/states"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/config"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/constants"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/states"
 )
 
 const (

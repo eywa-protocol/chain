@@ -18,7 +18,7 @@
 package payload
 
 import (
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

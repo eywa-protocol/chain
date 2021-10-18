@@ -21,8 +21,8 @@ package utils
 import (
 	"strings"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/config"
 	"github.com/urfave/cli"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/config"
 )
 
 const (

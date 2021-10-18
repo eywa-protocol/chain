@@ -19,8 +19,8 @@ package test
 
 import (
 	"fmt"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
 	"github.com/stretchr/testify/assert"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"testing"
 )
 
@@ -40,12 +40,11 @@ func TestGetNonce(t *testing.T) {
 
 // TODO adopt  testFileExisted test
 
-func testFileExisted(t *testing.T) {
+func TestFileExisted(t *testing.T) {
 	assert.True(t, common.FileExisted("common_test.go"))
-	assert.True(t, common.FileExisted("common.go"))
+	assert.True(t, common.FileExisted("../common.go"))
 	assert.False(t, common.FileExisted("../log/log.og"))
-	assert.False(t, common.FileExisted("../log/log.go"))
-	//assert.True(t, common.FileExisted("./log/log.go"))
+	assert.True(t, common.FileExisted("../log/log.go"))
 }
 
 func TestBase58(t *testing.T) {

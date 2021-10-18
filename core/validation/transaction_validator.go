@@ -22,14 +22,14 @@ import (
 	"errors"
 	"fmt"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/constants"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common/log"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/ledger"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/payload"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/signature"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/core/types"
-	ontErrors "gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/errors"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/constants"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/ledger"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/signature"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
+	ontErrors "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/errors"
 )
 
 // VerifyTransaction verifys received single transaction

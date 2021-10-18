@@ -20,8 +20,8 @@ package test
 
 import (
 	"bytes"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-blockchain/common"
 	"github.com/stretchr/testify/assert"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"testing"
 )
 
