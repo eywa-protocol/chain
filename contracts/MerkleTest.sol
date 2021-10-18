@@ -19,7 +19,7 @@ contract MerkleTest {
         bytes32 nodeHash;
         uint8 pos;
         for (uint i = 0; i < size; i++) {
-            (pos, off) = ZeroCopySource.NextByte(_auditPath, off);
+            (pos, off) = ZeroCopySource.NextUint8(_auditPath, off);
             (nodeHash, off) = ZeroCopySource.NextHash(_auditPath, off);
             if (pos == 0x00) {
                 hash = Utils.hashChildren(nodeHash, hash);

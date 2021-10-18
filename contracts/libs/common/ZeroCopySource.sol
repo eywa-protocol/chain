@@ -38,20 +38,6 @@ library ZeroCopySource {
         return (value, offset + 1);
     }
 
-    /* @notice              Read next byte starting at offset from buff
-    *  @param buff          Source bytes array
-    *  @param offset        The position from where we read the byte value
-    *  @return              The read byte value and new offset
-    */
-    function NextByte(bytes memory buff, uint256 offset) internal pure returns (uint8, uint256) {
-        require(offset + 1 <= buff.length && offset < offset + 1, "NextByte, Offset exceeds maximum");
-        uint8 v;
-        assembly{
-            v := mload(add(add(buff, 0x20), offset))
-        }
-        return (v, offset + 1);
-    }
-
     /* @notice              Read next byte as uint8 starting at offset from buff
     *  @param buff          Source bytes array
     *  @param offset        The position from where we read the byte value
@@ -265,7 +251,7 @@ library ZeroCopySource {
     
     function NextVarUint(bytes memory buff, uint256 offset) internal pure returns(uint, uint256) {
         uint8 v;
-        (v, offset) = NextByte(buff, offset);
+        (v, offset) = NextUint8(buff, offset);
 
         uint value;
         if (v == 0xFD) {
