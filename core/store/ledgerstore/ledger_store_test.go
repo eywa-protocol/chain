@@ -20,7 +20,7 @@ package ledgerstore
 
 import (
 	"fmt"
-	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/config"

@@ -22,11 +22,12 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"math/big"
 
 	base58 "github.com/itchyny/base58-go"
-	"github.com/ontio/ontology-crypto/keypair"
 	"golang.org/x/crypto/ripemd160"
 )
 
@@ -108,27 +109,28 @@ type Identity struct {
 }
 
 type Controller struct {
-	ID     string `json:"id"`
-	Public string `json:"publicKey,omitempty"`
-	keypair.ProtectedKey
+	ID           string `json:"id"`
+	Public       string `json:"publicKey,omitempty"`
+	ProtectedKey string
 }
 
 // TODO fix NewIdentity
 
-func NewIdentity(label string, keyType keypair.KeyType, param interface{}, password []byte) (*Identity, error) {
+func NewIdentity(label string, param interface{}, password []byte) (*Identity, error) {
 	id, err := GenerateID()
 	if err != nil {
 		return nil, err
 	}
 
-	//pri, pub := bls.GenerateRandomKey()
-	//if err != nil {
-	//	return nil, err
-	//}
+	pri, pub := bls.GenerateRandomKey()
+	if err != nil {
+		return nil, err
+	}
+	// TODO got reed off b58addr
 	//addr := types.AddressFromPubKey(pub)
 	//b58addr := addr.ToBase58()
 	//prot, err := keypair.EncryptPrivateKey(pri, b58addr, password)
-	//prot, err := pri.Encrypt(string(password[:]))
+	prot, err := pri.Encrypt(string(password[:]))
 	if err != nil {
 		return nil, err
 	}
@@ -140,8 +142,8 @@ func NewIdentity(label string, keyType keypair.KeyType, param interface{}, passw
 	res.Control = make([]Controller, 1)
 	res.Control[0].ID = "1"
 
-	//res.Control[0].ProtectedKey = *prot
-	//res.Control[0].Public = hex.EncodeToString(pub.Marshal())
+	res.Control[0].ProtectedKey = prot
+	res.Control[0].Public = hex.EncodeToString(pub.Marshal())
 
 	return &res, nil
 }

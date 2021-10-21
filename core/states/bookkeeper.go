@@ -23,7 +23,6 @@ import (
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"io"
 
-	"github.com/ontio/ontology-crypto/keypair"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/serialization"
 )
 
@@ -45,7 +44,8 @@ func (this *BookkeeperState) Serialize(w io.Writer) error {
 	}
 	serialization.WriteUint32(w, uint32(len(this.NextBookkeeper)))
 	for _, v := range this.NextBookkeeper {
-		buf := keypair.SerializePublicKey(v)
+
+		buf := v.Marshal()
 		err := serialization.WriteVarBytes(w, buf)
 		if err != nil {
 			return err
