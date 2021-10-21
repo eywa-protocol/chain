@@ -20,28 +20,35 @@ package signature
 
 import (
 	"errors"
-	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	s "github.com/ontio/ontology-crypto/signature"
 )
 
 // Sign returns the signature of data using privKey
 func Sign(signer Signer, data []byte) ([]byte, error) {
-	signature, err := s.Sign(signer.Scheme(), signer.PrivKey(), data, nil)
-	if err != nil {
-		return nil, err
-	}
+	sig, _ := signAndGetSig(signer, data)
+	return sig.Marshal(), nil
+}
 
-	return s.Serialize(signature)
+func signAndGetSig(signer Signer, data []byte) (bls.Signature, error) {
+	prKey := signer.PrivKey()
+	return prKey.Sign(data), nil
+}
+
+func Signature(signer Signer, data []byte) (bls.Signature, error) {
+	return signAndGetSig(signer, data)
 }
 
 // Verify check the signature of data using pubKey
-func Verify(pubKey keypair.PublicKey, data, signature []byte) error {
-	sigObj, err := s.Deserialize(signature)
+func Verify(pubKey bls.PublicKey, data, signature []byte) error {
+
+	sigObj, err := bls.UnmarshalSignature(signature)
+
 	if err != nil {
 		return errors.New("invalid signature data: " + err.Error())
 	}
 
-	if !s.Verify(pubKey, data, sigObj) {
+	if !sigObj.Verify(pubKey, data) {
 		return errors.New("signature verification failed")
 	}
 
@@ -49,7 +56,7 @@ func Verify(pubKey keypair.PublicKey, data, signature []byte) error {
 }
 
 // VerifyMultiSignature check whether more than m sigs are signed by the keys
-func VerifyMultiSignature(data []byte, keys []keypair.PublicKey, m int, sigs [][]byte) error {
+func VerifyMultiSignature(data []byte, keys []bls.PublicKey, m int, sigs [][]byte) error {
 	n := len(keys)
 
 	if len(sigs) < m {
@@ -68,7 +75,7 @@ func VerifyMultiSignature(data []byte, keys []keypair.PublicKey, m int, sigs [][
 			if mask[j] {
 				continue
 			}
-			if s.Verify(keys[j], data, sig) {
+			if Verify(keys[j], data, sig) {
 				mask[j] = true
 				valid = true
 				break

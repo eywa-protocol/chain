@@ -19,16 +19,16 @@
 package types
 
 import (
-	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 )
 
-func AddressFromPubKey(pubkey keypair.PublicKey) common.Address {
-	buf := keypair.SerializePublicKey(pubkey)
+func AddressFromPubKey(pubkey bls.PublicKey) common.Address {
+	buf := pubkey.Marshal()
 	return common.AddressFromVmCode(buf)
 }
 
-func AddressFromMultiPubKeys(pubkeys []keypair.PublicKey, m int) (common.Address, error) {
+func AddressFromMultiPubKeys(pubkeys []bls.PublicKey, m int) (common.Address, error) {
 	sink := common.NewZeroCopySink(nil)
 	if err := EncodeMultiPubKeyProgramInto(sink, pubkeys, uint16(m)); err != nil {
 		return common.ADDRESS_EMPTY, nil
@@ -36,7 +36,7 @@ func AddressFromMultiPubKeys(pubkeys []keypair.PublicKey, m int) (common.Address
 	return common.AddressFromVmCode(sink.Bytes()), nil
 }
 
-func AddressFromBookkeepers(bookkeepers []keypair.PublicKey) (common.Address, error) {
+func AddressFromBookkeepers(bookkeepers []bls.PublicKey) (common.Address, error) {
 	if len(bookkeepers) == 1 {
 		return AddressFromPubKey(bookkeepers[0]), nil
 	}

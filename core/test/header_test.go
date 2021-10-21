@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/stretchr/testify/assert"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
@@ -25,7 +25,7 @@ func TestTransaction(t *testing.T) {
 		ConsensusData:    12,
 		ConsensusPayload: []byte{1, 2},
 		NextBookkeeper:   common.ADDRESS_EMPTY,
-		Bookkeepers:      []keypair.PublicKey{acc.PublicKey},
+		Bookkeepers:      []bls.PublicKey{acc.PublicKey},
 		SigData:          [][]byte{{1, 2, 3}},
 	}
 
@@ -56,7 +56,7 @@ func BenchmarkT1(b *testing.B) {
 		ConsensusData:    12,
 		ConsensusPayload: []byte{1, 2},
 		NextBookkeeper:   common.ADDRESS_EMPTY,
-		Bookkeepers:      []keypair.PublicKey{acc.PublicKey},
+		Bookkeepers:      []bls.PublicKey{acc.PublicKey},
 		SigData:          [][]byte{{1, 2, 3}},
 	}
 	buf := common.NewZeroCopySink([]byte(""))
@@ -81,7 +81,7 @@ func BenchmarkT3(b *testing.B) {
 		ConsensusData:    12,
 		ConsensusPayload: []byte{1, 2},
 		NextBookkeeper:   common.ADDRESS_EMPTY,
-		Bookkeepers:      []keypair.PublicKey{acc.PublicKey},
+		Bookkeepers:      []bls.PublicKey{acc.PublicKey},
 		SigData:          [][]byte{{1, 2, 3}},
 	}
 
@@ -106,7 +106,7 @@ func BenchmarkT2(b *testing.B) {
 		ConsensusData:    12,
 		ConsensusPayload: []byte{1, 2},
 		NextBookkeeper:   common.ADDRESS_EMPTY,
-		Bookkeepers:      []keypair.PublicKey{acc.PublicKey},
+		Bookkeepers:      []bls.PublicKey{acc.PublicKey},
 		SigData:          [][]byte{{1, 2, 3}},
 	}
 	for i := 0; i < b.N; i++ {
@@ -131,7 +131,7 @@ type Header struct {
 	NextBookkeeper   common.Address
 
 	//Program *program.Program
-	Bookkeepers []keypair.PublicKey
+	Bookkeepers []bls.PublicKey
 	SigData     [][]byte
 
 	hash *common.Uint256
@@ -142,7 +142,7 @@ func (bd *Header) Serialization(sink *common.ZeroCopySink) error {
 	sink.WriteVarUint(uint64(len(bd.Bookkeepers)))
 
 	for _, pubkey := range bd.Bookkeepers {
-		sink.WriteVarBytes(keypair.SerializePublicKey(pubkey))
+		sink.WriteVarBytes(pubkey.Marshal())
 	}
 
 	sink.WriteVarUint(uint64(len(bd.SigData)))
@@ -187,7 +187,7 @@ func (bd *Header) Deserialization(source *common.ZeroCopySource) error {
 		if eof {
 			return errors.New("[Header] deserialize bookkeepers public key error")
 		}
-		pubkey, err := keypair.DeserializePublicKey(buf)
+		pubkey, err := bls.UnmarshalPublicKey(buf)
 		if err != nil {
 			return err
 		}

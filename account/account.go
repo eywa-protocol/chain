@@ -19,17 +19,16 @@
 package account
 
 import (
-	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	s "github.com/ontio/ontology-crypto/signature"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 )
 
 /* crypto object */
 type Account struct {
-	PrivateKey keypair.PrivateKey
-	PublicKey  keypair.PublicKey
+	PrivateKey bls.PrivateKey
+	PublicKey  bls.PublicKey
 	Address    common.Address
 	SigScheme  s.SignatureScheme
 }
@@ -37,41 +36,41 @@ type Account struct {
 func NewAccount(encrypt string) *Account {
 	// Determine the public key algorithm and parameters according to
 	// the encrypt.
-	var pkAlgorithm keypair.KeyType
-	var params interface{}
+	//var pkAlgorithm keypair.KeyType
+	//var params interface{}
 	var scheme s.SignatureScheme
-	var err error
-	if "" != encrypt {
-		scheme, err = s.GetScheme(encrypt)
-	} else {
-		scheme = s.SHA256withECDSA
-	}
-	if err != nil {
-		log.Warn("unknown signature scheme, use SHA256withECDSA as default.")
-		scheme = s.SHA256withECDSA
-	}
-	switch scheme {
-	case s.SHA224withECDSA, s.SHA3_224withECDSA:
-		pkAlgorithm = keypair.PK_ECDSA
-		params = keypair.P224
-	case s.SHA256withECDSA, s.SHA3_256withECDSA, s.RIPEMD160withECDSA:
-		pkAlgorithm = keypair.PK_ECDSA
-		params = keypair.P256
-	case s.SHA384withECDSA, s.SHA3_384withECDSA:
-		pkAlgorithm = keypair.PK_ECDSA
-		params = keypair.P384
-	case s.SHA512withECDSA, s.SHA3_512withECDSA:
-		pkAlgorithm = keypair.PK_ECDSA
-		params = keypair.P521
-	case s.SM3withSM2:
-		pkAlgorithm = keypair.PK_SM2
-		params = keypair.SM2P256V1
-	case s.SHA512withEDDSA:
-		pkAlgorithm = keypair.PK_EDDSA
-		params = keypair.ED25519
-	}
+	//var err error
+	//if "" != encrypt {
+	//	scheme, err = s.GetScheme(encrypt)
+	//} else {
+	//	scheme = s.SHA256withECDSA
+	//}
+	//if err != nil {
+	//	log.Warn("unknown signature scheme, use SHA256withECDSA as default.")
+	//	scheme = s.SHA256withECDSA
+	//}
+	//switch scheme {
+	//case s.SHA224withECDSA, s.SHA3_224withECDSA:
+	//	pkAlgorithm = keypair.PK_ECDSA
+	//	params = keypair.P224
+	//case s.SHA256withECDSA, s.SHA3_256withECDSA, s.RIPEMD160withECDSA:
+	//	pkAlgorithm = keypair.PK_ECDSA
+	//	params = keypair.P256
+	//case s.SHA384withECDSA, s.SHA3_384withECDSA:
+	//	pkAlgorithm = keypair.PK_ECDSA
+	//	params = keypair.P384
+	//case s.SHA512withECDSA, s.SHA3_512withECDSA:
+	//	pkAlgorithm = keypair.PK_ECDSA
+	//	params = keypair.P521
+	//case s.SM3withSM2:
+	//	pkAlgorithm = keypair.PK_SM2
+	//	params = keypair.SM2P256V1
+	//case s.SHA512withEDDSA:
+	//	pkAlgorithm = keypair.PK_EDDSA
+	//	params = keypair.ED25519
+	//}
 
-	pri, pub, _ := keypair.GenerateKeyPair(pkAlgorithm, params)
+	pri, pub := bls.GenerateRandomKey()
 	address := types.AddressFromPubKey(pub)
 	return &Account{
 		PrivateKey: pri,
@@ -81,11 +80,11 @@ func NewAccount(encrypt string) *Account {
 	}
 }
 
-func (this *Account) PrivKey() keypair.PrivateKey {
+func (this *Account) PrivKey() bls.PrivateKey {
 	return this.PrivateKey
 }
 
-func (this *Account) PubKey() keypair.PublicKey {
+func (this *Account) PubKey() bls.PublicKey {
 	return this.PublicKey
 }
 

@@ -22,9 +22,9 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"io"
 
-	"github.com/ontio/ontology-crypto/keypair"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/serialization"
 )
@@ -43,7 +43,7 @@ type Header struct {
 	NextBookkeeper   common.Address
 
 	//Program *program.Program
-	Bookkeepers []keypair.PublicKey
+	Bookkeepers []bls.PublicKey
 	SigData     [][]byte
 
 	hash *common.Uint256
@@ -54,7 +54,7 @@ func (bd *Header) Serialization(sink *common.ZeroCopySink) error {
 	sink.WriteVarUint(uint64(len(bd.Bookkeepers)))
 
 	for _, pubkey := range bd.Bookkeepers {
-		sink.WriteVarBytes(keypair.SerializePublicKey(pubkey))
+		sink.WriteVarBytes(pubkey.Marshal())
 	}
 
 	sink.WriteVarUint(uint64(len(bd.SigData)))
@@ -92,7 +92,7 @@ func (bd *Header) Serialize(w io.Writer) error {
 	}
 
 	for _, pubkey := range bd.Bookkeepers {
-		if err := serialization.WriteVarBytes(w, keypair.SerializePublicKey(pubkey)); err != nil {
+		if err := serialization.WriteVarBytes(w, pubkey.Marshal()); err != nil {
 			return err
 		}
 	}
@@ -175,7 +175,7 @@ func (bd *Header) Deserialization(source *common.ZeroCopySource) error {
 		if eof {
 			return errors.New("[Header] deserialize bookkeepers public key error")
 		}
-		pubkey, err := keypair.DeserializePublicKey(buf)
+		pubkey, err := bls.UnmarshalPublicKey(buf)
 		if err != nil {
 			return err
 		}
@@ -266,7 +266,7 @@ func (bd *Header) Deserialize(w io.Reader) error {
 		if err != nil {
 			return errors.New("[Header] deserialize bookkeepers public key error")
 		}
-		pubkey, err := keypair.DeserializePublicKey(buf)
+		pubkey, err := bls.UnmarshalPublicKey(buf)
 		if err != nil {
 			return err
 		}

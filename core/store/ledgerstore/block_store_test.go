@@ -229,7 +229,7 @@ func TestHeaderIndexList(t *testing.T) {
 func TestSaveHeader(t *testing.T) {
 	acc1 := account.NewAccount("")
 	acc2 := account.NewAccount("")
-	bookkeeper, err := types.AddressFromBookkeepers([]keypair.PublicKey{acc1.PublicKey, acc2.PublicKey})
+	bookkeeper, err := types.AddressFromBookkeepers([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey})
 	if err != nil {
 		t.Errorf("AddressFromBookkeepers error %s", err)
 		return
@@ -283,7 +283,7 @@ func TestSaveHeader(t *testing.T) {
 func TestBlock(t *testing.T) {
 	acc1 := account.NewAccount("")
 	acc2 := account.NewAccount("")
-	bookkeeper, err := types.AddressFromBookkeepers([]keypair.PublicKey{acc1.PublicKey, acc2.PublicKey})
+	bookkeeper, err := types.AddressFromBookkeepers([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey})
 	if err != nil {
 		t.Errorf("AddressFromBookkeepers error %s", err)
 		return

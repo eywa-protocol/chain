@@ -20,9 +20,9 @@ package types
 import (
 	"bytes"
 	"fmt"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"testing"
 
-	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/stretchr/testify/assert"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 )
@@ -30,7 +30,7 @@ import (
 func TestHeader_Serialize(t *testing.T) {
 	header := Header{}
 	header.Height = 321
-	header.Bookkeepers = make([]keypair.PublicKey, 0)
+	header.Bookkeepers = make([]bls.PublicKey, 0)
 	header.SigData = make([][]byte, 0)
 	sink := common.NewZeroCopySink(nil)
 	header.Serialization(sink)

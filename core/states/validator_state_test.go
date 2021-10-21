@@ -18,16 +18,16 @@
 package states
 
 import (
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"testing"
 
 	"bytes"
 
-	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestValidatorState_Deserialize_Serialize(t *testing.T) {
-	_, pubKey, _ := keypair.GenerateKeyPair(keypair.PK_ECDSA, keypair.P256)
+	_, pubKey := bls.GenerateRandomKey()
 
 	vs := ValidatorState{
 		StateBase: StateBase{(byte)(1)},

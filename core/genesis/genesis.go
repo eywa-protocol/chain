@@ -20,10 +20,10 @@ package genesis
 
 import (
 	"fmt"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/service/utils"
 	"time"
 
-	"github.com/ontio/ontology-crypto/keypair"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/config"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/constants"
@@ -41,10 +41,10 @@ const (
 
 var GenBlockTime = (config.DEFAULT_GEN_BLOCK_TIME * time.Second)
 
-var GenesisBookkeepers []keypair.PublicKey
+var GenesisBookkeepers []bls.PublicKey
 
 // BuildGenesisBlock returns the genesis block with default consensus bookkeeper list
-func BuildGenesisBlock(defaultBookkeeper []keypair.PublicKey, genesisConfig *config.GenesisConfig) (*types.Block, error) {
+func BuildGenesisBlock(defaultBookkeeper []bls.PublicKey, genesisConfig *config.GenesisConfig) (*types.Block, error) {
 	//getBookkeeper
 	GenesisBookkeepers = defaultBookkeeper
 	nextBookkeeper, err := types.AddressFromBookkeepers(defaultBookkeeper)

@@ -22,9 +22,9 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/constants"
 
-	"github.com/ontio/ontology-crypto/keypair"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
 )
@@ -221,7 +221,7 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 
 type Sig struct {
 	SigData [][]byte
-	PubKeys []keypair.PublicKey
+	PubKeys []bls.PublicKey
 	M       uint16
 }
 
@@ -235,7 +235,7 @@ func (this *Sig) Serialize(sink *common.ZeroCopySink) error {
 	}
 	sink.WriteUint16(uint16(len(this.PubKeys)))
 	for _, v := range this.PubKeys {
-		key := keypair.SerializePublicKey(v)
+		key := v.Marshal()
 		sink.WriteVarBytes(key)
 	}
 	sink.WriteUint16(this.M)
@@ -260,13 +260,13 @@ func (this *Sig) Deserialize(source *common.ZeroCopySource) error {
 		return errors.New("[Sig] deserialize read publicKey length error")
 	}
 	this.SigData = sigData
-	pubKeys := make([]keypair.PublicKey, l)
+	pubKeys := make([]bls.PublicKey, l)
 	for i := 0; i < int(l); i++ {
 		data, eof := source.NextVarBytes()
 		if eof {
 			return errors.New("[Sig] deserialize read sigData error")
 		}
-		pk, err := keypair.DeserializePublicKey(data)
+		pk, err := bls.UnmarshalPublicKey(data)
 		if err != nil {
 			return err
 		}
@@ -288,7 +288,7 @@ func (self *Transaction) GetSignatureAddresses() ([]common.Address, error) {
 			if len(prog.PubKeys) == 0 {
 				return nil, errors.New("[GetSignatureAddresses] no public key")
 			} else if len(prog.PubKeys) == 1 {
-				buf := keypair.SerializePublicKey(prog.PubKeys[0])
+				buf := prog.PubKeys[0].Marshal()
 				addrs = append(addrs, common.AddressFromVmCode(buf))
 			} else {
 				sink := common.NewZeroCopySink(nil)
@@ -332,16 +332,17 @@ func (tx *Transaction) Type() common.InventoryType {
 	return common.TRANSACTION
 }
 
-func EncodeMultiPubKeyProgramInto(sink *common.ZeroCopySink, pubkeys []keypair.PublicKey, m uint16) error {
+func EncodeMultiPubKeyProgramInto(sink *common.ZeroCopySink, pubkeys []bls.PublicKey, m uint16) error {
 	n := len(pubkeys)
 	if !(1 <= m && int(m) <= n && n > 1 && n <= constants.MULTI_SIG_MAX_PUBKEY_SIZE) {
 		return errors.New("wrong multi-sig param")
 	}
-	pubkeys = keypair.SortPublicKeys(pubkeys)
+	// TODO check if sort needed here
+	//pubkeys = keypair.SortPublicKeys(pubkeys)
 
 	sink.WriteUint16(uint16(len(pubkeys)))
 	for _, pubkey := range pubkeys {
-		key := keypair.SerializePublicKey(pubkey)
+		key := pubkey.Marshal()
 		sink.WriteVarBytes(key)
 	}
 	sink.WriteUint16(m)

@@ -19,7 +19,7 @@
 package store
 
 import (
-	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/states"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/overlaydb"
@@ -39,7 +39,7 @@ type ExecuteResult struct {
 
 // LedgerStore provides func with store package.
 type LedgerStore interface {
-	InitLedgerStoreWithGenesisBlock(genesisblock *types.Block, defaultBookkeeper []keypair.PublicKey) error
+	InitLedgerStoreWithGenesisBlock(genesisblock *types.Block, defaultBookkeeper []bls.PublicKey) error
 	Close() error
 	AddHeaders(headers []*types.Header) error
 	AddBlock(block *types.Block, stateMerkleRoot common.Uint256) error

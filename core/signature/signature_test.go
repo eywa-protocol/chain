@@ -18,27 +18,47 @@
 package signature
 
 import (
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"testing"
 
-	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/stretchr/testify/assert"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
 )
 
 func TestSign(t *testing.T) {
+
 	acc := account.NewAccount("")
 	data := []byte{1, 2, 3}
+
 	sig, err := Sign(acc, data)
 	assert.Nil(t, err)
 
+	sig2, err := bls.UnmarshalSignature(sig)
+	assert.Nil(t, err)
+
+	verified := sig2.Verify(acc.PublicKey, data)
+	assert.True(t, verified)
+
 	err = Verify(acc.PublicKey, data, sig)
 	assert.Nil(t, err)
+
+}
+
+func TestSignature(t *testing.T) {
+	acc := account.NewAccount("")
+	data := []byte{1, 2, 3}
+	sig, err := Signature(acc, data)
+	assert.Nil(t, err)
+
+	verified := sig.Verify(acc.PublicKey, data)
+	assert.True(t, verified)
+
 }
 
 func TestVerifyMultiSignature(t *testing.T) {
 	data := []byte{1, 2, 3}
 	accs := make([]*account.Account, 0)
-	pubkeys := make([]keypair.PublicKey, 0)
+	pubkeys := make([]bls.PublicKey, 0)
 	N := 4
 	for i := 0; i < N; i++ {
 		accs = append(accs, account.NewAccount(""))

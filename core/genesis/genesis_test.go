@@ -36,7 +36,7 @@ func TestMain(m *testing.M) {
 func TestGenesisBlockInit(t *testing.T) {
 	_, pub, _ := keypair.GenerateKeyPair(keypair.PK_ECDSA, keypair.P256)
 	conf := &config.GenesisConfig{}
-	block, err := BuildGenesisBlock([]keypair.PublicKey{pub}, conf)
+	block, err := BuildGenesisBlock([]bls.PublicKey{pub}, conf)
 	assert.Nil(t, err)
 	assert.NotNil(t, block)
 	assert.NotEqual(t, block.Header.TransactionsRoot, common.UINT256_EMPTY)

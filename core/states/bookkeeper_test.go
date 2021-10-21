@@ -18,24 +18,24 @@
 package states
 
 import (
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"testing"
 
 	"bytes"
 
-	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestBookkeeper_Deserialize_Serialize(t *testing.T) {
-	_, pubKey1, _ := keypair.GenerateKeyPair(keypair.PK_ECDSA, keypair.P256)
-	_, pubKey2, _ := keypair.GenerateKeyPair(keypair.PK_ECDSA, keypair.P256)
-	_, pubKey3, _ := keypair.GenerateKeyPair(keypair.PK_ECDSA, keypair.P256)
-	_, pubKey4, _ := keypair.GenerateKeyPair(keypair.PK_ECDSA, keypair.P256)
+	_, pubKey1 := bls.GenerateRandomKey()
+	_, pubKey2 := bls.GenerateRandomKey()
+	_, pubKey3 := bls.GenerateRandomKey()
+	_, pubKey4 := bls.GenerateRandomKey()
 
 	bk := BookkeeperState{
 		StateBase:      StateBase{(byte)(1)},
-		CurrBookkeeper: []keypair.PublicKey{pubKey1, pubKey2},
-		NextBookkeeper: []keypair.PublicKey{pubKey3, pubKey4},
+		CurrBookkeeper: []bls.PublicKey{pubKey1, pubKey2},
+		NextBookkeeper: []bls.PublicKey{pubKey3, pubKey4},
 	}
 
 	buf := bytes.NewBuffer(nil)

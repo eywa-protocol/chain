@@ -22,6 +22,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"strings"
 	"sync"
 	"time"
@@ -142,23 +143,23 @@ func (this *ClientImpl) NewAccount(label string, typeCode keypair.KeyType, curve
 	if len(passwd) == 0 {
 		return nil, fmt.Errorf("password cannot empty")
 	}
-	prvkey, pubkey, err := keypair.GenerateKeyPair(typeCode, curveCode)
-	if err != nil {
-		return nil, fmt.Errorf("generateKeyPair error:%s", err)
-	}
+	prvkey, pubkey := bls.GenerateRandomKey()
 	address := types.AddressFromPubKey(pubkey)
-	addressBase58 := address.ToBase58()
-	prvSecret, err := keypair.EncryptPrivateKey(prvkey, addressBase58, passwd)
-	if err != nil {
-		return nil, fmt.Errorf("encryptPrivateKey error:%s", err)
-	}
+	// TODO check if we can get reed off EncryptPrivateKey and SetKeyPair
+	//addressBase58 := address.ToBase58()
+	//prvSecret, err := prvkey.Encrypt(string(passwd[:]))
+	//prvSecret, err := prvkey.EncryptPrivateKey(prvkey, addressBase58, passwd)
+	//if err != nil {
+	//	return nil, fmt.Errorf("encryptPrivateKey error:%s", err)
+	//}
 	accData := &AccountData{}
 	accData.Label = label
-	accData.SetKeyPair(prvSecret)
-	accData.SigSch = sigScheme.Name()
-	accData.PubKey = hex.EncodeToString(keypair.SerializePublicKey(pubkey))
 
-	err = this.addAccountData(accData)
+	//accData.SetKeyPair(prvSecret)
+	accData.SigSch = sigScheme.Name()
+	accData.PubKey = hex.EncodeToString(pubkey.Marshal())
+
+	err := this.addAccountData(accData)
 	if err != nil {
 		return nil, err
 	}
@@ -310,11 +311,16 @@ func (this *ClientImpl) GetDefaultAccountMetadata() *AccountMetadata {
 }
 
 func (this *ClientImpl) getAccount(accData *AccountData, passwd []byte) (*Account, error) {
-	privateKey, err := keypair.DecryptWithCustomScrypt(&accData.ProtectedKey, passwd, this.walletData.Scrypt)
+	//privateKey, err := keypair.DecryptWithCustomScrypt(&accData.ProtectedKey, passwd, this.walletData.Scrypt)
+	privateKeyBytes, err := bls.Decrypt(accData.ProtectedKey.Key[:], string(passwd[:]))
 	if err != nil {
 		return nil, err
 	}
-	publicKey := privateKey.Public()
+	privateKey, err := bls.UnmarshalPrivateKey(privateKeyBytes)
+	if err != nil {
+		return nil, err
+	}
+	publicKey := privateKey.PublicKey()
 	addr := types.AddressFromPubKey(publicKey)
 	scheme, err := s.GetScheme(accData.SigSch)
 	if err != nil {

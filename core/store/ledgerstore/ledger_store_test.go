@@ -91,7 +91,7 @@ func TestInitLedgerStoreWithGenesisBlock(t *testing.T) {
 	acc6 := account.NewAccount("")
 	acc7 := account.NewAccount("")
 
-	bookkeepers := []keypair.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey, acc4.PublicKey, acc5.PublicKey, acc6.PublicKey, acc7.PublicKey}
+	bookkeepers := []bls.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey, acc4.PublicKey, acc5.PublicKey, acc6.PublicKey, acc7.PublicKey}
 	bookkeeper, err := types.AddressFromBookkeepers(bookkeepers)
 	if err != nil {
 		t.Errorf("AddressFromBookkeepers error %s", err)

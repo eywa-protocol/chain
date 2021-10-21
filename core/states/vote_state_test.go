@@ -18,21 +18,21 @@
 package states
 
 import (
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"testing"
 
 	"bytes"
 
-	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestVoteState_Deserialize_Serialize(t *testing.T) {
-	_, pubKey1, _ := keypair.GenerateKeyPair(keypair.PK_ECDSA, keypair.P256)
-	_, pubKey2, _ := keypair.GenerateKeyPair(keypair.PK_ECDSA, keypair.P256)
+	_, pubKey1 := bls.GenerateRandomKey()
+	_, pubKey2 := bls.GenerateRandomKey()
 
 	vs := VoteState{
 		StateBase:  StateBase{(byte)(1)},
-		PublicKeys: []keypair.PublicKey{pubKey1, pubKey2},
+		PublicKeys: []bls.PublicKey{pubKey1, pubKey2},
 		Count:      10,
 	}
 

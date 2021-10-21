@@ -20,6 +20,7 @@ package states
 
 import (
 	"bytes"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"io"
 
 	"github.com/ontio/ontology-crypto/keypair"
@@ -28,15 +29,15 @@ import (
 
 type BookkeeperState struct {
 	StateBase
-	CurrBookkeeper []keypair.PublicKey
-	NextBookkeeper []keypair.PublicKey
+	CurrBookkeeper []bls.PublicKey
+	NextBookkeeper []bls.PublicKey
 }
 
 func (this *BookkeeperState) Serialize(w io.Writer) error {
 	this.StateBase.Serialize(w)
 	serialization.WriteUint32(w, uint32(len(this.CurrBookkeeper)))
 	for _, v := range this.CurrBookkeeper {
-		buf := keypair.SerializePublicKey(v)
+		buf := v.Marshal()
 		err := serialization.WriteVarBytes(w, buf)
 		if err != nil {
 			return err
@@ -67,7 +68,7 @@ func (this *BookkeeperState) Deserialize(r io.Reader) error {
 		if err != nil {
 			return err
 		}
-		key, err := keypair.DeserializePublicKey(buf)
+		key, err := bls.UnmarshalPublicKey(buf)
 		this.CurrBookkeeper = append(this.CurrBookkeeper, key)
 	}
 
@@ -80,7 +81,7 @@ func (this *BookkeeperState) Deserialize(r io.Reader) error {
 		if err != nil {
 			return err
 		}
-		key, err := keypair.DeserializePublicKey(buf)
+		key, err := bls.UnmarshalPublicKey(buf)
 		this.NextBookkeeper = append(this.NextBookkeeper, key)
 	}
 	return nil

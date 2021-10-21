@@ -18,22 +18,22 @@
 package types
 
 import (
-	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestAddressFromBookkeepers(t *testing.T) {
-	_, pubKey1, _ := keypair.GenerateKeyPair(keypair.PK_ECDSA, keypair.P256)
-	_, pubKey2, _ := keypair.GenerateKeyPair(keypair.PK_ECDSA, keypair.P256)
-	_, pubKey3, _ := keypair.GenerateKeyPair(keypair.PK_ECDSA, keypair.P256)
-	pubkeys := []keypair.PublicKey{pubKey1, pubKey2, pubKey3}
+	_, pubKey1 := bls.GenerateRandomKey()
+	_, pubKey2 := bls.GenerateRandomKey()
+	_, pubKey3 := bls.GenerateRandomKey()
+	pubkeys := []bls.PublicKey{pubKey1, pubKey2, pubKey3}
 
 	addr, _ := AddressFromBookkeepers(pubkeys)
 	addr2, _ := AddressFromMultiPubKeys(pubkeys, 3)
 	assert.Equal(t, addr, addr2)
 
-	pubkeys = []keypair.PublicKey{pubKey3, pubKey2, pubKey1}
+	pubkeys = []bls.PublicKey{pubKey3, pubKey2, pubKey1}
 	addr3, _ := AddressFromMultiPubKeys(pubkeys, 3)
 
 	assert.Equal(t, addr2, addr3)

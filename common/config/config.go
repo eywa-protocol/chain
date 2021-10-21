@@ -21,10 +21,9 @@ package config
 import (
 	"crypto/sha256"
 	"encoding/binary"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/constants"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
@@ -522,7 +521,7 @@ func NewOntologyConfig() *OntologyConfig {
 	}
 }
 
-func (this *OntologyConfig) GetBookkeepers() ([]keypair.PublicKey, error) {
+func (this *OntologyConfig) GetBookkeepers() ([]bls.PublicKey, error) {
 	var bookKeepers []string
 	switch this.Genesis.ConsensusType {
 	case CONSENSUS_TYPE_VBFT:
@@ -537,16 +536,16 @@ func (this *OntologyConfig) GetBookkeepers() ([]keypair.PublicKey, error) {
 		return nil, fmt.Errorf("Does not support %s consensus", this.Genesis.ConsensusType)
 	}
 
-	pubKeys := make([]keypair.PublicKey, 0, len(bookKeepers))
-	for _, key := range bookKeepers {
-		pubKey, err := hex.DecodeString(key)
-		k, err := keypair.DeserializePublicKey(pubKey)
-		if err != nil {
-			return nil, fmt.Errorf("Incorrectly book keepers key:%s", err)
-		}
-		pubKeys = append(pubKeys, k)
-	}
-	keypair.SortPublicKeys(pubKeys)
+	pubKeys := make([]bls.PublicKey, 0, len(bookKeepers))
+	//for _, key := range bookKeepers {
+	//	pubKey, err := hex.DecodeString(key)
+	//	k, err :=  bls.DeserializePublicKey(pubKey)
+	//	if err != nil {
+	//		return nil, fmt.Errorf("Incorrectly book keepers key:%s", err)
+	//	}
+	//	pubKeys = append(pubKeys, k)
+	//}
+	// bls.SortPublicKeys(pubKeys)
 	return pubKeys, nil
 }
 

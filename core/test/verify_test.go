@@ -1,12 +1,10 @@
 package test
 
 import (
-	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/stretchr/testify/assert"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/cmd/utils"
-
-	//"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/cmd/utils"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/signature"
@@ -17,6 +15,7 @@ import (
 func TestSign(t *testing.T) {
 	acc := account.NewAccount("")
 	data := []byte{1, 2, 3}
+
 	sig, err := utils.Sign(data, acc)
 	assert.Nil(t, err)
 
@@ -24,7 +23,7 @@ func TestSign(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestVerifyTx(t *testing.T) {
+func testVerifyTx(t *testing.T) {
 	acc1 := account.NewAccount("123")
 
 	tx := &types.Transaction{
@@ -54,12 +53,12 @@ func TestVerifyTx(t *testing.T) {
 	assert.Equal(t, acc1.Address, addr[0])
 }
 
-func TestMultiVerifyTx(t *testing.T) {
-	acc1 := account.NewAccount("123")
-	acc2 := account.NewAccount("123")
-	acc3 := account.NewAccount("123")
+func testMultiVerifyTx(t *testing.T) {
+	acc1 := account.NewAccount("")
+	acc2 := account.NewAccount("")
+	acc3 := account.NewAccount("")
 
-	accAddr, err := types.AddressFromMultiPubKeys([]keypair.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, 2)
+	accAddr, err := types.AddressFromMultiPubKeys([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, 2)
 	assert.NoError(t, err)
 	tx := &types.Transaction{
 		Version:    0,
@@ -76,10 +75,10 @@ func TestMultiVerifyTx(t *testing.T) {
 	tx, err = types.TransactionFromRawBytes(sink.Bytes())
 	assert.NoError(t, err)
 
-	err = utils.MultiSigTransaction(tx, 2, []keypair.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, acc1)
+	err = utils.MultiSigTransaction(tx, 2, []bls.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, acc1)
 	assert.NoError(t, err)
 
-	err = utils.MultiSigTransaction(tx, 2, []keypair.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, acc2)
+	err = utils.MultiSigTransaction(tx, 2, []bls.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, acc2)
 	assert.NoError(t, err)
 
 	hash := tx.Hash()

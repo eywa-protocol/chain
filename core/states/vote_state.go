@@ -19,16 +19,16 @@
 package states
 
 import (
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"io"
 
-	"github.com/ontio/ontology-crypto/keypair"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/serialization"
 )
 
 type VoteState struct {
 	StateBase
-	PublicKeys []keypair.PublicKey
+	PublicKeys []bls.PublicKey
 	Count      common.Fixed64
 }
 
@@ -42,7 +42,7 @@ func (this *VoteState) Serialize(w io.Writer) error {
 		return err
 	}
 	for _, v := range this.PublicKeys {
-		buf := keypair.SerializePublicKey(v)
+		buf := v.Marshal()
 		err := serialization.WriteVarBytes(w, buf)
 		if err != nil {
 			return err
@@ -66,7 +66,7 @@ func (this *VoteState) Deserialize(r io.Reader) error {
 		if err != nil {
 			return err
 		}
-		pk, err := keypair.DeserializePublicKey(buf)
+		pk, err := bls.UnmarshalPublicKey(buf)
 		if err != nil {
 			return err
 		}

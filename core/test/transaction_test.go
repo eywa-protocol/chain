@@ -19,9 +19,9 @@
 package test
 
 import (
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"testing"
 
-	"github.com/ontio/ontology-crypto/keypair"
 	"github.com/stretchr/testify/assert"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
@@ -60,7 +60,7 @@ func TestTransaction_Serialize(t *testing.T) {
 	tx.Sigs = []types.Sig{
 		{
 			SigData: [][]byte{sigData},
-			PubKeys: []keypair.PublicKey{acc.PubKey()},
+			PubKeys: []bls.PublicKey{acc.PubKey()},
 			M:       1,
 		},
 	}
