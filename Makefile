@@ -1,3 +1,5 @@
+.PHONY: wrappers
+
 test:
 	go test -failfast -v ./...
 
@@ -9,3 +11,6 @@ test_tx:
 
 test_verify:
 	go test -v ./core/test/ -run TestVerifyTx
+
+wrappers:
+	cd gen && go generate
