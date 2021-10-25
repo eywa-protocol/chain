@@ -1,7 +1,6 @@
 package test
 
 import (
-	"math/big"
 	"testing"
 
 	"github.com/eywa-protocol/bls-crypto/bls"
@@ -59,18 +58,20 @@ func TestMultiVerifyTx(t *testing.T) {
 	acc1 := account.NewAccount("")
 	acc2 := account.NewAccount("")
 	acc3 := account.NewAccount("")
-	Simple := *big.NewInt(1) // FIXME, in real life use coeficients against anti rogue key attack
+
+	// Anti-rogue key attack coefficients
+	as := bls.CalculateAntiRogueCoefficients([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey})
 
 	// Aggregated public key of all participants
-	allPub := acc1.PublicKey.Aggregate(acc2.PublicKey).Aggregate(acc3.PublicKey)
+	allPub := bls.AggregatePublicKeys([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, as)
 
 	// Setup phase - generate membership keys
-	mk1 := acc1.PrivateKey.GenerateMembershipKeyPart(0, allPub, Simple).
-		Aggregate(acc2.PrivateKey.GenerateMembershipKeyPart(0, allPub, Simple)).
-		Aggregate(acc3.PrivateKey.GenerateMembershipKeyPart(0, allPub, Simple))
-	mk2 := acc1.PrivateKey.GenerateMembershipKeyPart(1, allPub, Simple).
-		Aggregate(acc2.PrivateKey.GenerateMembershipKeyPart(1, allPub, Simple)).
-		Aggregate(acc3.PrivateKey.GenerateMembershipKeyPart(1, allPub, Simple))
+	mk1 := acc1.PrivateKey.GenerateMembershipKeyPart(0, allPub, as[0]).
+		Aggregate(acc2.PrivateKey.GenerateMembershipKeyPart(0, allPub, as[1])).
+		Aggregate(acc3.PrivateKey.GenerateMembershipKeyPart(0, allPub, as[2]))
+	mk2 := acc1.PrivateKey.GenerateMembershipKeyPart(1, allPub, as[0]).
+		Aggregate(acc2.PrivateKey.GenerateMembershipKeyPart(1, allPub, as[1])).
+		Aggregate(acc3.PrivateKey.GenerateMembershipKeyPart(1, allPub, as[2]))
 	// mk3 := acc1.PrivateKey.GenerateMembershipKeyPart(2, allPub, Simple).
 	// 	Aggregate(acc2.PrivateKey.GenerateMembershipKeyPart(2, allPub, Simple)).
 	// 	Aggregate(acc3.PrivateKey.GenerateMembershipKeyPart(2, allPub, Simple))
@@ -99,8 +100,9 @@ func TestMultiVerifyTx(t *testing.T) {
 	err = utils.MultiSigTransaction(tx, mk2, allPub, acc2)
 	assert.NoError(t, err)
 
+	subPub := acc1.PublicKey.Aggregate(acc2.PublicKey)
 	hash := tx.Hash()
-	err = signature.VerifyMultiSignature(hash.ToArray(), tx.Sig, allPub, acc1.PublicKey.Aggregate(acc2.PublicKey), 3 /*b11*/)
+	err = signature.VerifyMultiSignature(hash.ToArray(), tx.Sig, allPub, subPub, 3 /*b11*/)
 	assert.NoError(t, err)
 
 	//addr, err := tx.GetSignatureAddresses()
