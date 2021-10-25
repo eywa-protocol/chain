@@ -11,7 +11,6 @@ import (
 	"github.com/eywa-protocol/bls-crypto/bls"
 	base58 "github.com/itchyny/base58-go"
 	"github.com/ontio/ontology-crypto/keypair"
-	c2 "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/crypto/curve"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/crypto/ec"
 	"golang.org/x/crypto/ed25519"
 	"math/big"
@@ -19,6 +18,8 @@ import (
 )
 
 type PublicKey crypto.PublicKey
+
+const ALTBN256 byte = 34
 
 type PrivateKey interface {
 	crypto.PrivateKey
@@ -95,7 +96,7 @@ func SerializePublicKey(key PublicKey) []byte {
 		case ec.BLS:
 			buf.WriteByte(byte(PK_ALTBN256))
 		}
-		label, err := GetCurveLabel(t.Curve)
+		label, err := keypair.GetCurveLabel(t.Curve)
 		if err != nil {
 			panic(err)
 		}
@@ -112,21 +113,13 @@ func SerializePublicKey(key PublicKey) []byte {
 	case bls.PublicKey:
 		fmt.Print("bls")
 		buf.WriteByte(byte(PK_ALTBN256))
-		label, err := GetNamedCurveLabel("ALTBN256")
-		if err != nil {
-			panic(err)
-		}
-		buf.WriteByte(label)
+		buf.WriteByte(ALTBN256)
 		buf.Write(t.Marshal())
 	default:
 		fmt.Print("default")
 	}
 
 	return buf.Bytes()
-}
-
-func GetALTBN256Curve() elliptic.Curve {
-	return c2.ALTBN256()
 }
 
 // DeserializePublicKey parse the byte sequencce to a public key.
@@ -136,7 +129,7 @@ func DeserializePublicKey(data []byte) (PublicKey, error) {
 	}
 	switch KeyType(data[0]) {
 	case PK_ECDSA, PK_SM2:
-		c, err := GetCurve(data[1])
+		c, err := keypair.GetCurve(data[1])
 		if err != nil {
 			return nil, err
 		}
@@ -255,7 +248,7 @@ func SerializePrivateKey(pri PrivateKey) []byte {
 func DeserializePrivateKey(data []byte) (pri PrivateKey, err error) {
 	switch KeyType(data[0]) {
 	case PK_ECDSA, PK_SM2:
-		c, err1 := GetCurve(data[1])
+		c, err1 := keypair.GetCurve(data[1])
 		if err1 != nil {
 			err = err1
 			return
