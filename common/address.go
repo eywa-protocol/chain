@@ -22,6 +22,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"io"
 	"math/big"
 
@@ -31,7 +32,7 @@ import (
 
 const ADDR_LEN = 20
 
-type Address [ADDR_LEN]byte
+type Address common.Address
 
 var ADDRESS_EMPTY = Address{}
 

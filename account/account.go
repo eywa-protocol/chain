@@ -19,8 +19,10 @@
 package account
 
 import (
+	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/eywa-protocol/bls-crypto/bls"
 	s "github.com/ontio/ontology-crypto/signature"
+	//"github.com/ethereum/go-ethereum/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 )
@@ -31,6 +33,7 @@ type Account struct {
 	PublicKey  bls.PublicKey
 	Address    common.Address
 	SigScheme  s.SignatureScheme
+	URL        accounts.URL
 }
 
 func NewAccount(encrypt string) *Account {
