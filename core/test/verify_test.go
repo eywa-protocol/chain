@@ -1,6 +1,9 @@
 package test
 
 import (
+	"math/big"
+	"testing"
+
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/stretchr/testify/assert"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
@@ -9,7 +12,6 @@ import (
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/signature"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
-	"testing"
 )
 
 func TestSign(t *testing.T) {
@@ -23,7 +25,7 @@ func TestSign(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func testVerifyTx(t *testing.T) {
+func TestVerifyTx(t *testing.T) {
 	acc1 := account.NewAccount("123")
 
 	tx := &types.Transaction{
@@ -45,21 +47,36 @@ func testVerifyTx(t *testing.T) {
 	assert.NoError(t, err)
 
 	hash := tx.Hash()
-	err = signature.Verify(acc1.PublicKey, hash.ToArray(), tx.Sigs[0].SigData[0])
+	err = signature.Verify(acc1.PublicKey, hash.ToArray(), tx.Sig)
 	assert.NoError(t, err)
 
-	addr, err := tx.GetSignatureAddresses()
-	assert.NoError(t, err)
-	assert.Equal(t, acc1.Address, addr[0])
+	// addr, err := tx.GetSignatureAddresses()
+	// assert.NoError(t, err)
+	// assert.Equal(t, acc1.Address, addr[0])
 }
 
-func testMultiVerifyTx(t *testing.T) {
+func TestMultiVerifyTx(t *testing.T) {
 	acc1 := account.NewAccount("")
 	acc2 := account.NewAccount("")
 	acc3 := account.NewAccount("")
+	Simple := *big.NewInt(1) // FIXME, in real life use coeficients against anti rogue key attack
 
-	accAddr, err := types.AddressFromMultiPubKeys([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, 2)
-	assert.NoError(t, err)
+	// Aggregated public key of all participants
+	allPub := acc1.PublicKey.Aggregate(acc2.PublicKey).Aggregate(acc3.PublicKey)
+
+	// Setup phase - generate membership keys
+	mk1 := acc1.PrivateKey.GenerateMembershipKeyPart(0, allPub, Simple).
+		Aggregate(acc2.PrivateKey.GenerateMembershipKeyPart(0, allPub, Simple)).
+		Aggregate(acc3.PrivateKey.GenerateMembershipKeyPart(0, allPub, Simple))
+	mk2 := acc1.PrivateKey.GenerateMembershipKeyPart(1, allPub, Simple).
+		Aggregate(acc2.PrivateKey.GenerateMembershipKeyPart(1, allPub, Simple)).
+		Aggregate(acc3.PrivateKey.GenerateMembershipKeyPart(1, allPub, Simple))
+	// mk3 := acc1.PrivateKey.GenerateMembershipKeyPart(2, allPub, Simple).
+	// 	Aggregate(acc2.PrivateKey.GenerateMembershipKeyPart(2, allPub, Simple)).
+	// 	Aggregate(acc3.PrivateKey.GenerateMembershipKeyPart(2, allPub, Simple))
+
+	//accAddr, err := types.AddressFromMultiPubKeys([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, 2)
+	//assert.NoError(t, err)
 	tx := &types.Transaction{
 		Version:    0,
 		TxType:     types.TransactionType(types.Invoke),
@@ -67,25 +84,26 @@ func testMultiVerifyTx(t *testing.T) {
 		ChainID:    0,
 		Payload:    &payload.InvokeCode{Code: []byte("Chain Id")},
 		Attributes: []byte{},
+		Sig:        bls.ZeroSignature(), // FIXME
 	}
 	sink := common.NewZeroCopySink(nil)
-	err = tx.Serialization(sink)
+	err := tx.Serialization(sink)
 	assert.NoError(t, err)
 
 	tx, err = types.TransactionFromRawBytes(sink.Bytes())
 	assert.NoError(t, err)
 
-	err = utils.MultiSigTransaction(tx, 2, []bls.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, acc1)
+	err = utils.MultiSigTransaction(tx, mk1, allPub, acc1)
 	assert.NoError(t, err)
 
-	err = utils.MultiSigTransaction(tx, 2, []bls.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, acc2)
+	err = utils.MultiSigTransaction(tx, mk2, allPub, acc2)
 	assert.NoError(t, err)
 
 	hash := tx.Hash()
-	err = signature.VerifyMultiSignature(hash.ToArray(), tx.Sigs[0].PubKeys, 2, tx.Sigs[0].SigData)
+	err = signature.VerifyMultiSignature(hash.ToArray(), tx.Sig, allPub, acc1.PublicKey.Aggregate(acc2.PublicKey), 3 /*b11*/)
 	assert.NoError(t, err)
 
-	addr, err := tx.GetSignatureAddresses()
-	assert.NoError(t, err)
-	assert.Equal(t, accAddr, addr[0])
+	//addr, err := tx.GetSignatureAddresses()
+	//assert.NoError(t, err)
+	//assert.Equal(t, accAddr, addr[0])
 }

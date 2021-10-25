@@ -179,8 +179,6 @@ github.com/ethereum/go-ethereum v1.9.10/go.mod h1:lXHkVo/MTvsEXfYsmNzelZ8R1e0DTv
 github.com/ethereum/go-ethereum v1.9.25/go.mod h1:vMkFiYLHI4tgPw4k2j4MHKoovchFE8plZ0M9VMk4/oM=
 github.com/ethereum/go-ethereum v1.10.8 h1:0UP5WUR8hh46ffbjJV7PK499+uGEyasRIfffS0vy06o=
 github.com/ethereum/go-ethereum v1.10.8/go.mod h1:pJNuIUYfX5+JKzSD/BTdNsvJSZ1TJqmz0dVyXMAbf6M=
-github.com/eywa-protocol/bls-crypto v0.1.1 h1:hvSQE3dpktyFadNBCPBIHTT/3ccTUbkF3DpuSL5Wo4g=
-github.com/eywa-protocol/bls-crypto v0.1.1/go.mod h1:7zniOGuZnyY4Ew2QW+BhDpzV8EtlNg2RoN1Vm3DTOv0=
 github.com/eywa-protocol/bls-crypto v0.1.2 h1:XmK8mDubg4mVYKm1G8SKRovMmLLC69z1q88zfGGdDk8=
 github.com/eywa-protocol/bls-crypto v0.1.2/go.mod h1:7zniOGuZnyY4Ew2QW+BhDpzV8EtlNg2RoN1Vm3DTOv0=
 github.com/facebookgo/atomicfile v0.0.0-20151019160806-2de1f203e7d5/go.mod h1:JpoxHjuQauoxiFMl1ie8Xc/7TfLuMZ5eOCONd1sUBHg=

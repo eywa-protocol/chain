@@ -22,6 +22,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/constants"
 
@@ -50,7 +51,7 @@ type Transaction struct {
 	Attributes []byte //this must be 0 now, Attribute Array length use VarUint encoding, so byte is enough for extension
 	Payer      common.Address
 	CoinType   CoinType
-	Sigs       []Sig
+	Sig        bls.Signature
 
 	Raw        []byte // raw transaction data
 	hash       common.Uint256
@@ -92,12 +93,15 @@ func (tx *Transaction) Serialization(sink *common.ZeroCopySink) error {
 		return err
 	}
 
-	sink.WriteVarUint(uint64(len(tx.Sigs)))
-	for _, sig := range tx.Sigs {
-		if err := sig.Serialize(sink); err != nil {
-			return err
-		}
-	}
+	sigData := tx.Sig.Marshal()
+	sink.WriteVarUint(uint64(len(sigData)))
+	sink.WriteBytes(sigData)
+	// sink.WriteVarUint(uint64(len(tx.Sigs)))
+	// for _, sig := range tx.Sigs {
+	// 	if err := sig.Serialize(sink); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }
@@ -135,15 +139,25 @@ func (tx *Transaction) Deserialization(source *common.ZeroCopySource) error {
 	if eof {
 		return errors.New("[Deserialization] read sigs length error")
 	}
-	sigs := make([]Sig, l)
-	for i := 0; i < int(l); i++ {
-		var sig Sig
-		if err := sig.Deserialize(source); err != nil {
-			return err
-		}
-		sigs[i] = sig
+	// sigs := make([]Sig, l)
+	// for i := 0; i < int(l); i++ {
+	// 	var sig Sig
+	// 	if err := sig.Deserialize(source); err != nil {
+	// 		return err
+	// 	}
+	// 	sigs[i] = sig
+	// }
+	// tx.Sigs = sigs
+	sigData, eof := source.NextBytes(l)
+	if eof {
+		return errors.New("[Deserialization] read sig data error")
 	}
-	tx.Sigs = sigs
+	sig, err := bls.UnmarshalSignature(sigData)
+	if err != nil {
+		return err
+	}
+	tx.Sig = sig
+
 	pend := source.Pos()
 	lenAll := pend - pstart
 	if lenAll > MAX_TX_SIZE {
@@ -282,25 +296,26 @@ func (this *Sig) Deserialize(source *common.ZeroCopySource) error {
 }
 
 func (self *Transaction) GetSignatureAddresses() ([]common.Address, error) {
-	if len(self.SignedAddr) == 0 {
-		addrs := make([]common.Address, 0, len(self.Sigs))
-		for _, prog := range self.Sigs {
-			if len(prog.PubKeys) == 0 {
-				return nil, errors.New("[GetSignatureAddresses] no public key")
-			} else if len(prog.PubKeys) == 1 {
-				buf := prog.PubKeys[0].Marshal()
-				addrs = append(addrs, common.AddressFromVmCode(buf))
-			} else {
-				sink := common.NewZeroCopySink(nil)
-				if err := EncodeMultiPubKeyProgramInto(sink, prog.PubKeys, prog.M); err != nil {
-					return nil, err
-				}
-				addrs = append(addrs, common.AddressFromVmCode(sink.Bytes()))
-			}
-		}
-		self.SignedAddr = addrs
-	}
-	return self.SignedAddr, nil
+	// if len(self.SignedAddr) == 0 {
+	// 	addrs := make([]common.Address, 0, len(self.Sigs))
+	// 	for _, prog := range self.Sigs {
+	// 		if len(prog.PubKeys) == 0 {
+	// 			return nil, errors.New("[GetSignatureAddresses] no public key")
+	// 		} else if len(prog.PubKeys) == 1 {
+	// 			buf := prog.PubKeys[0].Marshal()
+	// 			addrs = append(addrs, common.AddressFromVmCode(buf))
+	// 		} else {
+	// 			sink := common.NewZeroCopySink(nil)
+	// 			if err := EncodeMultiPubKeyProgramInto(sink, prog.PubKeys, prog.M); err != nil {
+	// 				return nil, err
+	// 			}
+	// 			addrs = append(addrs, common.AddressFromVmCode(sink.Bytes()))
+	// 		}
+	// 	}
+	// 	self.SignedAddr = addrs
+	// }
+	// return self.SignedAddr, nil
+	return nil, nil
 }
 
 type TransactionType byte
