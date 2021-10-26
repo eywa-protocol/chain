@@ -188,7 +188,7 @@ func GetTxHeight(txHash string) (uint32, error) {
 
 func SignTransaction(signer *account.Account, tx *types.Transaction) error {
 	txHash := tx.Hash()
-	tx.Sig = signer.PrivateKey.Sign(txHash.ToArray())
+	tx.Sig.SigData = signer.PrivateKey.Sign(txHash.ToArray())
 	// sigData, err := Sign(txHash.ToArray(), signer)
 	// if err != nil {
 	// 	return fmt.Errorf("sign error:%s", err)
@@ -238,7 +238,8 @@ func MultiSigTransaction(mutTx *types.Transaction, mk bls.Signature, allPub bls.
 
 	txHash := mutTx.Hash()
 	sig := signer.PrivateKey.Multisign(txHash.ToArray(), allPub, mk)
-	mutTx.Sig = mutTx.Sig.Aggregate(sig)
+	mutTx.Sig.SigData = mutTx.Sig.SigData.Aggregate(sig)
+	mutTx.Sig.M |= 1 << signer.Id
 
 	// sigData, err := Sign(txHash.ToArray(), signer)
 	// if err != nil {

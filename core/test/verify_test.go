@@ -14,7 +14,7 @@ import (
 )
 
 func TestSign(t *testing.T) {
-	acc := account.NewAccount("")
+	acc := account.NewAccount(0)
 	data := []byte{1, 2, 3}
 
 	sig, err := utils.Sign(data, acc)
@@ -25,7 +25,7 @@ func TestSign(t *testing.T) {
 }
 
 func TestVerifyTx(t *testing.T) {
-	acc1 := account.NewAccount("123")
+	acc1 := account.NewAccount(0)
 
 	tx := &types.Transaction{
 		Version:    0,
@@ -46,7 +46,7 @@ func TestVerifyTx(t *testing.T) {
 	assert.NoError(t, err)
 
 	hash := tx.Hash()
-	err = signature.Verify(acc1.PublicKey, hash.ToArray(), tx.Sig)
+	err = signature.Verify(acc1.PublicKey, hash.ToArray(), tx.Sig.SigData)
 	assert.NoError(t, err)
 
 	// addr, err := tx.GetSignatureAddresses()
@@ -55,9 +55,9 @@ func TestVerifyTx(t *testing.T) {
 }
 
 func TestMultiVerifyTx(t *testing.T) {
-	acc1 := account.NewAccount("")
-	acc2 := account.NewAccount("")
-	acc3 := account.NewAccount("")
+	acc1 := account.NewAccount(0)
+	acc2 := account.NewAccount(1)
+	acc3 := account.NewAccount(2)
 
 	// Anti-rogue key attack coefficients
 	as := bls.CalculateAntiRogueCoefficients([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey})
@@ -85,7 +85,7 @@ func TestMultiVerifyTx(t *testing.T) {
 		ChainID:    0,
 		Payload:    &payload.InvokeCode{Code: []byte("Chain Id")},
 		Attributes: []byte{},
-		Sig:        bls.ZeroSignature(), // FIXME
+		Sig:        types.Sig{bls.ZeroSignature(), 0}, // FIXME
 	}
 	sink := common.NewZeroCopySink(nil)
 	err := tx.Serialization(sink)
@@ -102,7 +102,7 @@ func TestMultiVerifyTx(t *testing.T) {
 
 	subPub := acc1.PublicKey.Aggregate(acc2.PublicKey)
 	hash := tx.Hash()
-	err = signature.VerifyMultiSignature(hash.ToArray(), tx.Sig, allPub, subPub, 3 /*b11*/)
+	err = signature.VerifyMultiSignature(hash.ToArray(), tx.Sig.SigData, allPub, subPub, int64(tx.Sig.M))
 	assert.NoError(t, err)
 
 	//addr, err := tx.GetSignatureAddresses()

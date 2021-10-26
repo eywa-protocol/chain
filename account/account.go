@@ -19,29 +19,26 @@
 package account
 
 import (
-	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/eywa-protocol/bls-crypto/bls"
-	s "github.com/ontio/ontology-crypto/signature"
 	//"github.com/ethereum/go-ethereum/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 )
 
 /* crypto object */
 type Account struct {
 	PrivateKey bls.PrivateKey
 	PublicKey  bls.PublicKey
-	Address    common.Address
-	SigScheme  s.SignatureScheme
-	URL        accounts.URL
+	Id         byte
+	//Address    common.Address
+	//SigScheme  s.SignatureScheme
+	//URL        accounts.URL
 }
 
-func NewAccount(encrypt string) *Account {
+func NewAccount(id byte) *Account {
 	// Determine the public key algorithm and parameters according to
 	// the encrypt.
 	//var pkAlgorithm keypair.KeyType
 	//var params interface{}
-	var scheme s.SignatureScheme
+	//var scheme s.SignatureScheme
 	//var err error
 	//if "" != encrypt {
 	//	scheme, err = s.GetScheme(encrypt)
@@ -74,12 +71,13 @@ func NewAccount(encrypt string) *Account {
 	//}
 
 	pri, pub := bls.GenerateRandomKey()
-	address := types.AddressFromPubKey(pub)
+	//address := types.AddressFromPubKey(pub)
 	return &Account{
 		PrivateKey: pri,
 		PublicKey:  pub,
-		Address:    address,
-		SigScheme:  scheme,
+		Id:         id,
+		//Address:    address,
+		//SigScheme:  scheme,
 	}
 }
 
@@ -91,9 +89,9 @@ func (this *Account) PubKey() bls.PublicKey {
 	return this.PublicKey
 }
 
-func (this *Account) Scheme() s.SignatureScheme {
+/*func (this *Account) Scheme() s.SignatureScheme {
 	return this.SigScheme
-}
+}*/
 
 //AccountMetadata all account info without private key
 type AccountMetadata struct {

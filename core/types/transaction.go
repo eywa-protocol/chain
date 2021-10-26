@@ -51,7 +51,7 @@ type Transaction struct {
 	Attributes []byte //this must be 0 now, Attribute Array length use VarUint encoding, so byte is enough for extension
 	Payer      common.Address
 	CoinType   CoinType
-	Sig        bls.Signature
+	Sig        Sig
 
 	Raw        []byte // raw transaction data
 	hash       common.Uint256
@@ -93,15 +93,9 @@ func (tx *Transaction) Serialization(sink *common.ZeroCopySink) error {
 		return err
 	}
 
-	sigData := tx.Sig.Marshal()
-	sink.WriteVarUint(uint64(len(sigData)))
-	sink.WriteBytes(sigData)
-	// sink.WriteVarUint(uint64(len(tx.Sigs)))
-	// for _, sig := range tx.Sigs {
-	// 	if err := sig.Serialize(sink); err != nil {
-	// 		return err
-	// 	}
-	// }
+	if err := tx.Sig.Serialize(sink); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -135,25 +129,9 @@ func (tx *Transaction) Deserialization(source *common.ZeroCopySource) error {
 	}
 	temp := sha256.Sum256(rawUnsigned)
 	tx.hash = sha256.Sum256(temp[:])
-	l, eof := source.NextVarUint()
-	if eof {
-		return errors.New("[Deserialization] read sigs length error")
-	}
-	// sigs := make([]Sig, l)
-	// for i := 0; i < int(l); i++ {
-	// 	var sig Sig
-	// 	if err := sig.Deserialize(source); err != nil {
-	// 		return err
-	// 	}
-	// 	sigs[i] = sig
-	// }
-	// tx.Sigs = sigs
-	sigData, eof := source.NextBytes(l)
-	if eof {
-		return errors.New("[Deserialization] read sig data error")
-	}
-	sig, err := bls.UnmarshalSignature(sigData)
-	if err != nil {
+
+	var sig Sig
+	if err := sig.Deserialize(source); err != nil {
 		return err
 	}
 	tx.Sig = sig
@@ -234,60 +212,29 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 }
 
 type Sig struct {
-	SigData [][]byte
-	PubKeys []bls.PublicKey
-	M       uint16
+	SigData bls.Signature
+	//PubKeys []bls.PublicKey
+	M uint64
 }
 
 func (this *Sig) Serialize(sink *common.ZeroCopySink) error {
-	if len(this.PubKeys) == 0 {
-		return errors.New("[Sig Serialize] no pubkeys in sig")
-	}
-	sink.WriteUint16(uint16(len(this.SigData)))
-	for _, v := range this.SigData {
-		sink.WriteVarBytes(v)
-	}
-	sink.WriteUint16(uint16(len(this.PubKeys)))
-	for _, v := range this.PubKeys {
-		key := v.Marshal()
-		sink.WriteVarBytes(key)
-	}
-	sink.WriteUint16(this.M)
+	data := this.SigData.Marshal()
+	sink.WriteVarBytes(data)
+	sink.WriteUint64(this.M)
 	return nil
 }
 
 func (this *Sig) Deserialize(source *common.ZeroCopySource) error {
-	l, eof := source.NextUint16()
+	data, eof := source.NextVarBytes()
 	if eof {
-		return errors.New("[Sig] deserialize read sigData length error")
+		return errors.New("[Sig] deserialize read sigData error")
 	}
-	sigData := make([][]byte, l)
-	for i := 0; i < int(l); i++ {
-		data, eof := source.NextVarBytes()
-		if eof {
-			return errors.New("[Sig] deserialize read sigData error")
-		}
-		sigData[i] = data
+	sig, err := bls.UnmarshalSignature(data)
+	if err != nil {
+		return err
 	}
-	l, eof = source.NextUint16()
-	if eof {
-		return errors.New("[Sig] deserialize read publicKey length error")
-	}
-	this.SigData = sigData
-	pubKeys := make([]bls.PublicKey, l)
-	for i := 0; i < int(l); i++ {
-		data, eof := source.NextVarBytes()
-		if eof {
-			return errors.New("[Sig] deserialize read sigData error")
-		}
-		pk, err := bls.UnmarshalPublicKey(data)
-		if err != nil {
-			return err
-		}
-		pubKeys[i] = pk
-	}
-	this.PubKeys = pubKeys
-	m, eof := source.NextUint16()
+	this.SigData = sig
+	m, eof := source.NextUint64()
 	if eof {
 		return errors.New("[Sig] deserialize read M error")
 	}
@@ -295,28 +242,27 @@ func (this *Sig) Deserialize(source *common.ZeroCopySource) error {
 	return nil
 }
 
-func (self *Transaction) GetSignatureAddresses() ([]common.Address, error) {
-	// if len(self.SignedAddr) == 0 {
-	// 	addrs := make([]common.Address, 0, len(self.Sigs))
-	// 	for _, prog := range self.Sigs {
-	// 		if len(prog.PubKeys) == 0 {
-	// 			return nil, errors.New("[GetSignatureAddresses] no public key")
-	// 		} else if len(prog.PubKeys) == 1 {
-	// 			buf := prog.PubKeys[0].Marshal()
-	// 			addrs = append(addrs, common.AddressFromVmCode(buf))
-	// 		} else {
-	// 			sink := common.NewZeroCopySink(nil)
-	// 			if err := EncodeMultiPubKeyProgramInto(sink, prog.PubKeys, prog.M); err != nil {
-	// 				return nil, err
-	// 			}
-	// 			addrs = append(addrs, common.AddressFromVmCode(sink.Bytes()))
-	// 		}
-	// 	}
-	// 	self.SignedAddr = addrs
-	// }
-	// return self.SignedAddr, nil
-	return nil, nil
-}
+/*func (self *Transaction) GetSignatureAddresses() ([]common.Address, error) {
+	if len(self.SignedAddr) == 0 {
+		addrs := make([]common.Address, 0, len(self.Sigs))
+		for _, prog := range self.Sigs {
+			if len(prog.PubKeys) == 0 {
+				return nil, errors.New("[GetSignatureAddresses] no public key")
+			} else if len(prog.PubKeys) == 1 {
+				buf := prog.PubKeys[0].Marshal()
+				addrs = append(addrs, common.AddressFromVmCode(buf))
+			} else {
+				sink := common.NewZeroCopySink(nil)
+				if err := EncodeMultiPubKeyProgramInto(sink, prog.PubKeys, prog.M); err != nil {
+					return nil, err
+				}
+				addrs = append(addrs, common.AddressFromVmCode(sink.Bytes()))
+			}
+		}
+		self.SignedAddr = addrs
+	}
+	return self.SignedAddr, nil
+}*/
 
 type TransactionType byte
 
