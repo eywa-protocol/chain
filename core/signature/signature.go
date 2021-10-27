@@ -20,6 +20,8 @@ package signature
 
 import (
 	"errors"
+	"math/big"
+
 	"github.com/eywa-protocol/bls-crypto/bls"
 )
 
@@ -39,15 +41,15 @@ func Signature(signer Signer, data []byte) (bls.Signature, error) {
 }
 
 // Verify check the signature of data using pubKey
-func Verify(pubKey bls.PublicKey, data, signature []byte) error {
+func Verify(pubKey bls.PublicKey, data []byte, signature bls.Signature) error {
 
-	sigObj, err := bls.UnmarshalSignature(signature)
+	// sigObj, err := bls.UnmarshalSignature(signature)
 
-	if err != nil {
-		return errors.New("invalid signature data: " + err.Error())
-	}
+	// if err != nil {
+	// 	return errors.New("invalid signature data: " + err.Error())
+	// }
 
-	if !sigObj.Verify(pubKey, data) {
+	if !signature.Verify(pubKey, data) {
 		return errors.New("signature verification failed")
 	}
 
@@ -55,7 +57,7 @@ func Verify(pubKey bls.PublicKey, data, signature []byte) error {
 }
 
 // VerifyMultiSignature check whether more than m sigs are signed by the keys
-func VerifyMultiSignature(data []byte, keys []bls.PublicKey, m int, sigs [][]byte) error {
+func VerifyMultiSignature(data []byte, subSig bls.Signature, allPub bls.PublicKey, subPub bls.PublicKey, mask int64) error {
 	// TODO resore VerifyMultiSignature with bls
 	//n := len(keys)
 	//
@@ -87,5 +89,8 @@ func VerifyMultiSignature(data []byte, keys []bls.PublicKey, m int, sigs [][]byt
 	//	}
 	//}
 
+	if !subSig.VerifyMultisig(allPub, subPub, data, big.NewInt(mask)) {
+		return errors.New("Multisignature verification failed")
+	}
 	return nil
 }

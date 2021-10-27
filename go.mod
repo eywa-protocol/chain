@@ -6,10 +6,8 @@ replace gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain => ./
 
 require (
 	github.com/btcsuite/btcd v0.22.0-beta
-	github.com/davecgh/go-spew v1.1.1
 	github.com/ethereum/go-ethereum v1.10.8
 	github.com/eywa-protocol/bls-crypto v0.1.2
-	github.com/google/uuid v1.1.5
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d
 	github.com/howeyc/gopass v0.0.0-20210920133722-c8aef6fb66ef
 	github.com/itchyny/base58-go v0.1.0
