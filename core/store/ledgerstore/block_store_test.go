@@ -21,13 +21,14 @@ package ledgerstore
 import (
 	"crypto/sha256"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
-	"testing"
-	"time"
 )
 
 func TestVersion(t *testing.T) {
@@ -227,8 +228,8 @@ func TestHeaderIndexList(t *testing.T) {
 }
 
 func TestSaveHeader(t *testing.T) {
-	acc1 := account.NewAccount("")
-	acc2 := account.NewAccount("")
+	acc1 := account.NewAccount(0)
+	acc2 := account.NewAccount(0)
 	bookkeeper, err := types.AddressFromBookkeepers([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey})
 	if err != nil {
 		t.Errorf("AddressFromBookkeepers error %s", err)
@@ -281,8 +282,8 @@ func TestSaveHeader(t *testing.T) {
 }
 
 func TestBlock(t *testing.T) {
-	acc1 := account.NewAccount("")
-	acc2 := account.NewAccount("")
+	acc1 := account.NewAccount(0)
+	acc2 := account.NewAccount(0)
 	bookkeeper, err := types.AddressFromBookkeepers([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey})
 	if err != nil {
 		t.Errorf("AddressFromBookkeepers error %s", err)

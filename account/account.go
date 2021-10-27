@@ -20,6 +20,8 @@ package account
 
 import (
 	"github.com/eywa-protocol/bls-crypto/bls"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 	//"github.com/ethereum/go-ethereum/common"
 )
 
@@ -28,7 +30,7 @@ type Account struct {
 	PrivateKey bls.PrivateKey
 	PublicKey  bls.PublicKey
 	Id         byte
-	//Address    common.Address
+	Address    common.Address
 	//SigScheme  s.SignatureScheme
 	//URL        accounts.URL
 }
@@ -71,12 +73,12 @@ func NewAccount(id byte) *Account {
 	//}
 
 	pri, pub := bls.GenerateRandomKey()
-	//address := types.AddressFromPubKey(pub)
+	address := types.AddressFromPubKey(pub)
 	return &Account{
 		PrivateKey: pri,
 		PublicKey:  pub,
 		Id:         id,
-		//Address:    address,
+		Address:    address,
 		//SigScheme:  scheme,
 	}
 }

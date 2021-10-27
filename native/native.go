@@ -19,8 +19,8 @@ package native
 
 import (
 	"fmt"
+
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/merkle"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/event"
@@ -161,7 +161,7 @@ func (this *NativeService) PutMerkleVal(data []byte) {
 	this.crossHashes = append(this.crossHashes, merkle.HashLeaf(data))
 }
 
-func (this *NativeService) checkAccountAddress(address common.Address) bool {
+/*func (this *NativeService) checkAccountAddress(address common.Address) bool {
 	addresses, err := this.tx.GetSignatureAddresses()
 	if err != nil {
 		log.Errorf("get signature address error:%v", err)
@@ -173,7 +173,7 @@ func (this *NativeService) checkAccountAddress(address common.Address) bool {
 		}
 	}
 	return false
-}
+}*/
 
 func (this *NativeService) checkContractAddress(address common.Address) bool {
 	if this.CallingContext() != common.ADDRESS_EMPTY && this.CallingContext() == address {
@@ -184,7 +184,7 @@ func (this *NativeService) checkContractAddress(address common.Address) bool {
 
 // CheckWitness check whether authorization correct
 func (this *NativeService) CheckWitness(address common.Address) bool {
-	if this.checkAccountAddress(address) || this.checkContractAddress(address) {
+	if /*this.checkAccountAddress(address) ||*/ this.checkContractAddress(address) {
 		return true
 	}
 	return false

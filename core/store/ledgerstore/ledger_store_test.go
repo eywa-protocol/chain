@@ -20,6 +20,9 @@ package ledgerstore
 
 import (
 	"fmt"
+	"os"
+	"testing"
+
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
@@ -27,8 +30,6 @@ import (
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/genesis"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
-	"os"
-	"testing"
 )
 
 var testBlockStore *BlockStore
@@ -83,13 +84,13 @@ func TestMain(m *testing.M) {
 }
 
 func TestInitLedgerStoreWithGenesisBlock(t *testing.T) {
-	acc1 := account.NewAccount("")
-	acc2 := account.NewAccount("")
-	acc3 := account.NewAccount("")
-	acc4 := account.NewAccount("")
-	acc5 := account.NewAccount("")
-	acc6 := account.NewAccount("")
-	acc7 := account.NewAccount("")
+	acc1 := account.NewAccount(0)
+	acc2 := account.NewAccount(0)
+	acc3 := account.NewAccount(0)
+	acc4 := account.NewAccount(0)
+	acc5 := account.NewAccount(0)
+	acc6 := account.NewAccount(0)
+	acc7 := account.NewAccount(0)
 
 	bookkeepers := []bls.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey, acc4.PublicKey, acc5.PublicKey, acc6.PublicKey, acc7.PublicKey}
 	bookkeeper, err := types.AddressFromBookkeepers(bookkeepers)

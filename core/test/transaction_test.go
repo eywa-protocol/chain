@@ -19,8 +19,9 @@
 package test
 
 import (
-	"github.com/eywa-protocol/bls-crypto/bls"
 	"testing"
+
+	"github.com/eywa-protocol/bls-crypto/bls"
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
@@ -53,16 +54,14 @@ func TestTransaction_Serialize(t *testing.T) {
 	err = tx.SerializeUnsigned(sink)
 	assert.NoError(t, err)
 
-	acc := account.NewAccount("123456")
+	acc := account.NewAccount(0)
 	sigData, err := signature.Sign(acc, sink.Bytes())
 	assert.NoError(t, err)
 
-	tx.Sigs = []types.Sig{
-		{
-			SigData: [][]byte{sigData},
-			PubKeys: []bls.PublicKey{acc.PubKey()},
-			M:       1,
-		},
+	sig, _ := bls.UnmarshalSignature(sigData)
+	tx.Sig = types.Sig{
+		SigData: sig,
+		M:       1,
 	}
 	sink.Reset()
 

@@ -20,21 +20,21 @@ package ledgerstore
 
 import (
 	"fmt"
-	"github.com/eywa-protocol/bls-crypto/bls"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/states"
-	scom "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native"
 	"os"
 	"sort"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/eywa-protocol/bls-crypto/bls"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/states"
+	scom "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/common"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native"
+
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/config"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/signature"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/overlaydb"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
@@ -437,12 +437,12 @@ func (this *LedgerStoreImp) verifyHeader(header *types.Header, vbftPeerInfo map[
 		//		return vbftPeerInfo, fmt.Errorf("invalid pubkey :%v", pubkey)
 		//	}
 		//}
-		hash := header.Hash()
-		err = signature.VerifyMultiSignature(hash[:], header.Bookkeepers, m, header.SigData)
-		if err != nil {
-			log.Errorf("VerifyMultiSignature:%s,Bookkeepers:%d,pubkey:%d,heigh:%d", err, len(header.Bookkeepers), len(vbftPeerInfo), header.Height)
-			return vbftPeerInfo, err
-		}
+		// hash := header.Hash()
+		// err = signature.VerifyMultiSignature(hash[:], header.Bookkeepers, m, header.SigData)
+		// if err != nil {
+		// 	log.Errorf("VerifyMultiSignature:%s,Bookkeepers:%d,pubkey:%d,heigh:%d", err, len(header.Bookkeepers), len(vbftPeerInfo), header.Height)
+		// 	return vbftPeerInfo, err
+		// }
 		//blkInfo, err := vconfig.VbftBlock(header)
 		//if err != nil {
 		//	return vbftPeerInfo, err
@@ -464,12 +464,12 @@ func (this *LedgerStoreImp) verifyHeader(header *types.Header, vbftPeerInfo map[
 			return vbftPeerInfo, fmt.Errorf("bookkeeper address error")
 		}
 
-		m := len(header.Bookkeepers) - (len(header.Bookkeepers)-1)/3
-		hash := header.Hash()
-		err = signature.VerifyMultiSignature(hash[:], header.Bookkeepers, m, header.SigData)
-		if err != nil {
-			return vbftPeerInfo, err
-		}
+		// m := len(header.Bookkeepers) - (len(header.Bookkeepers)-1)/3
+		// hash := header.Hash()
+		// err = signature.VerifyMultiSignature(hash[:], header.Bookkeepers, m, header.SigData)
+		// if err != nil {
+		// 	return vbftPeerInfo, err
+		// }
 	}
 	return vbftPeerInfo, nil
 }

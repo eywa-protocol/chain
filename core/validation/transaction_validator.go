@@ -18,22 +18,8 @@
 
 package validation
 
-import (
-	"errors"
-	"fmt"
-
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/constants"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/ledger"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/signature"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
-	ontErrors "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/errors"
-)
-
 // VerifyTransaction verifys received single transaction
-func VerifyTransaction(tx *types.Transaction) ontErrors.ErrCode {
+/*func VerifyTransaction(tx *types.Transaction) ontErrors.ErrCode {
 	if err := checkTransactionSignatures(tx); err != nil {
 		log.Info("transaction verify error:", err)
 		return ontErrors.ErrVerifySignature
@@ -108,4 +94,4 @@ func checkTransactionPayload(tx *types.Transaction) error {
 		return errors.New(fmt.Sprint("[txValidator], unimplemented transaction payload type.", pld))
 	}
 	return nil
-}
+}*/

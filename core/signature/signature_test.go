@@ -18,8 +18,9 @@
 package signature
 
 import (
-	"github.com/eywa-protocol/bls-crypto/bls"
 	"testing"
+
+	"github.com/eywa-protocol/bls-crypto/bls"
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
@@ -27,7 +28,7 @@ import (
 
 func TestSign(t *testing.T) {
 
-	acc := account.NewAccount("")
+	acc := account.NewAccount(0)
 	data := []byte{1, 2, 3}
 
 	sig, err := Sign(acc, data)
@@ -39,13 +40,13 @@ func TestSign(t *testing.T) {
 	verified := sig2.Verify(acc.PublicKey, data)
 	assert.True(t, verified)
 
-	err = Verify(acc.PublicKey, data, sig)
+	err = Verify(acc.PublicKey, data, sig2)
 	assert.Nil(t, err)
 
 }
 
 func TestSignature(t *testing.T) {
-	acc := account.NewAccount("")
+	acc := account.NewAccount(0)
 	data := []byte{1, 2, 3}
 	sig, err := Signature(acc, data)
 	assert.Nil(t, err)
@@ -55,27 +56,4 @@ func TestSignature(t *testing.T) {
 
 }
 
-func TestVerifyMultiSignature(t *testing.T) {
-	data := []byte{1, 2, 3}
-	accs := make([]*account.Account, 0)
-	pubkeys := make([]bls.PublicKey, 0)
-	N := 4
-	for i := 0; i < N; i++ {
-		accs = append(accs, account.NewAccount(""))
-	}
-	sigs := make([][]byte, 0)
-
-	for _, acc := range accs {
-		sig, _ := Sign(acc, data)
-		sigs = append(sigs, sig)
-		pubkeys = append(pubkeys, acc.PublicKey)
-	}
-
-	err := VerifyMultiSignature(data, pubkeys, N, sigs)
-	assert.Nil(t, err)
-
-	pubkeys[0], pubkeys[1] = pubkeys[1], pubkeys[0]
-	err = VerifyMultiSignature(data, pubkeys, N, sigs)
-	assert.Nil(t, err)
-
-}
+// Multisignature is verified in TestMultiVerifyTx

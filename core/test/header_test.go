@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"testing"
+
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/stretchr/testify/assert"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
-	"testing"
 )
 
 func TestTransaction(t *testing.T) {
-	acc := account.NewAccount("123")
+	acc := account.NewAccount(0)
 	header := types.Header{
 		Version:          0,
 		ChainID:          0,
@@ -43,7 +44,7 @@ func TestTransaction(t *testing.T) {
 }
 
 func BenchmarkT1(b *testing.B) {
-	acc := account.NewAccount("123")
+	acc := account.NewAccount(0)
 	header := Header{
 		Version:          0,
 		ChainID:          0,
@@ -69,7 +70,7 @@ func BenchmarkT1(b *testing.B) {
 }
 
 func BenchmarkT3(b *testing.B) {
-	acc := account.NewAccount("123")
+	acc := account.NewAccount(0)
 	header := types.Header{
 		Version:          0,
 		ChainID:          0,
@@ -94,7 +95,7 @@ func BenchmarkT3(b *testing.B) {
 }
 
 func BenchmarkT2(b *testing.B) {
-	acc := account.NewAccount("123")
+	acc := account.NewAccount(0)
 	header := types.Header{
 		Version:          0,
 		ChainID:          0,
