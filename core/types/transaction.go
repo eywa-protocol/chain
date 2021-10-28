@@ -212,14 +212,14 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 }
 
 type Sig struct {
-	SigData bls.Signature
-	//PubKeys []bls.PublicKey
-	M uint64
+	SigData bls.Signature // aggregated signature of all who signed
+	PubKey  bls.PublicKey // aggregated public key of all who signed
+	M       uint64        // bitmask of all who signed
 }
 
 func (this *Sig) Serialize(sink *common.ZeroCopySink) error {
-	data := this.SigData.Marshal()
-	sink.WriteVarBytes(data)
+	sink.WriteVarBytes(this.SigData.Marshal())
+	sink.WriteVarBytes(this.PubKey.Marshal())
 	sink.WriteUint64(this.M)
 	return nil
 }
@@ -234,6 +234,17 @@ func (this *Sig) Deserialize(source *common.ZeroCopySource) error {
 		return err
 	}
 	this.SigData = sig
+
+	data, eof = source.NextVarBytes()
+	if eof {
+		return errors.New("[Sig] deserialize read pubKey error")
+	}
+	pk, err := bls.UnmarshalPublicKey(data)
+	if err != nil {
+		return err
+	}
+	this.PubKey = pk
+
 	m, eof := source.NextUint64()
 	if eof {
 		return errors.New("[Sig] deserialize read M error")

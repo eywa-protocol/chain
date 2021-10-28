@@ -22,6 +22,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -236,10 +237,15 @@ func MultiSigTransaction(mutTx *types.Transaction, mk bls.Signature, allPub bls.
 	// 	mutTx.Sigs = make([]types.Sig, 0)
 	// }
 
+	m := uint64(1) << signer.Id
+	if mutTx.Sig.M&m != 0 {
+		return errors.New("MultiSigTransaction attempt to sign one more time")
+	}
+	mutTx.Sig.M |= m
 	txHash := mutTx.Hash()
 	sig := signer.PrivateKey.Multisign(txHash.ToArray(), allPub, mk)
+	mutTx.Sig.PubKey = mutTx.Sig.PubKey.Aggregate(signer.PublicKey)
 	mutTx.Sig.SigData = mutTx.Sig.SigData.Aggregate(sig)
-	mutTx.Sig.M |= 1 << signer.Id
 
 	// sigData, err := Sign(txHash.ToArray(), signer)
 	// if err != nil {
