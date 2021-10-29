@@ -85,7 +85,7 @@ func TestMultiVerifyTx(t *testing.T) {
 		ChainID:    0,
 		Payload:    &payload.InvokeCode{Code: []byte("Chain Id")},
 		Attributes: []byte{},
-		Sig:        types.Sig{bls.ZeroSignature(), 0}, // FIXME
+		Sig:        types.Sig{bls.ZeroSignature(), bls.ZeroPublicKey(), 0}, // FIXME
 	}
 	sink := common.NewZeroCopySink(nil)
 	err := tx.Serialization(sink)
@@ -100,9 +100,8 @@ func TestMultiVerifyTx(t *testing.T) {
 	err = utils.MultiSigTransaction(tx, mk2, allPub, acc2)
 	assert.NoError(t, err)
 
-	subPub := acc1.PublicKey.Aggregate(acc2.PublicKey)
 	hash := tx.Hash()
-	err = signature.VerifyMultiSignature(hash.ToArray(), tx.Sig.SigData, allPub, subPub, int64(tx.Sig.M))
+	err = signature.VerifyMultiSignature(hash.ToArray(), tx.Sig.SigData, allPub, tx.Sig.PubKey, int64(tx.Sig.M))
 	assert.NoError(t, err)
 
 	//addr, err := tx.GetSignatureAddresses()
