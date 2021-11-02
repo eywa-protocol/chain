@@ -259,7 +259,7 @@ type TransactionType byte
 const (
 	Invoke TransactionType = 0xd1
 	Node   TransactionType = 0xd2
-	Epoch  TransactionType = 0x221
+	Epoch  TransactionType = 0x22
 	UpTime TransactionType = 0xd4
 )
 
