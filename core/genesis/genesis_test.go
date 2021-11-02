@@ -21,4 +21,6 @@ func TestGenesisBlockInit(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, block)
 	assert.NotEqual(t, block.Header.TransactionsRoot, common.UINT256_EMPTY)
+	assert.NotZero(t, len(block.Transactions))
+	assert.NotNil(t, block.Transactions[0].Payload)
 }

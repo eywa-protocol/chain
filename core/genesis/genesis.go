@@ -27,19 +27,21 @@ var GenesisBookkeepers []bls.PublicKey
 
 // BuildGenesisBlock returns the genesis block with default consensus bookkeeper list
 func BuildGenesisBlock(defaultBookkeeper []bls.PublicKey) (*types.Block, error) {
-	//getBookkeeper
+
 	GenesisBookkeepers = defaultBookkeeper
 	nextBookkeeper, err := types.AddressFromPubLeySlice(defaultBookkeeper)
 	if err != nil {
 		return nil, fmt.Errorf("[Block],BuildGenesisBlock err with GetBookkeeperAddress: %s", err)
 	}
-	conf := common.NewZeroCopySink(nil)
-	nodeManagerConfig := newNodeManagerInit(conf.Bytes())
+	conf := common.NewZeroCopySink([]byte{1, 2, 3, 4, 5})
+	fmt.Printf("\n - - - - -%v ", conf.Bytes())
+	nodeManagerConfig := newNodeManagerInit(defaultBookkeeper[0].Marshal())
+	fmt.Printf(" \n- - - - - %v", conf.Bytes())
 	consensusPayload := []byte("0")
 	if err != nil {
 		return nil, fmt.Errorf("consensus genesis init failed: %s", err)
 	}
-
+	fmt.Printf("\npayload %v", nodeManagerConfig.Payload)
 	//blockdata
 	genesisHeader := &types.Header{
 		ChainID:          config.GetChainIdByNetId(config.DefConfig.P2PNode.NetworkId),
@@ -73,6 +75,14 @@ func newNodeManagerInit(config []byte) *types.Transaction {
 	return tx
 }
 
+func newNodeManagerEpochInit(config []byte) *types.Transaction {
+	tx, err := NewInitNodeManagerEpochTransaction(config)
+	if err != nil {
+		panic("construct genesis node manager transaction error ")
+	}
+	return tx
+}
+
 //NewInvokeTransaction return smart contract invoke transaction
 func NewInvokeTransaction(invokeCode []byte, nonce uint32) *types.Transaction {
 	invokePayload := &payload.InvokeCode{
@@ -94,6 +104,25 @@ func NewInvokeTransaction(invokeCode []byte, nonce uint32) *types.Transaction {
 	return tx
 }
 
+//NewInvokeTransaction return smart contract invoke transaction
+func NewEpochTransaction(invokeCode []byte, nonce uint32) *types.Transaction {
+
+	tx := &types.Transaction{
+		TxType:  types.Epoch,
+		Payload: &payload.InvokeCode{Code: invokeCode},
+		Nonce:   nonce,
+		ChainID: config.GetChainIdByNetId(config.DefConfig.P2PNode.NetworkId),
+	}
+
+	sink := common.NewZeroCopySink(nil)
+	err := tx.Serialization(sink)
+	if err != nil {
+		return &types.Transaction{}
+	}
+	tx, err = types.TransactionFromRawBytes(sink.Bytes())
+	return tx
+}
+
 func NewInitNodeManagerTransaction(
 	paramBytes []byte,
 ) (*types.Transaction, error) {
@@ -101,6 +130,16 @@ func NewInitNodeManagerTransaction(
 		Method: INIT_CONFIG, Args: paramBytes}
 	invokeCode := new(common.ZeroCopySink)
 	contractInvokeParam.Serialization(invokeCode)
-
 	return NewInvokeTransaction(invokeCode.Bytes(), 0), nil
+}
+
+func NewInitNodeManagerEpochTransaction(
+	paramBytes []byte,
+) (*types.Transaction, error) {
+	contractInvokeParam := &states.ContractInvokeParam{Address: utils.NodeManagerContractAddress,
+		Method: INIT_CONFIG, Args: paramBytes}
+	invokeCode := new(common.ZeroCopySink)
+	contractInvokeParam.Serialization(invokeCode)
+
+	return NewEpochTransaction(invokeCode.Bytes(), 0), nil
 }

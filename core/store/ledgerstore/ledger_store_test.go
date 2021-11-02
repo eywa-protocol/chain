@@ -80,6 +80,7 @@ func TestInitLedgerStoreWithGenesisBlock(t *testing.T) {
 	require.NotEqual(t, bookkeeper, common.Address{})
 
 	block, err := genesis.BuildGenesisBlock(bookkeepers)
+	require.NoError(t, err)
 	//header := &types.Header{
 	//	Version:          0,
 	//	PrevBlockHash:    common.Uint256{},

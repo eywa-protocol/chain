@@ -51,6 +51,8 @@ func (tx *Transaction) SerializeUnsigned(sink *common.ZeroCopySink) error {
 	switch pl := tx.Payload.(type) {
 	case *payload.InvokeCode:
 		pl.Serialization(sink)
+	case *payload.Epoch:
+		pl.Serialization(sink)
 	default:
 		return errors.New("wrong transaction payload type")
 	}
@@ -154,6 +156,14 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 			return err
 		}
 		tx.Payload = pl
+
+	case Epoch:
+		pl := new(payload.Epoch)
+		err := pl.Deserialization(source)
+		if err != nil {
+			return err
+		}
+
 	default:
 		return fmt.Errorf("unsupported tx type %v", tx.Type())
 	}
@@ -249,7 +259,7 @@ const (
 	Invoke            TransactionType = 0xd1
 	AddNode           TransactionType = 0xd2
 	AddCrosschainCall TransactionType = 0xd3
-	AddEpoch          TransactionType = 0xd4
+	Epoch             TransactionType = 0xa1
 	AddUpTime         TransactionType = 0xd5
 )
 
@@ -285,7 +295,7 @@ func EncodeMultiPubKeyProgramInto(sink *common.ZeroCopySink, pubkeys []bls.Publi
 	pubkeys = SortPublicKeys(pubkeys)
 	sink.WriteUint16(uint16(len(pubkeys)))
 	for _, pubkey := range pubkeys {
-		fmt.Printf("\npubkey %v", common.ToHexString(pubkey.Marshal()))
+		//fmt.Printf("\npubkey %v", common.ToHexString(pubkey.Marshal()))
 		key := pubkey.Marshal()
 		sink.WriteVarBytes(key)
 	}

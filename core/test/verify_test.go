@@ -28,7 +28,7 @@ func TestVerifyTx(t *testing.T) {
 	acc1 := account.NewAccount(0)
 
 	tx := &types.Transaction{
-		TxType:     types.TransactionType(types.Invoke),
+		TxType:     types.TransactionType(types.Epoch),
 		Nonce:      1,
 		ChainID:    0,
 		Payload:    &payload.InvokeCode{Code: []byte("Chain Id")},

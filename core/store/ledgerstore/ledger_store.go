@@ -800,8 +800,17 @@ func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cach
 			log.Debugf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), err)
 		}
 		return notify, crossHashes, nil
+	} else if tx.TxType == types.Epoch {
+		crossHashes, err := this.stateStore.HandleEpochTransaction(this, overlay, cache, tx, block, notify)
+		if overlay.Error() != nil {
+			return nil, nil, fmt.Errorf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), overlay.Error())
+		}
+		if err != nil {
+			log.Debugf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), err)
+		}
+		return notify, crossHashes, nil
 	} else {
-		return nil, nil, fmt.Errorf("Unsupported transaction type!")
+		return nil, nil, fmt.Errorf("Unsupported transaction type! type=%v payload=%v", tx.TxType, tx.Payload)
 	}
 }
 

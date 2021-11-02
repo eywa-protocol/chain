@@ -34,6 +34,20 @@ func (self *StateStore) HandleInvokeTransaction(store store.LedgerStore, overlay
 	return service.GetCrossHashes(), nil
 }
 
+func (self *StateStore) HandleEpochTransaction(store store.LedgerStore, overlay *overlaydb.OverlayDB, cache *storage.CacheDB,
+	tx *types.Transaction, block *types.Block, notify *event.ExecuteNotify) ([]common.Uint256, error) {
+	var epoch = tx.Payload.(*payload.Epoch)
+	service, err := native.NewNativeService(cache, tx, block.Header.Timestamp, block.Header.Height,
+		block.Hash(), block.Header.ChainID, epoch.Code, false)
+	if err != nil {
+		return nil, fmt.Errorf("HandleInvokeTransaction Error: %+v\n", err)
+	}
+	notify.Notify = append(notify.Notify, service.GetNotify()...)
+	notify.State = event.CONTRACT_STATE_SUCCESS
+	service.GetCacheDB().Commit()
+	return service.GetCrossHashes(), nil
+}
+
 func SaveNotify(eventStore scommon.EventStore, txHash common.Uint256, notify *event.ExecuteNotify) error {
 	if !config.DefConfig.Common.EnableEventLog {
 		return nil
