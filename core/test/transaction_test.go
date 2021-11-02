@@ -55,7 +55,7 @@ func TestEpochTransaction_Serialize(t *testing.T) {
 		TxType:     types.Epoch,
 		Nonce:      1,
 		ChainID:    0,
-		Payload:    &payload.Epoch{Code: []byte("Chain Id")},
+		Payload:    &payload.Epoch{Data: []byte("Chain Id")},
 		Attributes: []byte("Chain Id"),
 	}
 
@@ -83,7 +83,6 @@ func TestEpochTransaction_Serialize(t *testing.T) {
 	assert.NoError(t, err)
 
 	tx = new(types.Transaction)
-	t.Log(tx.TxType)
 	err = tx.Deserialization(common.NewZeroCopySource(sink.Bytes()))
 	assert.NoError(t, err)
 	t.Log(tx.TxType)

@@ -16,7 +16,7 @@ const MAX_TX_SIZE = 1024 * 1024 // The max size of a transaction to prevent DOS 
 type CoinType byte
 
 const (
-	ONG CoinType = iota
+	EYW CoinType = iota
 	ETH
 	BTC
 )
@@ -184,7 +184,7 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 		return errors.New("[deserializationUnsigned] read coinType error")
 	}
 	tx.CoinType = CoinType(coinType)
-	if tx.CoinType != ONG {
+	if tx.CoinType != EYW {
 		return errors.New("[deserializationUnsigned] unsupported coinType")
 	}
 	return nil
@@ -257,11 +257,10 @@ func (this *Sig) Deserialize(source *common.ZeroCopySource) error {
 type TransactionType byte
 
 const (
-	Invoke            TransactionType = 0xd1
-	AddNode           TransactionType = 0xd2
-	AddCrosschainCall TransactionType = 0xd3
-	Epoch             TransactionType = 0xa1
-	AddUpTime         TransactionType = 0xd5
+	Invoke TransactionType = 0xd1
+	Node   TransactionType = 0xd2
+	Epoch  TransactionType = 0x221
+	UpTime TransactionType = 0xd4
 )
 
 // Payload define the func for loading the payload data

@@ -38,7 +38,7 @@ func (self *StateStore) HandleEpochTransaction(store store.LedgerStore, overlay 
 	tx *types.Transaction, block *types.Block, notify *event.ExecuteNotify) ([]common.Uint256, error) {
 	var epoch = tx.Payload.(*payload.Epoch)
 	service, err := native.NewNativeService(cache, tx, block.Header.Timestamp, block.Header.Height,
-		block.Hash(), block.Header.ChainID, epoch.Code, false)
+		block.Hash(), block.Header.ChainID, epoch.Data, false)
 	if err != nil {
 		return nil, fmt.Errorf("HandleInvokeTransaction Error: %+v\n", err)
 	}

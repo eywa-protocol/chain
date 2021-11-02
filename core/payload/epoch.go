@@ -6,7 +6,7 @@ import (
 )
 
 type Epoch struct {
-	Code []byte
+	Data []byte
 }
 
 //note: InvokeCode.Code has data reference of param source
@@ -16,10 +16,10 @@ func (self *Epoch) Deserialization(source *common.ZeroCopySource) error {
 		return fmt.Errorf("[InvokeCode] deserialize code error")
 	}
 
-	self.Code = code
+	self.Data = code
 	return nil
 }
 
 func (self *Epoch) Serialization(sink *common.ZeroCopySink) {
-	sink.WriteVarBytes(self.Code)
+	sink.WriteVarBytes(self.Data)
 }
