@@ -1,7 +1,3 @@
-/*
-* Copyright 2021 by EYWA chain <blockchain@digiu.ai>
-*/
-
 package types
 
 const CURR_TX_VERSION = 0

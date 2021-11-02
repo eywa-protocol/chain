@@ -1,6 +1,6 @@
-/*Copyright 2021 by Bogdan Sivochkin <b.sivochkin@digiu.ai>
-
-package ledgerstore
+/*
+* Copyright 2021 by EYWA chain <blockchain@digiu.ai>
+ */package ledgerstore
 
 import (
 	"fmt"

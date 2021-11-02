@@ -1,8 +1,6 @@
 package common
 
-/*
-* Copyright 2021 by EYWA chain <blockchain@digiu.ai>
-*/
+
 import (
 	"crypto/sha256"
 )

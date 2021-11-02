@@ -1,11 +1,7 @@
-/*
-* Copyright 2021 by EYWA chain <blockchain@digiu.ai>
-*/
+package overlaydb
 
 // this implementation is based on goleveldb "https://github.com/syndtr/goleveldb"
-// the semantics of Delete(key) operation is changed to Put(key, nil) to support overlaydb
-
-package overlaydb
+// the semantics of Delete(key) operation is changed to Put(key, nil) to support overlaydbpackage overlaydb
 
 import (
 	"math/rand"

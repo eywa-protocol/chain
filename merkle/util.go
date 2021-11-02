@@ -1,7 +1,3 @@
-/*
-* Copyright 2021 by EYWA chain <blockchain@digiu.ai>
-*/
-
 package merkle
 
 // return the number of 1 bit

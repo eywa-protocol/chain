@@ -1,8 +1,6 @@
 package test
 
-/*
-* Copyright 2021 by EYWA chain <blockchain@digiu.ai>
-*/
+
 import (
 	"bytes"
 	"crypto/sha256"
