@@ -9,7 +9,6 @@ import (
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/config"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/genesis"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
@@ -80,8 +79,7 @@ func TestInitLedgerStoreWithGenesisBlock(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, bookkeeper, common.Address{})
 
-	genesisConfig := config.DefConfig.Genesis
-	block, err := genesis.BuildGenesisBlock(bookkeepers, genesisConfig)
+	block, err := genesis.BuildGenesisBlock(bookkeepers)
 	//header := &types.Header{
 	//	Version:          0,
 	//	PrevBlockHash:    common.Uint256{},

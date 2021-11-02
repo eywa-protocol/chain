@@ -26,7 +26,7 @@ var GenBlockTime = (config.DEFAULT_GEN_BLOCK_TIME * time.Second)
 var GenesisBookkeepers []bls.PublicKey
 
 // BuildGenesisBlock returns the genesis block with default consensus bookkeeper list
-func BuildGenesisBlock(defaultBookkeeper []bls.PublicKey, genesisConfig *config.GenesisConfig) (*types.Block, error) {
+func BuildGenesisBlock(defaultBookkeeper []bls.PublicKey) (*types.Block, error) {
 	//getBookkeeper
 	GenesisBookkeepers = defaultBookkeeper
 	nextBookkeeper, err := types.AddressFromPubLeySlice(defaultBookkeeper)
@@ -34,9 +34,6 @@ func BuildGenesisBlock(defaultBookkeeper []bls.PublicKey, genesisConfig *config.
 		return nil, fmt.Errorf("[Block],BuildGenesisBlock err with GetBookkeeperAddress: %s", err)
 	}
 	conf := common.NewZeroCopySink(nil)
-	if genesisConfig.VBFT != nil {
-		genesisConfig.VBFT.Serialization(conf)
-	}
 	nodeManagerConfig := newNodeManagerInit(conf.Bytes())
 	consensusPayload := []byte("0")
 	if err != nil {
@@ -45,7 +42,6 @@ func BuildGenesisBlock(defaultBookkeeper []bls.PublicKey, genesisConfig *config.
 
 	//blockdata
 	genesisHeader := &types.Header{
-		Version:          types.CURR_HEADER_VERSION,
 		ChainID:          config.GetChainIdByNetId(config.DefConfig.P2PNode.NetworkId),
 		PrevBlockHash:    common.Uint256{},
 		TransactionsRoot: common.Uint256{},

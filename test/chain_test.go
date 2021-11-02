@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
 	_common "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	_config "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/config"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
 	_genesis "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/genesis"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/ledgerstore"
@@ -69,8 +68,7 @@ func TestMain(m *testing.M) {
 
 func TestGenesisBlockInit(t *testing.T) {
 	_, pub := bls.GenerateRandomKey()
-	conf := &_config.GenesisConfig{}
-	block, err := _genesis.BuildGenesisBlock([]bls.PublicKey{pub}, conf)
+	block, err := _genesis.BuildGenesisBlock([]bls.PublicKey{pub})
 	assert.Nil(t, err)
 	assert.NotNil(t, block)
 	assert.NotEqual(t, block.Header.TransactionsRoot, _common.UINT256_EMPTY)
@@ -91,13 +89,12 @@ func testInitLedgerStoreWithGenesisBlock(t *testing.T) {
 		t.Errorf("AddressFromBookkeepers error %s", err)
 		return
 	}
-	require.NotEqual(t, bookkeeper , _common.ADDRESS_EMPTY)
+	require.NotEqual(t, bookkeeper, _common.ADDRESS_EMPTY)
 	//{
 	//	t.Errorf("AddressFromBookkeepers error %s", fmt.Errorf("empty address %v", bookkeeper.ToHexString()))
 	//	return
 	//}
-	genesisConfig := _config.DefConfig.Genesis
-	block, err := _genesis.BuildGenesisBlock(bookkeepers, genesisConfig)
+	block, err := _genesis.BuildGenesisBlock(bookkeepers)
 	//header := &types.Header{
 	//	Version:          0,
 	//	PrevBlockHash:    common.Uint256{},

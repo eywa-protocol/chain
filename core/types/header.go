@@ -3,7 +3,6 @@ package types
 import (
 	"crypto/sha256"
 	"errors"
-	"fmt"
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"io"
 
@@ -12,7 +11,6 @@ import (
 )
 
 type Header struct {
-	Version          uint32
 	ChainID          uint64
 	PrevBlockHash    common.Uint256
 	TransactionsRoot common.Uint256
@@ -49,10 +47,6 @@ func (bd *Header) Serialization(sink *common.ZeroCopySink) error {
 
 //Serialize the blockheader data without program
 func (bd *Header) serializationUnsigned(sink *common.ZeroCopySink) {
-	if bd.Version > CURR_HEADER_VERSION {
-		panic(fmt.Errorf("invalid header %d over max version:%d", bd.Version, CURR_HEADER_VERSION))
-	}
-	sink.WriteUint32(bd.Version)
 	sink.WriteUint64(bd.ChainID)
 	sink.WriteBytes(bd.PrevBlockHash[:])
 	sink.WriteBytes(bd.TransactionsRoot[:])
@@ -91,12 +85,6 @@ func (bd *Header) Serialize(w io.Writer) error {
 }
 
 func (bd *Header) serializeUnsigned(w io.Writer) error {
-	if bd.Version > CURR_HEADER_VERSION {
-		panic(fmt.Errorf("invalid header %d over max version:%d", bd.Version, CURR_HEADER_VERSION))
-	}
-	if err := serialization.WriteUint32(w, bd.Version); err != nil {
-		return err
-	}
 	if err := serialization.WriteUint64(w, bd.ChainID); err != nil {
 		return err
 	}
@@ -182,13 +170,6 @@ func (bd *Header) Deserialization(source *common.ZeroCopySource) error {
 
 func (bd *Header) deserializationUnsigned(source *common.ZeroCopySource) error {
 	var eof bool
-	bd.Version, eof = source.NextUint32()
-	if eof {
-		return errors.New("[Header] read version error")
-	}
-	if bd.Version > CURR_HEADER_VERSION {
-		return fmt.Errorf("[Header] header version %d over max version %d", bd.Version, CURR_HEADER_VERSION)
-	}
 	bd.ChainID, eof = source.NextUint64()
 	if eof {
 		return errors.New("[Header] read chainID error")
@@ -272,13 +253,6 @@ func (bd *Header) Deserialize(w io.Reader) error {
 
 func (bd *Header) deserializeUnsigned(w io.Reader) error {
 	var err error
-	bd.Version, err = serialization.ReadUint32(w)
-	if err != nil {
-		return errors.New("[Header] read version error")
-	}
-	if bd.Version > CURR_HEADER_VERSION {
-		return fmt.Errorf("[Header] header version %d over max version %d", bd.Version, CURR_HEADER_VERSION)
-	}
 	bd.ChainID, err = serialization.ReadUint64(w)
 	if err != nil {
 		return errors.New("[Header] read chainID error")

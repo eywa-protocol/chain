@@ -5,10 +5,10 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"sort"
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
+	"sort"
 )
 
 const MAX_TX_SIZE = 1024 * 1024 // The max size of a transaction to prevent DOS attacks
@@ -246,14 +246,11 @@ func (this *Sig) Deserialize(source *common.ZeroCopySource) error {
 type TransactionType byte
 
 const (
-	Deploy TransactionType = 0xd0
-	Invoke TransactionType = 0xd1
-	AddNode TransactionType = 0xd2
+	Invoke            TransactionType = 0xd1
+	AddNode           TransactionType = 0xd2
 	AddCrosschainCall TransactionType = 0xd3
-	AddEpoch TransactionType = 0xd4
-	AddUpTime TransactionType = 0xd5
-
-
+	AddEpoch          TransactionType = 0xd4
+	AddUpTime         TransactionType = 0xd5
 )
 
 // Payload define the func for loading the payload data
@@ -316,7 +313,3 @@ func (p publicKeyList) Less(i, j int) bool {
 func (p publicKeyList) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
-
-
-
-

@@ -29,7 +29,6 @@ func TestHeader_Serialize(t *testing.T) {
 
 func TestHeader(t *testing.T) {
 	h := Header{
-		Version:          0,
 		ChainID:          123,
 		PrevBlockHash:    common.UINT256_EMPTY,
 		TransactionsRoot: common.UINT256_EMPTY,

@@ -218,7 +218,6 @@ func TestSaveHeader(t *testing.T) {
 		return
 	}
 	header := &types.Header{
-		Version:          0,
 		PrevBlockHash:    common.Uint256{},
 		TransactionsRoot: common.Uint256{},
 		Timestamp:        uint32(uint32(time.Date(2017, time.February, 23, 0, 0, 0, 0, time.UTC).Unix())),
@@ -272,7 +271,6 @@ func TestBlock(t *testing.T) {
 		return
 	}
 	header := &types.Header{
-		Version:          0,
 		PrevBlockHash:    common.Uint256{},
 		TransactionsRoot: common.Uint256{},
 		Timestamp:        uint32(uint32(time.Date(2017, time.February, 23, 0, 0, 0, 0, time.UTC).Unix())),
