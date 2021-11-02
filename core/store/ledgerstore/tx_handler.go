@@ -16,6 +16,25 @@ import (
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/storage"
 )
 
+//HandleAnyTransaction deal with smart contract
+func (self *StateStore) HandleBridgeTransaction(store store.LedgerStore, overlay *overlaydb.OverlayDB, cache *storage.CacheDB,
+	tx *types.Transaction, block *types.Block, notify *event.ExecuteNotify) ([]common.Uint256, error) {
+	be := tx.Payload.(*payload.BridgeEvent)
+	beBytes := common.SerializeToBytes(be)
+	service, err := native.NewNativeService(cache, tx, block.Header.Timestamp, block.Header.Height,
+		block.Hash(), block.Header.ChainID, beBytes, false)
+	if err != nil {
+		return nil, fmt.Errorf("HandleInvokeTransaction Error: %+v\n", err)
+	}
+	if _, err := service.Invoke(); err != nil {
+		return nil, err
+	}
+	notify.Notify = append(notify.Notify, service.GetNotify()...)
+	notify.State = event.CONTRACT_STATE_SUCCESS
+	service.GetCacheDB().Commit()
+	return service.GetCrossHashes(), nil
+}
+
 //HandleInvokeTransaction deal with smart contract invoke transaction
 func (self *StateStore) HandleInvokeTransaction(store store.LedgerStore, overlay *overlaydb.OverlayDB, cache *storage.CacheDB,
 	tx *types.Transaction, block *types.Block, notify *event.ExecuteNotify) ([]common.Uint256, error) {

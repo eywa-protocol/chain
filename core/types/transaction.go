@@ -149,6 +149,15 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 	}
 
 	switch tx.TxType {
+
+	case BridgeEvent:
+		pl := new(payload.InvokeCode)
+		err := pl.Deserialization(source)
+		if err != nil {
+			return err
+		}
+		tx.Payload = pl
+
 	case Invoke:
 		pl := new(payload.InvokeCode)
 		err := pl.Deserialization(source)
@@ -257,10 +266,11 @@ func (this *Sig) Deserialize(source *common.ZeroCopySource) error {
 type TransactionType byte
 
 const (
-	Invoke TransactionType = 0xd1
-	Node   TransactionType = 0xd2
-	Epoch  TransactionType = 0x22
-	UpTime TransactionType = 0xd4
+	Invoke      TransactionType = 0xd1
+	Node        TransactionType = 0xd2
+	Epoch       TransactionType = 0x22
+	UpTime      TransactionType = 0xd4
+	BridgeEvent TransactionType = 0x1f
 )
 
 // Payload define the func for loading the payload data
