@@ -163,6 +163,7 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 		if err != nil {
 			return err
 		}
+		tx.Payload = pl
 
 	default:
 		return fmt.Errorf("unsupported tx type %v", tx.Type())

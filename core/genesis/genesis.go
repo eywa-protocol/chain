@@ -33,16 +33,12 @@ func BuildGenesisBlock(defaultBookkeeper []bls.PublicKey) (*types.Block, error) 
 	if err != nil {
 		return nil, fmt.Errorf("[Block],BuildGenesisBlock err with GetBookkeeperAddress: %s", err)
 	}
-	conf := common.NewZeroCopySink([]byte{1, 2, 3, 4, 5})
-	fmt.Printf("\n - - - - -%v ", conf.Bytes())
-	nodeManagerConfig := newNodeManagerInit(defaultBookkeeper[0].Marshal())
-	fmt.Printf(" \n- - - - - %v", conf.Bytes())
+	nodeManagerConfig := newNodeManagerEpochInit([]byte(nextBookkeeper.ToHexString()))
 	consensusPayload := []byte("0")
 	if err != nil {
 		return nil, fmt.Errorf("consensus genesis init failed: %s", err)
 	}
-	fmt.Printf("\npayload %v", nodeManagerConfig.Payload)
-	//blockdata
+
 	genesisHeader := &types.Header{
 		ChainID:          config.GetChainIdByNetId(config.DefConfig.P2PNode.NetworkId),
 		PrevBlockHash:    common.Uint256{},
@@ -80,6 +76,12 @@ func newNodeManagerEpochInit(config []byte) *types.Transaction {
 	if err != nil {
 		panic("construct genesis node manager transaction error ")
 	}
+	if (&types.Transaction{} == tx) {
+		panic("empty transaction")
+	}
+	if tx.Payload == nil {
+		panic("transaction payload is NIL !")
+	}
 	return tx
 }
 
@@ -109,7 +111,7 @@ func NewEpochTransaction(invokeCode []byte, nonce uint32) *types.Transaction {
 
 	tx := &types.Transaction{
 		TxType:  types.Epoch,
-		Payload: &payload.InvokeCode{Code: invokeCode},
+		Payload: &payload.Epoch{Code: invokeCode},
 		Nonce:   nonce,
 		ChainID: config.GetChainIdByNetId(config.DefConfig.P2PNode.NetworkId),
 	}
