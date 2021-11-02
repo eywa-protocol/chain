@@ -1,20 +1,6 @@
 /*
- * Copyright (C) 2021 The poly network Authors
- * This file is part of The poly network library.
- *
- * The poly network is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * The poly network is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with the poly network.  If not, see <http://www.gnu.org/licenses/>.
- */
+* Copyright 2021 by EYWA chain <blockchain@digiu.ai>
+*/
 
 package serialization
 
@@ -39,38 +25,6 @@ type SerializableData interface {
 	Deserialize(r io.Reader) error
 }
 
-/*
- ******************************************************************************
- * public func for outside calling
- ******************************************************************************
- * 1. WriteVarUint func, depend on the inpute number's Actual number size,
- *    serialize to bytes.
- *      uint8  =>  (LittleEndian)num in 1 byte                 = 1bytes
- *      uint16 =>  0xfd(1 byte) + (LittleEndian)num in 2 bytes = 3bytes
- *      uint32 =>  0xfe(1 byte) + (LittleEndian)num in 4 bytes = 5bytes
- *      uint64 =>  0xff(1 byte) + (LittleEndian)num in 8 bytes = 9bytes
- * 2. ReadVarUint  func, this func will read the first byte to determined
- *    the num length to read.and retrun the uint64
- *      first byte = 0xfd, read the next 2 bytes as uint16
- *      first byte = 0xfe, read the next 4 bytes as uint32
- *      first byte = 0xff, read the next 8 bytes as uint64
- *      other else,        read this byte as uint8
- * 3. WriteVarBytes func, this func will output two item as serialization.
- *      length of bytes (uint8/uint16/uint32/uint64)  +  bytes
- * 4. WriteString func, this func will output two item as serialization.
- *      length of string(uint8/uint16/uint32/uint64)  +  bytes(string)
- * 5. ReadVarBytes func, this func will first read a uint to identify the
- *    length of bytes, and use it to get the next length's bytes to return.
- * 6. ReadString func, this func will first read a uint to identify the
- *    length of string, and use it to get the next bytes as a string.
- * 7. GetVarUintSize func, this func will return the length of a uint when it
- *    serialized by the WriteVarUint func.
- * 8. ReadBytes func, this func will read the specify lenth's bytes and retun.
- * 9. ReadUint8,16,32,64 read uint with fixed length
- * 10.WriteUint8,16,32,64 Write uint with fixed length
- * 11.ToArray SerializableData to ToArray() func.
- ******************************************************************************
- */
 
 func WriteVarUint(writer io.Writer, value uint64) error {
 	var buf [9]byte

@@ -1,43 +1,32 @@
 /*
- * Copyright (C) 2021 The poly network Authors
- * This file is part of The poly network library.
- *
- * The poly network is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * The poly network is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with the poly network.  If not, see <http://www.gnu.org/licenses/>.
- */
+* Copyright 2021 by EYWA chain <blockchain@digiu.ai>
+*/
 
 package types
 
 import (
+	"fmt"
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	//"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 )
 
 func AddressFromPubKey(pubkey bls.PublicKey) common.Address {
 	buf := pubkey.Marshal()
-	return common.AddressFromVmCode(buf)
+	return common.AddressFromBytes(buf)
 }
 
 func AddressFromMultiPubKeys(pubkeys []bls.PublicKey, m int) (common.Address, error) {
 	sink := common.NewZeroCopySink(nil)
 	if err := EncodeMultiPubKeyProgramInto(sink, pubkeys, uint16(m)); err != nil {
-		return common.ADDRESS_EMPTY, nil
+		return common.ADDRESS_EMPTY, err
 	}
-	return common.AddressFromVmCode(sink.Bytes()), nil
+	fmt.Printf("\nsink.Bytes() %v", common.ToHexString(sink.Bytes()))
+	add := common.AddressFromBytes(sink.Bytes())
+	fmt.Printf("\nadd %v", add)
+	return add, nil
 }
 
-func AddressFromBookkeepers(bookkeepers []bls.PublicKey) (common.Address, error) {
+func AddressFromPubLeySlice(bookkeepers []bls.PublicKey) (common.Address, error) {
 	if len(bookkeepers) == 1 {
 		return AddressFromPubKey(bookkeepers[0]), nil
 	}

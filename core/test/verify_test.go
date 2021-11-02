@@ -28,7 +28,6 @@ func TestVerifyTx(t *testing.T) {
 	acc1 := account.NewAccount(0)
 
 	tx := &types.Transaction{
-		Version:    0,
 		TxType:     types.TransactionType(types.Invoke),
 		Nonce:      1,
 		ChainID:    0,
@@ -79,7 +78,6 @@ func TestMultiVerifyTx(t *testing.T) {
 	//accAddr, err := types.AddressFromMultiPubKeys([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey}, 2)
 	//assert.NoError(t, err)
 	tx := &types.Transaction{
-		Version:    0,
 		TxType:     types.TransactionType(types.Invoke),
 		Nonce:      1,
 		ChainID:    0,

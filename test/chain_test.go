@@ -1,47 +1,44 @@
-/*
-* Copyright 2021 by EYWA chain <blockchain@digiu.ai>
-*/
-
-package ledgerstore
+package test
 
 import (
 	"fmt"
+	"github.com/eywa-protocol/bls-crypto/bls"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
+	_common "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	_config "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/config"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
+	_genesis "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/genesis"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/ledgerstore"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 	"os"
 	"testing"
-
-	"github.com/eywa-protocol/bls-crypto/bls"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/config"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/genesis"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 )
 
-var testBlockStore *BlockStore
-var testStateStore *StateStore
-var testLedgerStore *LedgerStoreImp
+var testBlockStore *ledgerstore.BlockStore
+var testStateStore *ledgerstore.StateStore
+var testLedgerStore *ledgerstore.LedgerStoreImp
 
 func TestMain(m *testing.M) {
 	log.InitLog(0)
 
 	var err error
-	testLedgerStore, err = NewLedgerStore("test/ledger")
+	testLedgerStore, err = ledgerstore.NewLedgerStore("test/ledger")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "NewLedgerStore error %s\n", err)
 		return
 	}
 
 	testBlockDir := "test/block"
-	testBlockStore, err = NewBlockStore(testBlockDir, false)
+	testBlockStore, err = ledgerstore.NewBlockStore(testBlockDir, false)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "NewBlockStore error %s\n", err)
 		return
 	}
 	testStateDir := "test/state"
-	merklePath := "test/" + MerkleTreeStorePath
-	testStateStore, err = NewStateStore(testStateDir, merklePath)
+	merklePath := "test/" + ledgerstore.MerkleTreeStorePath
+	testStateStore, err = ledgerstore.NewStateStore(testStateDir, merklePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "NewStateStore error %s\n", err)
 		return
@@ -70,7 +67,16 @@ func TestMain(m *testing.M) {
 	os.RemoveAll("ActorLog")
 }
 
-func TestInitLedgerStoreWithGenesisBlock(t *testing.T) {
+func TestGenesisBlockInit(t *testing.T) {
+	_, pub := bls.GenerateRandomKey()
+	conf := &_config.GenesisConfig{}
+	block, err := _genesis.BuildGenesisBlock([]bls.PublicKey{pub}, conf)
+	assert.Nil(t, err)
+	assert.NotNil(t, block)
+	assert.NotEqual(t, block.Header.TransactionsRoot, _common.UINT256_EMPTY)
+}
+
+func testInitLedgerStoreWithGenesisBlock(t *testing.T) {
 	acc1 := account.NewAccount(1)
 	acc2 := account.NewAccount(2)
 	acc3 := account.NewAccount(3)
@@ -81,11 +87,17 @@ func TestInitLedgerStoreWithGenesisBlock(t *testing.T) {
 
 	bookkeepers := []bls.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey, acc4.PublicKey, acc5.PublicKey, acc6.PublicKey, acc7.PublicKey}
 	bookkeeper, err := types.AddressFromPubLeySlice(bookkeepers)
-	require.NoError(t, err)
-	require.NotEqual(t, bookkeeper, common.Address{})
-
-	genesisConfig := config.DefConfig.Genesis
-	block, err := genesis.BuildGenesisBlock(bookkeepers, genesisConfig)
+	if err != nil {
+		t.Errorf("AddressFromBookkeepers error %s", err)
+		return
+	}
+	require.NotEqual(t, bookkeeper , _common.ADDRESS_EMPTY)
+	//{
+	//	t.Errorf("AddressFromBookkeepers error %s", fmt.Errorf("empty address %v", bookkeeper.ToHexString()))
+	//	return
+	//}
+	genesisConfig := _config.DefConfig.Genesis
+	block, err := _genesis.BuildGenesisBlock(bookkeepers, genesisConfig)
 	//header := &types.Header{
 	//	Version:          0,
 	//	PrevBlockHash:    common.Uint256{},

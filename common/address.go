@@ -1,20 +1,6 @@
 /*
- * Copyright (C) 2021 The poly network Authors
- * This file is part of The poly network library.
- *
- * The poly network is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * The poly network is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with the poly network.  If not, see <http://www.gnu.org/licenses/>.
- */
+* Copyright 2021 by EYWA chain <blockchain@digiu.ai>
+*/
 
 package common
 
@@ -23,11 +9,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/itchyny/base58-go"
 	"io"
 	"math/big"
-
-	"github.com/itchyny/base58-go"
-	"golang.org/x/crypto/ripemd160"
 )
 
 const ADDR_LEN = 20
@@ -142,12 +126,7 @@ func AddressFromBase58(encoded string) (Address, error) {
 	return ph, nil
 }
 
-func AddressFromVmCode(code []byte) Address {
-	var addr Address
-	temp := sha256.Sum256(code)
-	md := ripemd160.New()
-	md.Write(temp[:])
-	md.Sum(addr[:0])
-
-	return addr
+func AddressFromBytes(bytes []byte) Address {
+	return (Address) (common.BytesToAddress(bytes))
 }
+

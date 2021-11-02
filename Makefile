@@ -1,4 +1,4 @@
-.PHONY: wrappers
+.PHONY: wrappers test
 
 test:
 	go test -failfast -v ./...

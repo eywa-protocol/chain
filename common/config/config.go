@@ -1,27 +1,10 @@
 /*
- * Copyright (C) 2021 The poly network Authors
- * This file is part of The poly network library.
- *
- * The poly network is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * The poly network is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with the poly network.  If not, see <http://www.gnu.org/licenses/>.
- */
+* Copyright 2021 by EYWA chain <blockchain@digiu.ai>
+*/
 
 package config
 
 import (
-	"crypto/sha256"
-	"encoding/binary"
-	"encoding/json"
 	"fmt"
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
@@ -522,71 +505,9 @@ func NewOntologyConfig() *OntologyConfig {
 }
 
 func (this *OntologyConfig) GetBookkeepers() ([]bls.PublicKey, error) {
-	var bookKeepers []string
-	switch this.Genesis.ConsensusType {
-	case CONSENSUS_TYPE_VBFT:
-		for _, peer := range this.Genesis.VBFT.Peers {
-			bookKeepers = append(bookKeepers, peer.PeerPubkey)
-		}
-	case CONSENSUS_TYPE_DBFT:
-		bookKeepers = this.Genesis.DBFT.Bookkeepers
-	case CONSENSUS_TYPE_SOLO:
-		bookKeepers = this.Genesis.SOLO.Bookkeepers
-	default:
-		return nil, fmt.Errorf("Does not support %s consensus", this.Genesis.ConsensusType)
-	}
-
-	pubKeys := make([]bls.PublicKey, 0, len(bookKeepers))
-	//for _, key := range bookKeepers {
-	//	pubKey, err := hex.DecodeString(key)
-	//	k, err :=  bls.DeserializePublicKey(pubKey)
-	//	if err != nil {
-	//		return nil, fmt.Errorf("Incorrectly book keepers key:%s", err)
-	//	}
-	//	pubKeys = append(pubKeys, k)
-	//}
-	// bls.SortPublicKeys(pubKeys)
-	return pubKeys, nil
+// TODO get public keys from started nodes
+	return []bls.PublicKey{}, nil
 }
 
-func (this *OntologyConfig) GetDefaultNetworkId() (uint32, error) {
-	defaultNetworkId, err := this.getDefNetworkIDFromGenesisConfig(this.Genesis)
-	if err != nil {
-		return 0, err
-	}
-	mainNetId, err := this.getDefNetworkIDFromGenesisConfig(MainNetConfig)
-	if err != nil {
-		return 0, err
-	}
-	testnetId, err := this.getDefNetworkIDFromGenesisConfig(PolarisConfig)
-	if err != nil {
-		return 0, err
-	}
-	switch defaultNetworkId {
-	case mainNetId:
-		return NETWORK_ID_MAIN_NET, nil
-	case testnetId:
-		return NETWORK_ID_TEST_NET, nil
-	}
-	return defaultNetworkId, nil
-}
 
-func (this *OntologyConfig) getDefNetworkIDFromGenesisConfig(genCfg *GenesisConfig) (uint32, error) {
-	var configData []byte
-	var err error
-	switch this.Genesis.ConsensusType {
-	case CONSENSUS_TYPE_VBFT:
-		configData, err = json.Marshal(genCfg.VBFT)
-	case CONSENSUS_TYPE_DBFT:
-		configData, err = json.Marshal(genCfg.DBFT)
-	case CONSENSUS_TYPE_SOLO:
-		return NETWORK_ID_SOLO_NET, nil
-	default:
-		return 0, fmt.Errorf("unknown consensus type:%s", this.Genesis.ConsensusType)
-	}
-	if err != nil {
-		return 0, fmt.Errorf("json.Marshal error:%s", err)
-	}
-	data := sha256.Sum256(configData)
-	return binary.LittleEndian.Uint32(data[0:4]), nil
-}
+
