@@ -1,33 +1,14 @@
-/*
- * Copyright (C) 2021 The poly network Authors
- * This file is part of The poly network library.
- *
- * The poly network is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * The poly network is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with the poly network.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package types
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"errors"
 	"fmt"
-
 	"github.com/eywa-protocol/bls-crypto/bls"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/constants"
-
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
+	"sort"
 )
 
 const MAX_TX_SIZE = 1024 * 1024 // The max size of a transaction to prevent DOS attacks
@@ -35,13 +16,12 @@ const MAX_TX_SIZE = 1024 * 1024 // The max size of a transaction to prevent DOS 
 type CoinType byte
 
 const (
-	ONG CoinType = iota
+	EYW CoinType = iota
 	ETH
 	BTC
 )
 
 type Transaction struct {
-	Version    byte
 	TxType     TransactionType
 	Nonce      uint32
 	ChainID    uint64
@@ -59,10 +39,6 @@ type Transaction struct {
 }
 
 func (tx *Transaction) SerializeUnsigned(sink *common.ZeroCopySink) error {
-	if tx.Version > CURR_TX_VERSION {
-		return fmt.Errorf("invalid tx version:%d", tx.Version)
-	}
-	sink.WriteByte(tx.Version)
 	sink.WriteByte(byte(tx.TxType))
 	sink.WriteUint32(tx.Nonce)
 	sink.WriteUint64(tx.ChainID)
@@ -74,6 +50,8 @@ func (tx *Transaction) SerializeUnsigned(sink *common.ZeroCopySink) error {
 	}
 	switch pl := tx.Payload.(type) {
 	case *payload.InvokeCode:
+		pl.Serialization(sink)
+	case *payload.Epoch:
 		pl.Serialization(sink)
 	default:
 		return errors.New("wrong transaction payload type")
@@ -148,14 +126,6 @@ func (tx *Transaction) Deserialization(source *common.ZeroCopySource) error {
 
 func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) error {
 	var eof bool
-	tx.Version, _ = source.NextByte()
-	//fmt.Print("QWERTY", source.NextByte())
-	//if eof {
-	//	return errors.New("[deserializationUnsigned] read version error")
-	//}
-	if tx.Version > CURR_TX_VERSION {
-		return fmt.Errorf("[deserializationUnsigned] tx version %d over max version %d", tx.Version, CURR_TX_VERSION)
-	}
 	txType, eof := source.NextByte()
 	if eof {
 		return errors.New("[deserializationUnsigned] read txType error")
@@ -186,6 +156,15 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 			return err
 		}
 		tx.Payload = pl
+
+	case Epoch:
+		pl := new(payload.Epoch)
+		err := pl.Deserialization(source)
+		if err != nil {
+			return err
+		}
+		tx.Payload = pl
+
 	default:
 		return fmt.Errorf("unsupported tx type %v", tx.Type())
 	}
@@ -205,7 +184,7 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 		return errors.New("[deserializationUnsigned] read coinType error")
 	}
 	tx.CoinType = CoinType(coinType)
-	if tx.CoinType != ONG {
+	if tx.CoinType != EYW {
 		return errors.New("[deserializationUnsigned] unsupported coinType")
 	}
 	return nil
@@ -278,8 +257,10 @@ func (this *Sig) Deserialize(source *common.ZeroCopySource) error {
 type TransactionType byte
 
 const (
-	Deploy TransactionType = 0xd0
 	Invoke TransactionType = 0xd1
+	Node   TransactionType = 0xd2
+	Epoch  TransactionType = 0x22
+	UpTime TransactionType = 0xd4
 )
 
 // Payload define the func for loading the payload data
@@ -304,20 +285,41 @@ func (tx *Transaction) Type() common.InventoryType {
 	return common.TRANSACTION
 }
 
+const MULTI_SIG_MAX_PUBKEY_SIZE = 16
+
 func EncodeMultiPubKeyProgramInto(sink *common.ZeroCopySink, pubkeys []bls.PublicKey, m uint16) error {
 	n := len(pubkeys)
-	if !(1 <= m && int(m) <= n && n > 1 && n <= constants.MULTI_SIG_MAX_PUBKEY_SIZE) {
+	if !(1 <= m && int(m) <= n && n > 1 && n <= MULTI_SIG_MAX_PUBKEY_SIZE) {
 		return errors.New("wrong multi-sig param")
 	}
-	// TODO check if sort needed here
-	//pubkeys = keypair.SortPublicKeys(pubkeys)
-
+	pubkeys = SortPublicKeys(pubkeys)
 	sink.WriteUint16(uint16(len(pubkeys)))
 	for _, pubkey := range pubkeys {
+		//fmt.Printf("\npubkey %v", common.ToHexString(pubkey.Marshal()))
 		key := pubkey.Marshal()
 		sink.WriteVarBytes(key)
 	}
 	sink.WriteUint16(m)
 
 	return nil
+}
+
+func SortPublicKeys(list []bls.PublicKey) []bls.PublicKey {
+	pl := publicKeyList(list)
+	sort.Sort(pl)
+	return pl
+}
+
+type publicKeyList []bls.PublicKey
+
+func (p publicKeyList) Len() int {
+	return len(p)
+}
+
+func (p publicKeyList) Less(i, j int) bool {
+	return bytes.Compare(p[i].Marshal(), p[j].Marshal()) > 0
+}
+
+func (p publicKeyList) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
 }

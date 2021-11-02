@@ -1,21 +1,3 @@
-/*
- * Copyright (C) 2021 The poly network Authors
- * This file is part of The poly network library.
- *
- * The poly network is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * The poly network is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with the poly network.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package ledgerstore
 
 import (
@@ -230,13 +212,12 @@ func TestHeaderIndexList(t *testing.T) {
 func TestSaveHeader(t *testing.T) {
 	acc1 := account.NewAccount(0)
 	acc2 := account.NewAccount(0)
-	bookkeeper, err := types.AddressFromBookkeepers([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey})
+	bookkeeper, err := types.AddressFromPubLeySlice([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey})
 	if err != nil {
 		t.Errorf("AddressFromBookkeepers error %s", err)
 		return
 	}
 	header := &types.Header{
-		Version:          0,
 		PrevBlockHash:    common.Uint256{},
 		TransactionsRoot: common.Uint256{},
 		Timestamp:        uint32(uint32(time.Date(2017, time.February, 23, 0, 0, 0, 0, time.UTC).Unix())),
@@ -284,13 +265,12 @@ func TestSaveHeader(t *testing.T) {
 func TestBlock(t *testing.T) {
 	acc1 := account.NewAccount(0)
 	acc2 := account.NewAccount(0)
-	bookkeeper, err := types.AddressFromBookkeepers([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey})
+	bookkeeper, err := types.AddressFromPubLeySlice([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey})
 	if err != nil {
 		t.Errorf("AddressFromBookkeepers error %s", err)
 		return
 	}
 	header := &types.Header{
-		Version:          0,
 		PrevBlockHash:    common.Uint256{},
 		TransactionsRoot: common.Uint256{},
 		Timestamp:        uint32(uint32(time.Date(2017, time.February, 23, 0, 0, 0, 0, time.UTC).Unix())),

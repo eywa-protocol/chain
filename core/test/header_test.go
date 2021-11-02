@@ -16,7 +16,6 @@ import (
 func TestTransaction(t *testing.T) {
 	acc := account.NewAccount(0)
 	header := types.Header{
-		Version:          0,
 		ChainID:          0,
 		PrevBlockHash:    common.UINT256_EMPTY,
 		TransactionsRoot: common.UINT256_EMPTY,
@@ -72,7 +71,6 @@ func BenchmarkT1(b *testing.B) {
 func BenchmarkT3(b *testing.B) {
 	acc := account.NewAccount(0)
 	header := types.Header{
-		Version:          0,
 		ChainID:          0,
 		PrevBlockHash:    common.UINT256_EMPTY,
 		TransactionsRoot: common.UINT256_EMPTY,
@@ -97,7 +95,6 @@ func BenchmarkT3(b *testing.B) {
 func BenchmarkT2(b *testing.B) {
 	acc := account.NewAccount(0)
 	header := types.Header{
-		Version:          0,
 		ChainID:          0,
 		PrevBlockHash:    common.UINT256_EMPTY,
 		TransactionsRoot: common.UINT256_EMPTY,

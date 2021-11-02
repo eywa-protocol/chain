@@ -1,69 +1,37 @@
-/*
- * Copyright (C) 2021 The poly network Authors
- * This file is part of The poly network library.
- *
- * The poly network is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * The poly network is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with the poly network.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package genesis
 
 import (
 	"fmt"
 	"github.com/eywa-protocol/bls-crypto/bls"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/service/utils"
-	"time"
-
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/config"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/constants"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/service/utils"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/states"
 )
 
 const (
-	BlockVersion uint32 = 0
 	GenesisNonce uint64 = 2083236893
 
 	INIT_CONFIG = "initConfig"
 )
 
-var GenBlockTime = (config.DEFAULT_GEN_BLOCK_TIME * time.Second)
-
 var GenesisBookkeepers []bls.PublicKey
 
 // BuildGenesisBlock returns the genesis block with default consensus bookkeeper list
-func BuildGenesisBlock(defaultBookkeeper []bls.PublicKey, genesisConfig *config.GenesisConfig) (*types.Block, error) {
-	//getBookkeeper
+func BuildGenesisBlock(defaultBookkeeper []bls.PublicKey) (*types.Block, error) {
+
 	GenesisBookkeepers = defaultBookkeeper
-	nextBookkeeper, err := types.AddressFromBookkeepers(defaultBookkeeper)
+	nextBookkeeper, err := types.AddressFromPubLeySlice(defaultBookkeeper)
 	if err != nil {
 		return nil, fmt.Errorf("[Block],BuildGenesisBlock err with GetBookkeeperAddress: %s", err)
 	}
-	conf := common.NewZeroCopySink(nil)
-	if genesisConfig.VBFT != nil {
-		genesisConfig.VBFT.Serialization(conf)
-	}
-	nodeManagerConfig := newNodeManagerInit(conf.Bytes())
+	nodeManagerConfig := newNodeManagerEpochInit([]byte(nextBookkeeper.ToHexString()))
 	consensusPayload := []byte("0")
-	if err != nil {
-		return nil, fmt.Errorf("consensus genesis init failed: %s", err)
-	}
 
-	//blockdata
 	genesisHeader := &types.Header{
-		Version:          types.CURR_HEADER_VERSION,
 		ChainID:          config.GetChainIdByNetId(config.DefConfig.P2PNode.NetworkId),
 		PrevBlockHash:    common.Uint256{},
 		TransactionsRoot: common.Uint256{},
@@ -95,15 +63,47 @@ func newNodeManagerInit(config []byte) *types.Transaction {
 	return tx
 }
 
+func newNodeManagerEpochInit(config []byte) *types.Transaction {
+	tx, err := NewInitNodeManagerEpochTransaction(config)
+	if err != nil {
+		panic("construct genesis node manager transaction error ")
+	}
+	if (&types.Transaction{} == tx) {
+		panic("empty transaction")
+	}
+	if tx.Payload == nil {
+		panic("transaction payload is NIL !")
+	}
+	return tx
+}
+
 //NewInvokeTransaction return smart contract invoke transaction
 func NewInvokeTransaction(invokeCode []byte, nonce uint32) *types.Transaction {
 	invokePayload := &payload.InvokeCode{
 		Code: invokeCode,
 	}
 	tx := &types.Transaction{
-		Version: types.CURR_TX_VERSION,
 		TxType:  types.Invoke,
 		Payload: invokePayload,
+		Nonce:   nonce,
+		ChainID: config.GetChainIdByNetId(config.DefConfig.P2PNode.NetworkId),
+	}
+
+	sink := common.NewZeroCopySink(nil)
+	err := tx.Serialization(sink)
+	if err != nil {
+		return &types.Transaction{}
+	}
+	tx, err = types.TransactionFromRawBytes(sink.Bytes())
+	return tx
+}
+
+//NewInvokeTransaction return smart contract invoke transaction
+func NewEpochTransaction(invokeCode []byte, nonce uint32) *types.Transaction {
+
+	tx := &types.Transaction{
+		TxType:  types.Epoch,
+		Payload: &payload.Epoch{Data: invokeCode},
 		Nonce:   nonce,
 		ChainID: config.GetChainIdByNetId(config.DefConfig.P2PNode.NetworkId),
 	}
@@ -124,6 +124,16 @@ func NewInitNodeManagerTransaction(
 		Method: INIT_CONFIG, Args: paramBytes}
 	invokeCode := new(common.ZeroCopySink)
 	contractInvokeParam.Serialization(invokeCode)
-
 	return NewInvokeTransaction(invokeCode.Bytes(), 0), nil
+}
+
+func NewInitNodeManagerEpochTransaction(
+	paramBytes []byte,
+) (*types.Transaction, error) {
+	contractInvokeParam := &states.ContractInvokeParam{Address: utils.NodeManagerContractAddress,
+		Method: INIT_CONFIG, Args: paramBytes}
+	invokeCode := new(common.ZeroCopySink)
+	contractInvokeParam.Serialization(invokeCode)
+
+	return NewEpochTransaction(invokeCode.Bytes(), 0), nil
 }
