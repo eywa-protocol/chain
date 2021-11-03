@@ -3,6 +3,10 @@ package ledgerstore
 import (
 	"crypto/sha256"
 	"fmt"
+	ethCommon "github.com/ethereum/go-ethereum/common"
+	"github.com/stretchr/testify/require"
+	"gitlab.digiu.ai/blockchainlaboratory/wrappers"
+	"math/big"
 	"testing"
 	"time"
 
@@ -158,6 +162,59 @@ func TestSaveTransaction(t *testing.T) {
 		t.Errorf("TestSaveTransaction ContainTransaction should be true.")
 		return
 	}
+}
+
+func TestSaveBridgeEventTransaction(t *testing.T) {
+	event := &payload.BridgeEvent{
+		OriginData: wrappers.BridgeOracleRequest{
+			RequestType: "setRequest",
+			Bridge:      ethCommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
+			Chainid:     big.NewInt(94),
+		}}
+
+	tx := &types.Transaction{
+		TxType:  types.BridgeEvent,
+		Payload: event,
+	}
+	sink := common.NewZeroCopySink(nil)
+
+	err := tx.SerializeUnsigned(sink)
+	require.NoError(t, err)
+
+	err = tx.Deserialization(common.NewZeroCopySource(sink.Bytes()))
+	require.Error(t, err)
+
+	blockHeight := uint32(1)
+	txHash := tx.Hash()
+	exist, err := testBlockStore.ContainTransaction(txHash)
+	require.NoError(t, err)
+	require.False(t, exist)
+
+	testBlockStore.NewBatch()
+	err = testBlockStore.SaveTransaction(tx, blockHeight)
+	require.NoError(t, err)
+
+	err = testBlockStore.CommitTo()
+	require.NoError(t, err)
+
+	tx1, height, err := testBlockStore.GetTransaction(txHash)
+	require.NoError(t, err)
+	require.Equal(t, blockHeight, height)
+	require.Equal(t, tx1.TxType, tx.TxType)
+	tx1Hash := tx1.Hash()
+	require.Equal(t, txHash, tx1Hash)
+
+	sink2 := common.NewZeroCopySink(nil)
+	tx1.Payload.Serialization(sink2)
+	var bridgeEvent2 payload.BridgeEvent
+	err = bridgeEvent2.Deserialization(common.NewZeroCopySource(sink2.Bytes()))
+	require.NoError(t, err)
+	require.Equal(t, event, &bridgeEvent2)
+
+	exist, err = testBlockStore.ContainTransaction(txHash)
+	require.NoError(t, err)
+	require.True(t, exist)
+
 }
 
 func TestHeaderIndexList(t *testing.T) {

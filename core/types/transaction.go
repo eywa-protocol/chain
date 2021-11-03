@@ -53,6 +53,8 @@ func (tx *Transaction) SerializeUnsigned(sink *common.ZeroCopySink) error {
 		pl.Serialization(sink)
 	case *payload.Epoch:
 		pl.Serialization(sink)
+	case *payload.BridgeEvent:
+		pl.Serialization(sink)
 	default:
 		return errors.New("wrong transaction payload type")
 	}
