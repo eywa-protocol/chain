@@ -27,6 +27,7 @@ func TestTransaction(t *testing.T) {
 		NextBookkeeper:   common.ADDRESS_EMPTY,
 		Bookkeepers:      []bls.PublicKey{acc.PublicKey},
 		SigData:          [][]byte{{1, 2, 3}},
+		EpochKey:         acc.PublicKey,
 	}
 
 	buf := bytes.NewBuffer(nil)
@@ -131,8 +132,8 @@ type Header struct {
 	//Program *program.Program
 	Bookkeepers []bls.PublicKey
 	SigData     [][]byte
-
-	hash *common.Uint256
+	Epochkey    bls.PublicKey
+	hash        *common.Uint256
 }
 
 func (bd *Header) Serialization(sink *common.ZeroCopySink) error {
@@ -167,6 +168,7 @@ func (bd *Header) serializationUnsigned(sink *common.ZeroCopySink) {
 	sink.WriteUint64(bd.ConsensusData)
 	sink.WriteVarBytes(bd.ConsensusPayload)
 	sink.WriteBytes(bd.NextBookkeeper[:])
+	sink.WriteBytes(bd.Epochkey.Marshal())
 }
 
 func (bd *Header) Deserialization(source *common.ZeroCopySource) error {
@@ -256,6 +258,15 @@ func (bd *Header) deserializationUnsigned(source *common.ZeroCopySource) error {
 	bd.NextBookkeeper, eof = source.NextAddress()
 	if eof {
 		return errors.New("[Header] read nextBookkeeper error")
+	}
+	epochKeyBytes, eof := source.NextVarBytes()
+	if eof {
+		return errors.New("[Header] read epochKeyBytes error")
+	}
+	var err error
+	bd.Epochkey, err = bls.UnmarshalPublicKey(epochKeyBytes)
+	if err != nil {
+		return errors.New(fmt.Sprintf("[Header] read epochKeyBytes error %v", err))
 	}
 	return nil
 }

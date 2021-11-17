@@ -3,6 +3,7 @@ package types
 import (
 	"crypto/sha256"
 	"errors"
+	"fmt"
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"io"
 
@@ -25,8 +26,8 @@ type Header struct {
 	//Program *program.Program
 	Bookkeepers []bls.PublicKey
 	SigData     [][]byte
-
-	hash *common.Uint256
+	EpochKey    bls.PublicKey
+	hash        *common.Uint256
 }
 
 func (bd *Header) Serialization(sink *common.ZeroCopySink) error {
@@ -57,6 +58,7 @@ func (bd *Header) serializationUnsigned(sink *common.ZeroCopySink) {
 	sink.WriteUint64(bd.ConsensusData)
 	sink.WriteVarBytes(bd.ConsensusPayload)
 	sink.WriteBytes(bd.NextBookkeeper[:])
+	sink.WriteVarBytes(bd.EpochKey.Marshal())
 }
 
 func (bd *Header) Serialize(w io.Writer) error {
@@ -113,6 +115,9 @@ func (bd *Header) serializeUnsigned(w io.Writer) error {
 		return err
 	}
 	if err := serialization.WriteBytes(w, bd.NextBookkeeper[:]); err != nil {
+		return err
+	}
+	if err := serialization.WriteBytes(w, bd.EpochKey.Marshal()); err != nil {
 		return err
 	}
 	return nil
@@ -210,6 +215,15 @@ func (bd *Header) deserializationUnsigned(source *common.ZeroCopySource) error {
 	if eof {
 		return errors.New("[Header] read nextBookkeeper error")
 	}
+	epochKeyBytes, eof := source.NextVarBytes()
+	if eof {
+		return errors.New("[Header] read epochKeyBytes error")
+	}
+	var err error
+	bd.EpochKey, err = bls.UnmarshalPublicKey(epochKeyBytes)
+	if err != nil {
+		return errors.New(fmt.Sprintf("[Header] read UnmarshalPublicKey error %v ", err))
+	}
 	return nil
 }
 
@@ -293,6 +307,15 @@ func (bd *Header) deserializeUnsigned(w io.Reader) error {
 	if err != nil {
 		return errors.New("[Header] read nextBookkeeper error")
 	}
+	epochkeyBytes, _ := serialization.ReadBLSPubKeyBytes(w)
+	if err != nil {
+		return errors.New(fmt.Sprintf("[Header] read epochkeyBytes error: %v", err))
+	}
+	bd.EpochKey, err = bls.UnmarshalPublicKey(epochkeyBytes)
+	if err != nil {
+		return errors.New(fmt.Sprintf("[Header] read UnmarshalPublicKey error %v", err))
+	}
+
 	return nil
 }
 

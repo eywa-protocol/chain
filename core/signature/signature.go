@@ -40,36 +40,6 @@ func Verify(pubKey bls.PublicKey, data []byte, signature bls.Signature) error {
 
 // VerifyMultiSignature check whether more than m sigs are signed by the keys
 func VerifyMultiSignature(data []byte, subSig bls.Signature, allPub bls.PublicKey, subPub bls.PublicKey, mask int64) error {
-	// TODO resore VerifyMultiSignature with bls
-	//n := len(keys)
-	//
-	//if len(sigs) < m {
-	//	return errors.New("not enough signatures in multi-signature")
-	//}
-	//
-	//mask := make([]bool, n)
-	//for i := 0; i < m; i++ {
-	//	valid := false
-	//
-	//	//sig, err := s.Deserialize(sigs[i])
-	//	if err != nil {
-	//		return errors.New("invalid signature data")
-	//	}
-	//	for j := 0; j < n; j++ {
-	//		if mask[j] {
-	//			continue
-	//		}
-	//		if Verify(keys[j], data, sig) {
-	//			mask[j] = true
-	//			valid = true
-	//			break
-	//		}
-	//	}
-	//
-	//	if valid == false {
-	//		return errors.New("multi-signature verification failed")
-	//	}
-	//}
 
 	if !subSig.VerifyMultisig(allPub, subPub, data, big.NewInt(mask)) {
 		return errors.New("Multisignature verification failed")

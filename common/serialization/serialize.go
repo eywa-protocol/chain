@@ -21,7 +21,6 @@ type SerializableData interface {
 	Deserialize(r io.Reader) error
 }
 
-
 func WriteVarUint(writer io.Writer, value uint64) error {
 	var buf [9]byte
 	var len = 0
@@ -107,6 +106,14 @@ func ReadVarBytes(reader io.Reader) ([]byte, error) {
 		return nil, err
 	}
 	str, err := byteXReader(reader, val)
+	if err != nil {
+		return nil, err
+	}
+	return str, nil
+}
+
+func ReadBLSPubKeyBytes(reader io.Reader) ([]byte, error) {
+	str, err := byteXReader(reader, uint64(128))
 	if err != nil {
 		return nil, err
 	}
