@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/config"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/constants"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
@@ -13,7 +12,7 @@ import (
 )
 
 const (
-	GenesisNonce uint64 = 2083236893
+	GenesisNonce uint64 = 1
 
 	INIT_CONFIG = "initConfig"
 )
@@ -32,7 +31,7 @@ func BuildGenesisBlock(defaultBookkeeper []bls.PublicKey) (*types.Block, error) 
 	consensusPayload := []byte("0")
 
 	genesisHeader := &types.Header{
-		ChainID:          config.GetChainIdByNetId(config.DefConfig.P2PNode.NetworkId),
+		ChainID:          0,
 		PrevBlockHash:    common.Uint256{},
 		TransactionsRoot: common.Uint256{},
 		Timestamp:        constants.GENESIS_BLOCK_TIMESTAMP,
@@ -86,7 +85,7 @@ func NewInvokeTransaction(invokeCode []byte, nonce uint32) *types.Transaction {
 		TxType:  types.Invoke,
 		Payload: invokePayload,
 		Nonce:   nonce,
-		ChainID: config.GetChainIdByNetId(config.DefConfig.P2PNode.NetworkId),
+		ChainID: 0,
 	}
 
 	sink := common.NewZeroCopySink(nil)
@@ -105,7 +104,7 @@ func NewEpochTransaction(invokeCode []byte, nonce uint32) *types.Transaction {
 		TxType:  types.Epoch,
 		Payload: &payload.Epoch{Data: invokeCode},
 		Nonce:   nonce,
-		ChainID: config.GetChainIdByNetId(config.DefConfig.P2PNode.NetworkId),
+		ChainID: 0,
 	}
 
 	sink := common.NewZeroCopySink(nil)
