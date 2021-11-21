@@ -34,7 +34,7 @@ func (self *Ledger) GetStore() store.LedgerStore {
 }
 
 func (self *Ledger) Init(genesisBlock *types.Block) error {
-	err := self.ldgStore.InitLedgerStoreWithGenesisBlock(genesisBlock, genesisBlock.Header.Bookkeepers)
+	err := self.ldgStore.InitLedgerStoreWithGenesisBlock(genesisBlock, genesisBlock.Header.EpochValidators)
 	if err != nil {
 		return fmt.Errorf("InitLedgerStoreWithGenesisBlock error %s", err)
 	}
@@ -130,8 +130,8 @@ func (self *Ledger) GetCurrentStateRoot() (common.Uint256, error) {
 	return common.Uint256{}, nil
 }
 
-func (self *Ledger) GetBookkeeperState() (*states.BookkeeperState, error) {
-	return self.ldgStore.GetBookkeeperState()
+func (self *Ledger) GetEpochState() (*states.EpochState, error) {
+	return self.ldgStore.GetEpochState()
 }
 
 func (self *Ledger) GetStorageItem(codeHash common.Address, key []byte) ([]byte, error) {

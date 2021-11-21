@@ -21,7 +21,7 @@ type ExecuteResult struct {
 
 // LedgerStore provides func with store package.
 type LedgerStore interface {
-	InitLedgerStoreWithGenesisBlock(genesisblock *types.Block, defaultBookkeeper []bls.PublicKey) error
+	InitLedgerStoreWithGenesisBlock(genesisblock *types.Block, defaultEpoch []bls.PublicKey) error
 	Close() error
 	AddHeaders(headers []*types.Header) error
 	AddBlock(block *types.Block, stateMerkleRoot common.Uint256) error
@@ -44,7 +44,7 @@ type LedgerStore interface {
 	GetBlockRootWithPreBlockHashes(startHeight uint32, txRoots []common.Uint256) common.Uint256
 	GetMerkleProof(raw []byte, m, n uint32) ([]byte, error)
 	GetCrossStatesProof(height uint32, key []byte) ([]byte, error)
-	GetBookkeeperState() (*states.BookkeeperState, error)
+	GetEpochState() (*states.EpochState, error)
 	GetStorageItem(key *states.StorageKey) (*states.StorageItem, error)
 	PreExecuteContract(tx *types.Transaction) (*cstates.PreExecResult, error)
 	GetEventNotifyByTx(tx common.Uint256) (*event.ExecuteNotify, error)

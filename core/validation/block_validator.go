@@ -14,9 +14,9 @@ import (
 // 		return nil
 // 	}
 
-// 	m := len(header.Bookkeepers) - (len(header.Bookkeepers)-1)/3
+// 	m := len(header.EpochValidators) - (len(header.EpochValidators)-1)/3
 // 	hash := block.Hash()
-// 	err := signature.VerifyMultiSignature(hash[:], header.Bookkeepers, m, header.SigData)
+// 	err := signature.VerifyMultiSignature(hash[:], header.EpochValidators, m, header.SigData)
 // 	if err != nil {
 // 		return err
 // 	}
@@ -34,13 +34,13 @@ import (
 // 	//verfiy block's transactions
 // 	if completely {
 
-// 		//TODO: NextBookkeeper Check.
-// 		/*		bookkeeperaddress, err := ledger.GetBookkeeperAddress(ld.Blockchain.GetBookkeepersByTXs(block.Transactions))
+// 		//TODO: NextEpoch Check.
+// 		/*		bookkeeperaddress, err := ledger.GetEpochAddress(ld.Blockchain.GetEpochValidatorsByTXs(block.Transactions))
 // 				if err != nil {
-// 					return errors.New(fmt.Sprintf("GetBookkeeperAddress Failed."))
+// 					return errors.New(fmt.Sprintf("GetEpochAddress Failed."))
 // 				}
-// 				if block.Header.NextBookkeeper != bookkeeperaddress {
-// 					return errors.New(fmt.Sprintf("Bookkeeper is not validate."))
+// 				if block.Header.NextEpoch != bookkeeperaddress {
+// 					return errors.New(fmt.Sprintf("Epoch is not validate."))
 // 				}*/
 
 // 		for _, txVerify := range block.Transactions {
@@ -74,12 +74,12 @@ func VerifyHeader(header, prevHeader *types.Header) error {
 		return errors.New("[BlockValidator], block timestamp is incorrect.")
 	}
 
-	address, err := types.AddressFromPubLeySlice(header.Bookkeepers)
+	address, err := types.AddressFromPubLeySlice(header.EpochValidators)
 	if err != nil {
 		return err
 	}
 
-	if prevHeader.NextBookkeeper != address {
+	if prevHeader.NextEpoch != address {
 		return fmt.Errorf("bookkeeper address error")
 	}
 

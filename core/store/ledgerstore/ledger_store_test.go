@@ -88,7 +88,7 @@ func TestInitLedgerStoreWithGenesisBlock(t *testing.T) {
 	//	Timestamp:        uint32(uint32(time.Date(2017, time.February, 23, 0, 0, 0, 0, time.UTC).Unix())),
 	//	Height:           uint32(0),
 	//	ConsensusData:    1234567890,
-	//	NextBookkeeper:   bookkeeper,
+	//	NextEpoch:   bookkeeper,
 	//}
 	//block.Header = header
 	//block := &types.Block{

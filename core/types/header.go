@@ -21,20 +21,18 @@ type Header struct {
 	Height           uint32
 	ConsensusData    uint64
 	ConsensusPayload []byte
-	NextBookkeeper   common.Address
-
-	//Program *program.Program
-	Bookkeepers []bls.PublicKey
-	SigData     [][]byte
-	EpochKey    bls.PublicKey
-	hash        *common.Uint256
+	NextEpoch        common.Address
+	EpochValidators  []bls.PublicKey
+	SigData          [][]byte
+	EpochKey         bls.PublicKey
+	hash             *common.Uint256
 }
 
 func (bd *Header) Serialization(sink *common.ZeroCopySink) error {
 	bd.serializationUnsigned(sink)
-	sink.WriteVarUint(uint64(len(bd.Bookkeepers)))
+	sink.WriteVarUint(uint64(len(bd.EpochValidators)))
 
-	for _, pubkey := range bd.Bookkeepers {
+	for _, pubkey := range bd.EpochValidators {
 		sink.WriteVarBytes(pubkey.Marshal())
 	}
 
@@ -57,7 +55,7 @@ func (bd *Header) serializationUnsigned(sink *common.ZeroCopySink) {
 	sink.WriteUint32(bd.Height)
 	sink.WriteUint64(bd.ConsensusData)
 	sink.WriteVarBytes(bd.ConsensusPayload)
-	sink.WriteBytes(bd.NextBookkeeper[:])
+	sink.WriteBytes(bd.NextEpoch[:])
 	sink.WriteVarBytes(bd.EpochKey.Marshal())
 }
 
@@ -65,11 +63,11 @@ func (bd *Header) Serialize(w io.Writer) error {
 	if err := bd.serializeUnsigned(w); err != nil {
 		return err
 	}
-	if err := serialization.WriteVarUint(w, uint64(len(bd.Bookkeepers))); err != nil {
+	if err := serialization.WriteVarUint(w, uint64(len(bd.EpochValidators))); err != nil {
 		return err
 	}
 
-	for _, pubkey := range bd.Bookkeepers {
+	for _, pubkey := range bd.EpochValidators {
 		if err := serialization.WriteVarBytes(w, pubkey.Marshal()); err != nil {
 			return err
 		}
@@ -114,7 +112,7 @@ func (bd *Header) serializeUnsigned(w io.Writer) error {
 	if err := serialization.WriteVarBytes(w, bd.ConsensusPayload); err != nil {
 		return err
 	}
-	if err := serialization.WriteBytes(w, bd.NextBookkeeper[:]); err != nil {
+	if err := serialization.WriteBytes(w, bd.NextEpoch[:]); err != nil {
 		return err
 	}
 	if err := serialization.WriteBytes(w, bd.EpochKey.Marshal()); err != nil {
@@ -154,7 +152,7 @@ func (bd *Header) Deserialization(source *common.ZeroCopySource) error {
 		if err != nil {
 			return err
 		}
-		bd.Bookkeepers = append(bd.Bookkeepers, pubkey)
+		bd.EpochValidators = append(bd.EpochValidators, pubkey)
 	}
 
 	m, eof := source.NextVarUint()
@@ -211,9 +209,9 @@ func (bd *Header) deserializationUnsigned(source *common.ZeroCopySource) error {
 	if eof {
 		return errors.New("[Header] read consensusPayload error")
 	}
-	bd.NextBookkeeper, eof = source.NextAddress()
+	bd.NextEpoch, eof = source.NextAddress()
 	if eof {
-		return errors.New("[Header] read nextBookkeeper error")
+		return errors.New("[Header] read nextEpoch error")
 	}
 	epochKeyBytes, eof := source.NextVarBytes()
 	if eof {
@@ -247,7 +245,7 @@ func (bd *Header) Deserialize(w io.Reader) error {
 		if err != nil {
 			return err
 		}
-		bd.Bookkeepers = append(bd.Bookkeepers, pubkey)
+		bd.EpochValidators = append(bd.EpochValidators, pubkey)
 	}
 
 	m, err := serialization.ReadVarUint(w, 0)
@@ -303,9 +301,9 @@ func (bd *Header) deserializeUnsigned(w io.Reader) error {
 	if err != nil {
 		return errors.New("[Header] read consensusPayload error")
 	}
-	bd.NextBookkeeper, err = serialization.ReadAddress(w)
+	bd.NextEpoch, err = serialization.ReadAddress(w)
 	if err != nil {
-		return errors.New("[Header] read nextBookkeeper error")
+		return errors.New("[Header] read nextEpoch error")
 	}
 	epochkeyBytes, _ := serialization.ReadBLSPubKeyBytes(w)
 	if err != nil {

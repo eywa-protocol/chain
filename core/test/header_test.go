@@ -24,8 +24,8 @@ func TestTransaction(t *testing.T) {
 		Height:           12,
 		ConsensusData:    12,
 		ConsensusPayload: []byte{1, 2},
-		NextBookkeeper:   common.ADDRESS_EMPTY,
-		Bookkeepers:      []bls.PublicKey{acc.PublicKey},
+		NextEpoch:        common.ADDRESS_EMPTY,
+		EpochValidators:  []bls.PublicKey{acc.PublicKey},
 		SigData:          [][]byte{{1, 2, 3}},
 		EpochKey:         acc.PublicKey,
 	}
@@ -56,8 +56,8 @@ func BenchmarkT1(b *testing.B) {
 		Height:           12,
 		ConsensusData:    12,
 		ConsensusPayload: []byte{1, 2},
-		NextBookkeeper:   common.ADDRESS_EMPTY,
-		Bookkeepers:      []bls.PublicKey{acc.PublicKey},
+		NextEpoch:        common.ADDRESS_EMPTY,
+		EpochValidators:  []bls.PublicKey{acc.PublicKey},
 		SigData:          [][]byte{{1, 2, 3}},
 	}
 	buf := common.NewZeroCopySink([]byte(""))
@@ -80,8 +80,8 @@ func BenchmarkT3(b *testing.B) {
 		Height:           12,
 		ConsensusData:    12,
 		ConsensusPayload: []byte{1, 2},
-		NextBookkeeper:   common.ADDRESS_EMPTY,
-		Bookkeepers:      []bls.PublicKey{acc.PublicKey},
+		NextEpoch:        common.ADDRESS_EMPTY,
+		EpochValidators:  []bls.PublicKey{acc.PublicKey},
 		SigData:          [][]byte{{1, 2, 3}},
 	}
 
@@ -104,8 +104,8 @@ func BenchmarkT2(b *testing.B) {
 		Height:           12,
 		ConsensusData:    12,
 		ConsensusPayload: []byte{1, 2},
-		NextBookkeeper:   common.ADDRESS_EMPTY,
-		Bookkeepers:      []bls.PublicKey{acc.PublicKey},
+		NextEpoch:        common.ADDRESS_EMPTY,
+		EpochValidators:  []bls.PublicKey{acc.PublicKey},
 		SigData:          [][]byte{{1, 2, 3}},
 	}
 	for i := 0; i < b.N; i++ {
@@ -127,20 +127,20 @@ type Header struct {
 	Height           uint32
 	ConsensusData    uint64
 	ConsensusPayload []byte
-	NextBookkeeper   common.Address
+	NextEpoch        common.Address
 
 	//Program *program.Program
-	Bookkeepers []bls.PublicKey
-	SigData     [][]byte
-	Epochkey    bls.PublicKey
-	hash        *common.Uint256
+	EpochValidators []bls.PublicKey
+	SigData         [][]byte
+	Epochkey        bls.PublicKey
+	hash            *common.Uint256
 }
 
 func (bd *Header) Serialization(sink *common.ZeroCopySink) error {
 	bd.serializationUnsigned(sink)
-	sink.WriteVarUint(uint64(len(bd.Bookkeepers)))
+	sink.WriteVarUint(uint64(len(bd.EpochValidators)))
 
-	for _, pubkey := range bd.Bookkeepers {
+	for _, pubkey := range bd.EpochValidators {
 		sink.WriteVarBytes(pubkey.Marshal())
 	}
 
@@ -167,7 +167,7 @@ func (bd *Header) serializationUnsigned(sink *common.ZeroCopySink) {
 	sink.WriteUint32(bd.Height)
 	sink.WriteUint64(bd.ConsensusData)
 	sink.WriteVarBytes(bd.ConsensusPayload)
-	sink.WriteBytes(bd.NextBookkeeper[:])
+	sink.WriteBytes(bd.NextEpoch[:])
 	sink.WriteBytes(bd.Epochkey.Marshal())
 }
 
@@ -191,7 +191,7 @@ func (bd *Header) Deserialization(source *common.ZeroCopySource) error {
 		if err != nil {
 			return err
 		}
-		bd.Bookkeepers = append(bd.Bookkeepers, pubkey)
+		bd.EpochValidators = append(bd.EpochValidators, pubkey)
 	}
 
 	m, eof := source.NextVarUint()
@@ -255,9 +255,9 @@ func (bd *Header) deserializationUnsigned(source *common.ZeroCopySource) error {
 	if eof {
 		return errors.New("[Header] read consensusPayload error")
 	}
-	bd.NextBookkeeper, eof = source.NextAddress()
+	bd.NextEpoch, eof = source.NextAddress()
 	if eof {
-		return errors.New("[Header] read nextBookkeeper error")
+		return errors.New("[Header] read nextEpoch error")
 	}
 	epochKeyBytes, eof := source.NextVarBytes()
 	if eof {

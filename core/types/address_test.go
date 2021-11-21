@@ -6,9 +6,9 @@ import (
 	"testing"
 )
 
-// TODO TestAddressFromBookkeepers
+// TODO TestAddressFromEpochValidators
 
-func TestAddressFromBookkeepers(t *testing.T) {
+func TestAddressFromEpochValidators(t *testing.T) {
 	_, pubKey1 := bls.GenerateRandomKey()
 	_, pubKey2 := bls.GenerateRandomKey()
 	_, pubKey3 := bls.GenerateRandomKey()

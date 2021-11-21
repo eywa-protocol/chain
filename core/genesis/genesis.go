@@ -17,17 +17,17 @@ const (
 	INIT_CONFIG = "initConfig"
 )
 
-var GenesisBookkeepers []bls.PublicKey
+var GenesisEpochValidators []bls.PublicKey
 
 // BuildGenesisBlock returns the genesis block with default consensus bookkeeper list
-func BuildGenesisBlock(defaultBookkeeper []bls.PublicKey) (*types.Block, error) {
+func BuildGenesisBlock(defaultEpoch []bls.PublicKey) (*types.Block, error) {
 
-	GenesisBookkeepers = defaultBookkeeper
-	nextBookkeeper, err := types.AddressFromPubLeySlice(defaultBookkeeper)
+	GenesisEpochValidators = defaultEpoch
+	nextEpoch, err := types.AddressFromPubLeySlice(defaultEpoch)
 	if err != nil {
-		return nil, fmt.Errorf("[Block],BuildGenesisBlock err with GetBookkeeperAddress: %s", err)
+		return nil, fmt.Errorf("[Block],BuildGenesisBlock err with GetEpochAddress: %s", err)
 	}
-	nodeManagerConfig := newNodeManagerEpochInit([]byte(nextBookkeeper.ToHexString()))
+	nodeManagerConfig := newNodeManagerEpochInit([]byte(nextEpoch.ToHexString()))
 	consensusPayload := []byte("0")
 
 	genesisHeader := &types.Header{
@@ -37,10 +37,10 @@ func BuildGenesisBlock(defaultBookkeeper []bls.PublicKey) (*types.Block, error) 
 		Timestamp:        constants.GENESIS_BLOCK_TIMESTAMP,
 		Height:           uint32(0),
 		ConsensusData:    GenesisNonce,
-		NextBookkeeper:   nextBookkeeper,
+		NextEpoch:        nextEpoch,
 		ConsensusPayload: consensusPayload,
 		BlockRoot:        common.UINT256_EMPTY,
-		Bookkeepers:      GenesisBookkeepers,
+		EpochValidators:  GenesisEpochValidators,
 		SigData:          nil,
 	}
 

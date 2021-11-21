@@ -8,5 +8,5 @@ import (
 
 func GetValidators(txs []*types.Transaction) ([]bls.PublicKey, error) {
 	// TODO implement vote
-	return genesis.GenesisBookkeepers, nil
+	return genesis.GenesisEpochValidators, nil
 }

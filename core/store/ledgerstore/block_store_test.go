@@ -319,7 +319,7 @@ func TestSaveHeader(t *testing.T) {
 	acc2 := account.NewAccount(0)
 	bookkeeper, err := types.AddressFromPubLeySlice([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey})
 	if err != nil {
-		t.Errorf("AddressFromBookkeepers error %s", err)
+		t.Errorf("AddressFromEpochValidators error %s", err)
 		return
 	}
 	header := &types.Header{
@@ -328,7 +328,7 @@ func TestSaveHeader(t *testing.T) {
 		Timestamp:        uint32(uint32(time.Date(2017, time.February, 23, 0, 0, 0, 0, time.UTC).Unix())),
 		Height:           uint32(1),
 		ConsensusData:    123456789,
-		NextBookkeeper:   bookkeeper,
+		NextEpoch:        bookkeeper,
 	}
 	block := &types.Block{
 		Header:       header,
@@ -372,7 +372,7 @@ func TestBlock(t *testing.T) {
 	acc2 := account.NewAccount(0)
 	bookkeeper, err := types.AddressFromPubLeySlice([]bls.PublicKey{acc1.PublicKey, acc2.PublicKey})
 	if err != nil {
-		t.Errorf("AddressFromBookkeepers error %s", err)
+		t.Errorf("AddressFromEpochValidators error %s", err)
 		return
 	}
 	header := &types.Header{
@@ -381,7 +381,7 @@ func TestBlock(t *testing.T) {
 		Timestamp:        uint32(uint32(time.Date(2017, time.February, 23, 0, 0, 0, 0, time.UTC).Unix())),
 		Height:           uint32(2),
 		ConsensusData:    1234567890,
-		NextBookkeeper:   bookkeeper,
+		NextEpoch:        bookkeeper,
 	}
 
 	invoke := &payload.InvokeCode{}

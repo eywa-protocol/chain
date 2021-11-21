@@ -92,7 +92,7 @@ func Test_BlockFromRawBytes(t *testing.T) {
 	assert.Equal(t, genesisBlockFromBytes.Hash(), genesisBlock.Hash())
 	assert.Equal(t, genesisBlockFromBytes, genesisBlock)
 
-	t.Log("bookkeepers", genesisBlockFromBytes.Header.Bookkeepers[0].Marshal())
+	t.Log("bookkeepers", genesisBlockFromBytes.Header.EpochValidators[0].Marshal())
 
 }
 

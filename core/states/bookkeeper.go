@@ -8,24 +8,24 @@ import (
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/serialization"
 )
 
-type BookkeeperState struct {
+type EpochState struct {
 	StateBase
-	CurrBookkeeper []bls.PublicKey
-	NextBookkeeper []bls.PublicKey
+	CurrEpoch []bls.PublicKey
+	NextEpoch []bls.PublicKey
 }
 
-func (this *BookkeeperState) Serialize(w io.Writer) error {
+func (this *EpochState) Serialize(w io.Writer) error {
 	this.StateBase.Serialize(w)
-	serialization.WriteUint32(w, uint32(len(this.CurrBookkeeper)))
-	for _, v := range this.CurrBookkeeper {
+	serialization.WriteUint32(w, uint32(len(this.CurrEpoch)))
+	for _, v := range this.CurrEpoch {
 		buf := v.Marshal()
 		err := serialization.WriteVarBytes(w, buf)
 		if err != nil {
 			return err
 		}
 	}
-	serialization.WriteUint32(w, uint32(len(this.NextBookkeeper)))
-	for _, v := range this.NextBookkeeper {
+	serialization.WriteUint32(w, uint32(len(this.NextEpoch)))
+	for _, v := range this.NextEpoch {
 
 		buf := v.Marshal()
 		err := serialization.WriteVarBytes(w, buf)
@@ -36,7 +36,7 @@ func (this *BookkeeperState) Serialize(w io.Writer) error {
 	return nil
 }
 
-func (this *BookkeeperState) Deserialize(r io.Reader) error {
+func (this *EpochState) Deserialize(r io.Reader) error {
 	err := this.StateBase.Deserialize(r)
 	if err != nil {
 		return err
@@ -51,7 +51,7 @@ func (this *BookkeeperState) Deserialize(r io.Reader) error {
 			return err
 		}
 		key, err := bls.UnmarshalPublicKey(buf)
-		this.CurrBookkeeper = append(this.CurrBookkeeper, key)
+		this.CurrEpoch = append(this.CurrEpoch, key)
 	}
 
 	n, err = serialization.ReadUint32(r)
@@ -64,12 +64,12 @@ func (this *BookkeeperState) Deserialize(r io.Reader) error {
 			return err
 		}
 		key, err := bls.UnmarshalPublicKey(buf)
-		this.NextBookkeeper = append(this.NextBookkeeper, key)
+		this.NextEpoch = append(this.NextEpoch, key)
 	}
 	return nil
 }
 
-func (v *BookkeeperState) ToArray() []byte {
+func (v *EpochState) ToArray() []byte {
 	b := new(bytes.Buffer)
 	v.Serialize(b)
 	return b.Bytes()

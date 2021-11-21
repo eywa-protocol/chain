@@ -88,7 +88,7 @@ func NewLedgerStore(dataDir string) (*LedgerStoreImp, error) {
 }
 
 //InitLedgerStoreWithGenesisBlock init the ledger store with genesis block. It's the first operation after NewLedgerStore.
-func (this *LedgerStoreImp) InitLedgerStoreWithGenesisBlock(genesisBlock *types.Block, defaultBookkeeper []bls.PublicKey) error {
+func (this *LedgerStoreImp) InitLedgerStoreWithGenesisBlock(genesisBlock *types.Block, defaultEpoch []bls.PublicKey) error {
 	hasInit, err := this.hasAlreadyInitGenesisBlock()
 	if err != nil {
 		return fmt.Errorf("hasAlreadyInit error %s", err)
@@ -106,15 +106,14 @@ func (this *LedgerStoreImp) InitLedgerStoreWithGenesisBlock(genesisBlock *types.
 		if err != nil {
 			return fmt.Errorf("eventStore.ClearAll error %s", err)
 		}
-		// TODO check if sort needed here
-		//defaultBookkeeper = keypair.SortPublicKeys(defaultBookkeeper)
-		bookkeeperState := &states.BookkeeperState{
-			CurrBookkeeper: defaultBookkeeper,
-			NextBookkeeper: defaultBookkeeper,
+
+		bookkeeperState := &states.EpochState{
+			CurrEpoch: defaultEpoch,
+			NextEpoch: defaultEpoch,
 		}
-		err = this.stateStore.SaveBookkeeperState(bookkeeperState)
+		err = this.stateStore.SaveEpochState(bookkeeperState)
 		if err != nil {
-			return fmt.Errorf("SaveBookkeeperState error %s", err)
+			return fmt.Errorf("SaveEpochState error %s", err)
 		}
 
 		result, err := this.executeBlock(genesisBlock)
@@ -368,15 +367,15 @@ func (this *LedgerStoreImp) verifyHeader(header *types.Header, vbftPeerInfo map[
 	}
 	//check bookkeeppers
 	m := len(vbftPeerInfo) - (len(vbftPeerInfo)-1)/3
-	if len(header.Bookkeepers) < m {
-		return vbftPeerInfo, fmt.Errorf("header Bookkeepers %d more than 2/3 len vbftPeerInfo%d", len(header.Bookkeepers), len(vbftPeerInfo))
+	if len(header.EpochValidators) < m {
+		return vbftPeerInfo, fmt.Errorf("header EpochValidators %d more than 2/3 len vbftPeerInfo%d", len(header.EpochValidators), len(vbftPeerInfo))
 	}
 	return vbftPeerInfo, nil
-	address, err := types.AddressFromPubLeySlice(header.Bookkeepers)
+	address, err := types.AddressFromPubLeySlice(header.EpochValidators)
 	if err != nil {
 		return vbftPeerInfo, err
 	}
-	if prevHeader.NextBookkeeper != address {
+	if prevHeader.NextEpoch != address {
 		return vbftPeerInfo, fmt.Errorf("bookkeeper address error")
 	}
 
@@ -871,9 +870,9 @@ func (this *LedgerStoreImp) GetBlockByHeight(height uint32) (*types.Block, error
 	return this.GetBlockByHash(blockHash)
 }
 
-//GetBookkeeperState return the bookkeeper state. Wrap function of StateStore.GetBookkeeperState
-func (this *LedgerStoreImp) GetBookkeeperState() (*states.BookkeeperState, error) {
-	return this.stateStore.GetBookkeeperState()
+//GetEpochState return the bookkeeper state. Wrap function of StateStore.GetEpochState
+func (this *LedgerStoreImp) GetEpochState() (*states.EpochState, error) {
+	return this.stateStore.GetEpochState()
 }
 
 //GetMerkleProof return the block merkle proof. Wrap function of StateStore.GetMerkleProof

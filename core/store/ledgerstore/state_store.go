@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	BOOKKEEPER = []byte("Bookkeeper") //Bookkeeper store key
+	BOOKKEEPER = []byte("Epoch") //Epoch store key
 )
 
 //StateStore saving the data of ledger states. Like balance of account, and the execution result of smart contract
@@ -281,9 +281,9 @@ func (self *StateStore) CommitTo() error {
 	return self.store.BatchCommit()
 }
 
-//GetBookkeeperState return current book keeper states
-func (self *StateStore) GetBookkeeperState() (*states.BookkeeperState, error) {
-	key, err := self.getBookkeeperKey()
+//GetEpochState return current book keeper states
+func (self *StateStore) GetEpochState() (*states.EpochState, error) {
+	key, err := self.getEpochKey()
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +293,7 @@ func (self *StateStore) GetBookkeeperState() (*states.BookkeeperState, error) {
 		return nil, err
 	}
 	reader := bytes.NewReader(value)
-	bookkeeperState := new(states.BookkeeperState)
+	bookkeeperState := new(states.EpochState)
 	err = bookkeeperState.Deserialize(reader)
 	if err != nil {
 		return nil, err
@@ -301,9 +301,9 @@ func (self *StateStore) GetBookkeeperState() (*states.BookkeeperState, error) {
 	return bookkeeperState, nil
 }
 
-//SaveBookkeeperState persist book keeper state to store
-func (self *StateStore) SaveBookkeeperState(bookkeeperState *states.BookkeeperState) error {
-	key, err := self.getBookkeeperKey()
+//SaveEpochState persist book keeper state to store
+func (self *StateStore) SaveEpochState(bookkeeperState *states.EpochState) error {
+	key, err := self.getEpochKey()
 	if err != nil {
 		return err
 	}
@@ -384,7 +384,7 @@ func (self *StateStore) getCurrentBlockKey() []byte {
 	return []byte{byte(scom.SYS_CURRENT_BLOCK)}
 }
 
-func (self *StateStore) getBookkeeperKey() ([]byte, error) {
+func (self *StateStore) getEpochKey() ([]byte, error) {
 	key := make([]byte, 1+len(BOOKKEEPER))
 	key[0] = byte(scom.ST_BOOKKEEPER)
 	copy(key[1:], []byte(BOOKKEEPER))

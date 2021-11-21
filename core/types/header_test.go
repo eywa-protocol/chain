@@ -13,7 +13,7 @@ import (
 func TestHeader_Serialize(t *testing.T) {
 	header := Header{}
 	header.Height = 321
-	header.Bookkeepers = make([]bls.PublicKey, 0)
+	header.EpochValidators = make([]bls.PublicKey, 0)
 	header.SigData = make([][]byte, 0)
 	header.EpochKey = bls.PublicKey{}
 	sink := common.NewZeroCopySink(nil)
@@ -40,13 +40,13 @@ func TestHeader_Serialization(t *testing.T) {
 		Height:           123,
 		ConsensusData:    123,
 		ConsensusPayload: []byte{123},
-		NextBookkeeper:   common.ADDRESS_EMPTY,
-		Bookkeepers:      make([]bls.PublicKey, 0),
+		NextEpoch:        common.ADDRESS_EMPTY,
+		EpochValidators:  make([]bls.PublicKey, 0),
 		EpochKey:         bls.PublicKey{},
 	}
 	//header := Header{}
 	//header.Height = 321
-	//header.Bookkeepers = make([]bls.PublicKey, 0)
+	//header.EpochValidators = make([]bls.PublicKey, 0)
 	//header.SigData = make([][]byte, 0)
 	//header.EpochKey = bls.PublicKey{}
 
@@ -73,8 +73,8 @@ func TestHeader(t *testing.T) {
 		Height:           123,
 		ConsensusData:    123,
 		ConsensusPayload: []byte{123},
-		NextBookkeeper:   common.ADDRESS_EMPTY,
-		Bookkeepers:      make([]bls.PublicKey, 0),
+		NextEpoch:        common.ADDRESS_EMPTY,
+		EpochValidators:  make([]bls.PublicKey, 0),
 		EpochKey:         bls.PublicKey{},
 	}
 	sink := common.NewZeroCopySink(nil)
