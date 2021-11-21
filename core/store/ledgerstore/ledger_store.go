@@ -138,50 +138,14 @@ func (this *LedgerStoreImp) InitLedgerStoreWithGenesisBlock(genesisBlock *types.
 			return fmt.Errorf("HashBlockExist error %s", err)
 		}
 		if !exist {
-			return fmt.Errorf("GenesisBlock arenot init correctly")
+			return fmt.Errorf("GenesisBlock is not inited correctly")
 		}
 		err = this.init()
 		if err != nil {
 			return fmt.Errorf("init error %s", err)
 		}
 	}
-	//load vbft peerInfo
-	//consensusType := strings.ToLower(config.DefConfig.Genesis.ConsensusType)
-	//if consensusType == "vbft" {
-	//	header, err := this.GetHeaderByHash(this.currBlockHash)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	blkInfo, err := vconfig.VbftBlock(header)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	var cfg *vconfig.ChainConfig
-	//	if blkInfo.NewChainConfig != nil {
-	//		cfg = blkInfo.NewChainConfig
-	//	} else {
-	//		cfgHeader, err := this.GetHeaderByHeight(blkInfo.LastConfigBlockNum)
-	//		if err != nil {
-	//			return err
-	//		}
-	//		Info, err := vconfig.VbftBlock(cfgHeader)
-	//		if err != nil {
-	//			return err
-	//		}
-	//		if Info.NewChainConfig == nil {
-	//			return fmt.Errorf("getNewChainConfig error block num:%d", blkInfo.LastConfigBlockNum)
-	//		}
-	//		cfg = Info.NewChainConfig
-	//	}
-	//	this.lock.Lock()
-	//	this.vbftPeerInfoheader = make(map[string]uint32)
-	//	this.vbftPeerInfoblock = make(map[string]uint32)
-	//	for _, p := range cfg.Peers {
-	//		this.vbftPeerInfoheader[p.ID] = p.Index
-	//		this.vbftPeerInfoblock[p.ID] = p.Index
-	//	}
-	//	this.lock.Unlock()
-	//}
+	this.currBlockHash = genesisBlock.Hash()
 	return err
 }
 

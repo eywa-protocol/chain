@@ -40,7 +40,7 @@ func BuildGenesisBlock(defaultBookkeeper []bls.PublicKey) (*types.Block, error) 
 		NextBookkeeper:   nextBookkeeper,
 		ConsensusPayload: consensusPayload,
 		BlockRoot:        common.UINT256_EMPTY,
-		Bookkeepers:      nil,
+		Bookkeepers:      GenesisBookkeepers,
 		SigData:          nil,
 	}
 
@@ -129,10 +129,6 @@ func NewInitNodeManagerTransaction(
 func NewInitNodeManagerEpochTransaction(
 	paramBytes []byte,
 ) (*types.Transaction, error) {
-	contractInvokeParam := &states.ContractInvokeParam{Address: utils.NodeManagerContractAddress,
-		Method: INIT_CONFIG, Args: paramBytes}
-	invokeCode := new(common.ZeroCopySink)
-	contractInvokeParam.Serialization(invokeCode)
 
-	return NewEpochTransaction(invokeCode.Bytes(), 0), nil
+	return NewEpochTransaction(paramBytes, 0), nil
 }
