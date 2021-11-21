@@ -217,6 +217,54 @@ func TestSaveBridgeEventTransaction(t *testing.T) {
 
 }
 
+func TestSaveEpochTransaction(t *testing.T) {
+
+	epoch := &payload.Epoch{Data: []byte("123456")}
+	tx := &types.Transaction{
+		TxType:  types.Epoch,
+		Payload: epoch,
+	}
+	sink := common.NewZeroCopySink(nil)
+
+	err := tx.SerializeUnsigned(sink)
+	require.NoError(t, err)
+
+	err = tx.Deserialization(common.NewZeroCopySource(sink.Bytes()))
+	require.Error(t, err)
+
+	blockHeight := uint32(1)
+	txHash := tx.Hash()
+	exist, err := testBlockStore.ContainTransaction(txHash)
+	require.NoError(t, err)
+	require.False(t, exist)
+
+	testBlockStore.NewBatch()
+	err = testBlockStore.SaveTransaction(tx, blockHeight)
+	require.NoError(t, err)
+
+	err = testBlockStore.CommitTo()
+	require.NoError(t, err)
+
+	tx1, height, err := testBlockStore.GetTransaction(txHash)
+	require.NoError(t, err)
+	require.Equal(t, blockHeight, height)
+	require.Equal(t, tx1.TxType, tx.TxType)
+	tx1Hash := tx1.Hash()
+	require.Equal(t, txHash, tx1Hash)
+
+	sink2 := common.NewZeroCopySink(nil)
+	tx1.Payload.Serialization(sink2)
+	var ep2 payload.Epoch
+	err = ep2.Deserialization(common.NewZeroCopySource(sink2.Bytes()))
+	require.NoError(t, err)
+	require.Equal(t, epoch, &ep2)
+
+	exist, err = testBlockStore.ContainTransaction(txHash)
+	require.NoError(t, err)
+	require.True(t, exist)
+
+}
+
 func TestHeaderIndexList(t *testing.T) {
 	testBlockStore.NewBatch()
 	startHeight := uint32(0)
