@@ -3,7 +3,6 @@ package ledger
 import (
 	"bytes"
 	"fmt"
-	"github.com/eywa-protocol/bls-crypto/bls"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/states"
@@ -34,8 +33,8 @@ func (self *Ledger) GetStore() store.LedgerStore {
 	return self.ldgStore
 }
 
-func (self *Ledger) Init(defaultBookkeeper []bls.PublicKey, genesisBlock *types.Block) error {
-	err := self.ldgStore.InitLedgerStoreWithGenesisBlock(genesisBlock, defaultBookkeeper)
+func (self *Ledger) Init(genesisBlock *types.Block) error {
+	err := self.ldgStore.InitLedgerStoreWithGenesisBlock(genesisBlock, genesisBlock.Header.Bookkeepers)
 	if err != nil {
 		return fmt.Errorf("InitLedgerStoreWithGenesisBlock error %s", err)
 	}

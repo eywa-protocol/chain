@@ -5,7 +5,6 @@
 import (
 	"fmt"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/config"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store"
 	scommon "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/common"
@@ -68,9 +67,6 @@ func (self *StateStore) HandleEpochTransaction(store store.LedgerStore, overlay 
 }
 
 func SaveNotify(eventStore scommon.EventStore, txHash common.Uint256, notify *event.ExecuteNotify) error {
-	if !config.DefConfig.Common.EnableEventLog {
-		return nil
-	}
 	if err := eventStore.SaveEventNotifyByTx(txHash, notify); err != nil {
 		return fmt.Errorf("SaveEventNotifyByTx error %s", err)
 	}

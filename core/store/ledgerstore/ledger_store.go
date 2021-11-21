@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -15,7 +14,6 @@ import (
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native"
 
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/config"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/overlaydb"
@@ -140,50 +138,14 @@ func (this *LedgerStoreImp) InitLedgerStoreWithGenesisBlock(genesisBlock *types.
 			return fmt.Errorf("HashBlockExist error %s", err)
 		}
 		if !exist {
-			return fmt.Errorf("GenesisBlock arenot init correctly")
+			return fmt.Errorf("GenesisBlock is not inited correctly")
 		}
 		err = this.init()
 		if err != nil {
 			return fmt.Errorf("init error %s", err)
 		}
 	}
-	//load vbft peerInfo
-	//consensusType := strings.ToLower(config.DefConfig.Genesis.ConsensusType)
-	//if consensusType == "vbft" {
-	//	header, err := this.GetHeaderByHash(this.currBlockHash)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	blkInfo, err := vconfig.VbftBlock(header)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	var cfg *vconfig.ChainConfig
-	//	if blkInfo.NewChainConfig != nil {
-	//		cfg = blkInfo.NewChainConfig
-	//	} else {
-	//		cfgHeader, err := this.GetHeaderByHeight(blkInfo.LastConfigBlockNum)
-	//		if err != nil {
-	//			return err
-	//		}
-	//		Info, err := vconfig.VbftBlock(cfgHeader)
-	//		if err != nil {
-	//			return err
-	//		}
-	//		if Info.NewChainConfig == nil {
-	//			return fmt.Errorf("getNewChainConfig error block num:%d", blkInfo.LastConfigBlockNum)
-	//		}
-	//		cfg = Info.NewChainConfig
-	//	}
-	//	this.lock.Lock()
-	//	this.vbftPeerInfoheader = make(map[string]uint32)
-	//	this.vbftPeerInfoblock = make(map[string]uint32)
-	//	for _, p := range cfg.Peers {
-	//		this.vbftPeerInfoheader[p.ID] = p.Index
-	//		this.vbftPeerInfoblock[p.ID] = p.Index
-	//	}
-	//	this.lock.Unlock()
-	//}
+	this.currBlockHash = genesisBlock.Hash()
 	return err
 }
 
@@ -404,55 +366,20 @@ func (this *LedgerStoreImp) verifyHeader(header *types.Header, vbftPeerInfo map[
 	if prevHeader.Timestamp >= header.Timestamp {
 		return vbftPeerInfo, fmt.Errorf("block timestamp is incorrect")
 	}
-	consensusType := strings.ToLower(config.DefConfig.Genesis.ConsensusType)
-	if consensusType == "vbft" {
-		//check bookkeeppers
-		m := len(vbftPeerInfo) - (len(vbftPeerInfo)-1)/3
-		if len(header.Bookkeepers) < m {
-			return vbftPeerInfo, fmt.Errorf("header Bookkeepers %d more than 2/3 len vbftPeerInfo%d", len(header.Bookkeepers), len(vbftPeerInfo))
-		}
-		//for _, bookkeeper := range header.Bookkeepers {
-		//	pubkey := vconfig.PubkeyID(bookkeeper)
-		//	_, present := vbftPeerInfo[pubkey]
-		//	if !present {
-		//		log.Errorf("invalid pubkey :%v,height:%d", pubkey, header.Height)
-		//		return vbftPeerInfo, fmt.Errorf("invalid pubkey :%v", pubkey)
-		//	}
-		//}
-		// hash := header.Hash()
-		// err = signature.VerifyMultiSignature(hash[:], header.Bookkeepers, m, header.SigData)
-		// if err != nil {
-		// 	log.Errorf("VerifyMultiSignature:%s,Bookkeepers:%d,pubkey:%d,heigh:%d", err, len(header.Bookkeepers), len(vbftPeerInfo), header.Height)
-		// 	return vbftPeerInfo, err
-		// }
-		//blkInfo, err := vconfig.VbftBlock(header)
-		//if err != nil {
-		//	return vbftPeerInfo, err
-		//}
-		//if blkInfo.NewChainConfig != nil {
-		//	peerInfo := make(map[string]uint32)
-		//	for _, p := range blkInfo.NewChainConfig.Peers {
-		//		peerInfo[p.ID] = p.Index
-		//	}
-		//	return peerInfo, nil
-		//}
-		return vbftPeerInfo, nil
-	} else {
-		address, err := types.AddressFromPubLeySlice(header.Bookkeepers)
-		if err != nil {
-			return vbftPeerInfo, err
-		}
-		if prevHeader.NextBookkeeper != address {
-			return vbftPeerInfo, fmt.Errorf("bookkeeper address error")
-		}
-
-		// m := len(header.Bookkeepers) - (len(header.Bookkeepers)-1)/3
-		// hash := header.Hash()
-		// err = signature.VerifyMultiSignature(hash[:], header.Bookkeepers, m, header.SigData)
-		// if err != nil {
-		// 	return vbftPeerInfo, err
-		// }
+	//check bookkeeppers
+	m := len(vbftPeerInfo) - (len(vbftPeerInfo)-1)/3
+	if len(header.Bookkeepers) < m {
+		return vbftPeerInfo, fmt.Errorf("header Bookkeepers %d more than 2/3 len vbftPeerInfo%d", len(header.Bookkeepers), len(vbftPeerInfo))
 	}
+	return vbftPeerInfo, nil
+	address, err := types.AddressFromPubLeySlice(header.Bookkeepers)
+	if err != nil {
+		return vbftPeerInfo, err
+	}
+	if prevHeader.NextBookkeeper != address {
+		return vbftPeerInfo, fmt.Errorf("bookkeeper address error")
+	}
+
 	return vbftPeerInfo, nil
 }
 
