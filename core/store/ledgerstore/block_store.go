@@ -294,19 +294,19 @@ func (this *BlockStore) SaveTransaction(tx *types.Transaction, height uint32) er
 
 func (this *BlockStore) putTransaction(tx *types.Transaction, height uint32) error {
 	txHash := tx.Hash()
-	fmt.Printf("hash %v\n", txHash)
+
 	key := this.getTransactionKey(txHash)
-	fmt.Printf("key %v\n", key)
+
 	value := bytes.NewBuffer(nil)
-	fmt.Printf("value %v\n", value.Bytes())
+
 	if err := serialization.WriteUint32(value, height); err != nil {
 		return err
 	}
-	fmt.Printf("TX RAW %v\n", tx.Raw)
+
 	if err := serialization.WriteBytes(value, tx.ToArray()); err != nil {
 		return err
 	}
-	fmt.Printf("value  BYTES %v\n", value.Bytes())
+
 	this.store.BatchPut(key, value.Bytes())
 	return nil
 }

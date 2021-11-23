@@ -2,6 +2,7 @@ package genesis
 
 import (
 	"fmt"
+	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -9,8 +10,11 @@ import (
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/cmd/utils"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/ledger"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
+	"gitlab.digiu.ai/blockchainlaboratory/wrappers"
 	"io/ioutil"
+	"math/big"
 	"os"
 	"testing"
 )
@@ -35,7 +39,13 @@ func TestMain(m *testing.M) {
 
 	bookKeepers = []bls.PublicKey{acc.PublicKey}
 	genesisBlock, err = BuildGenesisBlock(bookKeepers)
-	saveBlockToFile(genesisBlock, genesisFile)
+	if err != nil {
+		fmt.Printf("BuildGenesisBlock error:%s\n", err)
+	}
+	err = saveBlockToFile(genesisBlock, genesisFile)
+	if err != nil {
+		fmt.Printf("saveBlockToFile error:%s\n", err)
+	}
 	err = lg.Init(genesisBlock)
 	if err != nil {
 		fmt.Printf("lg.Init error:%s\n", err)
@@ -48,19 +58,20 @@ func TestMain(m *testing.M) {
 	os.RemoveAll(genesisFile)
 }
 
-func saveBlockToFile(block *types.Block, file string) {
-
-	f, err := os.Create(file)
+func saveBlockToFile(block *types.Block, file string) (err error) {
+	var f *os.File
+	f, err = os.Create(file)
 	defer f.Close()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	genesisBlockBytes := block.ToArray()
 	err = ioutil.WriteFile(file, genesisBlockBytes, os.ModePerm)
 	defer f.Close()
 	if err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
 
 func TestLedgerInited(t *testing.T) {
@@ -117,4 +128,21 @@ func TestGenesisBlockInit(t *testing.T) {
 	assert.NotEqual(t, block.Header.TransactionsRoot, common.UINT256_EMPTY)
 	assert.NotZero(t, len(block.Transactions))
 	assert.NotNil(t, block.Transactions[0].Payload)
+}
+
+func TestSaveBridgeEventAsBlock(t *testing.T) {
+	blockbefore := lg.GetCurrentBlockHash()
+	var event = &payload.BridgeEvent{
+		OriginData: wrappers.BridgeOracleRequest{
+			RequestType: "setRequest",
+			Bridge:      ethCommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
+			Chainid:     big.NewInt(94),
+		}}
+	err = lg.CreateBlockFromEvent(event.OriginData)
+	require.NoError(t, err)
+	blockAfter := lg.GetCurrentBlockHash()
+	require.NotEqual(t, blockbefore, blockAfter)
+
+	t.Log("end")
+
 }
