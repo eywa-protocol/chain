@@ -7,7 +7,7 @@ import (
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/event"
 )
 
-const MAX_NATIVE_VERSION = 0
+const MAX_NATIVE_VERSION = 253
 
 // Invoke smart contract struct
 // Param Version: invoke smart contract version, default 0

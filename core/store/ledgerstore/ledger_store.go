@@ -644,12 +644,12 @@ func (this *LedgerStoreImp) releaseSavingBlockLock() {
 func (this *LedgerStoreImp) submitBlock(block *types.Block, result store.ExecuteResult) error {
 	blockHash := block.Hash()
 	blockHeight := block.Header.Height
-	// TODO fix blockRoot
-	//blockRoot := this.GetBlockRootWithPreBlockHashes(block.Header.Height, []common.Uint256{block.Header.PrevBlockHash})
-	//if block.Header.Height != 0 && blockRoot != block.Header.BlockRoot {
-	//	return fmt.Errorf("wrong block root at height:%d, expected:%s, got:%s",
-	//		block.Header.Height, blockRoot.ToHexString(), block.Header.BlockRoot.ToHexString())
-	//}
+
+	blockRoot := this.GetBlockRootWithPreBlockHashes(block.Header.Height, []common.Uint256{block.Header.PrevBlockHash})
+	if block.Header.Height != 0 && blockRoot != block.Header.BlockRoot {
+		return fmt.Errorf("wrong block root at height:%d, expected:%s, got:%s",
+			block.Header.Height, blockRoot.ToHexString(), block.Header.BlockRoot.ToHexString())
+	}
 
 	this.blockStore.NewBatch()
 	this.stateStore.NewBatch()
@@ -739,10 +739,10 @@ func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cach
 	} else if tx.TxType == types.BridgeEvent {
 		crossHashes, err := this.stateStore.HandleBridgeTransaction(this, overlay, cache, tx, block, notify)
 		if overlay.Error() != nil {
-			return nil, nil, fmt.Errorf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), overlay.Error())
+			return nil, nil, fmt.Errorf("HandleBridgeTransaction tx %s error %s", txHash.ToHexString(), overlay.Error())
 		}
 		if err != nil {
-			log.Debugf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), err)
+			return nil, nil, fmt.Errorf("HandleBridgeTransaction tx %s error %s", txHash.ToHexString(), err)
 		}
 		return notify, crossHashes, nil
 	} else {

@@ -25,7 +25,7 @@ func HexToBytes(value string) ([]byte, error) {
 
 func ToArrayReverse(arr []byte) []byte {
 	l := len(arr)
-	x := make([]byte, 0)
+	x := make([]byte, 0, l)
 	for i := l - 1; i >= 0; i-- {
 		x = append(x, arr[i])
 	}

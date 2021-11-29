@@ -138,7 +138,7 @@ func TestSaveBridgeEventAsBlock(t *testing.T) {
 			Bridge:      ethCommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
 			Chainid:     big.NewInt(94),
 		}}
-	err = lg.CreateBlockFromEvent(event.OriginData)
+	_, err = lg.CreateBlockFromEvent(event.OriginData)
 	require.NoError(t, err)
 	blockAfter := lg.GetCurrentBlockHash()
 	require.NotEqual(t, blockbefore, blockAfter)

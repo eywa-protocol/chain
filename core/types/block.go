@@ -89,6 +89,11 @@ func (b *Block) Hash() common.Uint256 {
 	return b.Header.Hash()
 }
 
+func (b *Block) HashString() string {
+	hash := b.Header.Hash()
+	return hash.ToHexString()
+}
+
 func (b *Block) Type() common.InventoryType {
 	return common.BLOCK
 }

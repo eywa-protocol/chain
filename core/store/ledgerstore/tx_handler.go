@@ -1,6 +1,8 @@
 /*
 * Copyright 2021 by EYWA chain <blockchain@digiu.ai>
- */package ledgerstore
+ */
+
+package ledgerstore
 
 import (
 	"fmt"
@@ -18,18 +20,12 @@ import (
 //HandleAnyTransaction deal with smart contract
 func (self *StateStore) HandleBridgeTransaction(store store.LedgerStore, overlay *overlaydb.OverlayDB, cache *storage.CacheDB,
 	tx *types.Transaction, block *types.Block, notify *event.ExecuteNotify) ([]common.Uint256, error) {
-	be := tx.Payload.(*payload.BridgeEvent)
-	beBytes := common.SerializeToBytes(be)
+	beBytes := common.SerializeToBytes(tx.Payload)
 	service, err := native.NewNativeService(cache, tx, block.Header.Timestamp, block.Header.Height,
 		block.Hash(), block.Header.ChainID, beBytes, false)
 	if err != nil {
-		return nil, fmt.Errorf("HandleInvokeTransaction Error: %+v\n", err)
+		return nil, fmt.Errorf("HandleBridgeTransaction Error: %+v\n", err)
 	}
-	if _, err := service.Invoke(); err != nil {
-		return nil, err
-	}
-	notify.Notify = append(notify.Notify, service.GetNotify()...)
-	notify.State = event.CONTRACT_STATE_SUCCESS
 	service.GetCacheDB().Commit()
 	return service.GetCrossHashes(), nil
 }
