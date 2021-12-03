@@ -3,8 +3,8 @@ package states
 import (
 	"errors"
 	"fmt"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/event"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/native/event"
 )
 
 const MAX_NATIVE_VERSION = 253

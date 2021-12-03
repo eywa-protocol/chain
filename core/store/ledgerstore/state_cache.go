@@ -1,8 +1,8 @@
 package ledgerstore
 
 import (
+	"github.com/eywa-protocol/chain/core/states"
 	"github.com/hashicorp/golang-lru"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/states"
 )
 
 const (

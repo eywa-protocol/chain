@@ -13,8 +13,8 @@ import (
 
 	"github.com/eywa-protocol/bls-crypto/bls"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
+	"github.com/eywa-protocol/chain/account"
+	"github.com/eywa-protocol/chain/core/types"
 )
 
 func GetJsonObjectFromFile(filePath string, jsonObject interface{}) error {

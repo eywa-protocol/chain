@@ -17,7 +17,7 @@
 
 package utils
 
-import "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+import "github.com/eywa-protocol/chain/common"
 
 type BtcNetType int
 

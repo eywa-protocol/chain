@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"io"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/serialization"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/states"
-	scom "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/leveldbstore"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/overlaydb"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/merkle"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/common/log"
+	"github.com/eywa-protocol/chain/common/serialization"
+	"github.com/eywa-protocol/chain/core/states"
+	scom "github.com/eywa-protocol/chain/core/store/common"
+	"github.com/eywa-protocol/chain/core/store/leveldbstore"
+	"github.com/eywa-protocol/chain/core/store/overlaydb"
+	"github.com/eywa-protocol/chain/merkle"
 )
 
 var (

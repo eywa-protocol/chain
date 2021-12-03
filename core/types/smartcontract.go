@@ -1,6 +1,6 @@
 package types
 
-import "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+import "github.com/eywa-protocol/chain/common"
 
 type SmartCodeEvent struct {
 	TxHash common.Uint256

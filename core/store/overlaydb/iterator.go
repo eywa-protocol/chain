@@ -1,8 +1,8 @@
 package overlaydb
 
 import (
+	"github.com/eywa-protocol/chain/core/store/common"
 	"github.com/syndtr/goleveldb/leveldb/comparer"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/common"
 )
 
 type KeyOrigin byte

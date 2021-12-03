@@ -4,8 +4,8 @@ import (
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"io"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/serialization"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/common/serialization"
 )
 
 type VoteState struct {

@@ -2,12 +2,12 @@ package store
 
 import (
 	"github.com/eywa-protocol/bls-crypto/bls"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/states"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/overlaydb"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/event"
-	cstates "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/states"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/core/states"
+	"github.com/eywa-protocol/chain/core/store/overlaydb"
+	"github.com/eywa-protocol/chain/core/types"
+	"github.com/eywa-protocol/chain/native/event"
+	cstates "github.com/eywa-protocol/chain/native/states"
 )
 
 type ExecuteResult struct {

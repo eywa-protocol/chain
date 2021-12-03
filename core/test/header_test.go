@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/eywa-protocol/bls-crypto/bls"
+	"github.com/eywa-protocol/chain/account"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/core/types"
 	"github.com/stretchr/testify/assert"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 )
 
 func TestTransaction(t *testing.T) {

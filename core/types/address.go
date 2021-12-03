@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 	"github.com/eywa-protocol/bls-crypto/bls"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"github.com/eywa-protocol/chain/common"
 )
 
 func AddressFromPubKey(pubkey bls.PublicKey) common.Address {

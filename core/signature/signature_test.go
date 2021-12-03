@@ -5,8 +5,8 @@ import (
 
 	"github.com/eywa-protocol/bls-crypto/bls"
 
+	"github.com/eywa-protocol/chain/account"
 	"github.com/stretchr/testify/assert"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
 )
 
 func TestSign(t *testing.T) {

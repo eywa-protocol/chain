@@ -2,8 +2,8 @@ package vote
 
 import (
 	"github.com/eywa-protocol/bls-crypto/bls"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/genesis"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
+	"github.com/eywa-protocol/chain/core/genesis"
+	"github.com/eywa-protocol/chain/core/types"
 )
 
 func GetValidators(txs []*types.Transaction) ([]bls.PublicKey, error) {

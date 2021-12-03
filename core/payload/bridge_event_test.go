@@ -2,9 +2,9 @@ package payload
 
 import (
 	ethCommon "github.com/ethereum/go-ethereum/common"
+	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/wrappers"
 	"github.com/stretchr/testify/assert"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"math/big"
 	"testing"
 )

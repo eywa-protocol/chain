@@ -1,8 +1,8 @@
-module gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain
+module github.com/eywa-protocol/chain
 
 go 1.1
 
-replace gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain => ./
+replace github.com/eywa-protocol/chain => ./
 
 require (
 	github.com/btcsuite/btcd v0.22.0-beta

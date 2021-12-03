@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/serialization"
-	cstates "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/states"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native"
+	"github.com/eywa-protocol/chain/common/serialization"
+	cstates "github.com/eywa-protocol/chain/core/states"
+	"github.com/eywa-protocol/chain/native"
 )
 
 func GetStorageItem(native *native.NativeService, key []byte) (*cstates.StorageItem, error) {

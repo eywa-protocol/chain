@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"github.com/eywa-protocol/chain/common"
 )
 
 // HashStore is an interface for persist hash

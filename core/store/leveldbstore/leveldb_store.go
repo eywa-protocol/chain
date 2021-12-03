@@ -2,13 +2,13 @@ package leveldbstore
 
 import (
 	"github.com/ethereum/go-ethereum/common/fdlimit"
+	"github.com/eywa-protocol/chain/core/store/common"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/common"
 )
 
 //LevelDB store

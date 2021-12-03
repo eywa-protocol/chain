@@ -7,8 +7,8 @@ import (
 	"fmt"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/wrappers"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"math/big"
 )
 

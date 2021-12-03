@@ -2,8 +2,8 @@ package test
 
 import (
 	"fmt"
+	"github.com/eywa-protocol/chain/common"
 	"github.com/stretchr/testify/assert"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"testing"
 )
 

@@ -3,8 +3,8 @@ package test
 import (
 	"bytes"
 	"crypto/rand"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/serialization"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/common/serialization"
 	"testing"
 )
 

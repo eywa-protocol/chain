@@ -2,8 +2,8 @@ package account
 
 import (
 	"github.com/eywa-protocol/bls-crypto/bls"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/core/types"
 )
 
 type Account struct {
@@ -31,5 +31,3 @@ func (this *Account) PrivKey() bls.PrivateKey {
 func (this *Account) PubKey() bls.PublicKey {
 	return this.PublicKey
 }
-
-

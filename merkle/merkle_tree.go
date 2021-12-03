@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"math"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/common/log"
 )
 
 // const UINT256_SIZE int = 32

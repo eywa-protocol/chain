@@ -27,8 +27,8 @@ import (
 	"testing"
 	//"github.com/ontio/ontology-crypto"
 
+	"github.com/eywa-protocol/chain/crypto/ec"
 	"github.com/ontio/ontology-crypto/sm2"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/crypto/ec"
 )
 
 func TestKeyPairGeneration(t *testing.T) {

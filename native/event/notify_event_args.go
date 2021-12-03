@@ -1,7 +1,7 @@
 package event
 
 import (
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"github.com/eywa-protocol/chain/common"
 )
 
 const (

@@ -6,8 +6,8 @@ import (
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"testing"
 
+	"github.com/eywa-protocol/chain/common"
 	"github.com/stretchr/testify/assert"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 )
 
 func TestHeader_Serialize(t *testing.T) {

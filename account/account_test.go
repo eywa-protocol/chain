@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/eywa-protocol/chain/core/types"
 	"github.com/stretchr/testify/assert"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 )
 
 func TestNewAccount(t *testing.T) {

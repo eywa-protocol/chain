@@ -6,15 +6,15 @@ package ledgerstore
 
 import (
 	"fmt"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store"
-	scommon "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/overlaydb"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/event"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/storage"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/core/payload"
+	"github.com/eywa-protocol/chain/core/store"
+	scommon "github.com/eywa-protocol/chain/core/store/common"
+	"github.com/eywa-protocol/chain/core/store/overlaydb"
+	"github.com/eywa-protocol/chain/core/types"
+	"github.com/eywa-protocol/chain/native"
+	"github.com/eywa-protocol/chain/native/event"
+	"github.com/eywa-protocol/chain/native/storage"
 )
 
 //HandleAnyTransaction deal with smart contract

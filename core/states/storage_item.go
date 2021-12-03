@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/serialization"
+	"github.com/eywa-protocol/chain/common/serialization"
 )
 
 type StorageItem struct {

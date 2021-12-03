@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"compress/zlib"
 	"fmt"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/serialization"
+	"github.com/eywa-protocol/chain/common/serialization"
 	"io"
 	"io/ioutil"
 )

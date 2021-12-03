@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
+	"github.com/eywa-protocol/chain/core/types"
 )
 
 // VerifyBlock checks whether the block is valid

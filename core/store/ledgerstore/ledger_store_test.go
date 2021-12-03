@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"github.com/eywa-protocol/bls-crypto/bls"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/genesis"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
+	"github.com/eywa-protocol/chain/account"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/common/log"
+	"github.com/eywa-protocol/chain/core/genesis"
+	"github.com/eywa-protocol/chain/core/types"
 )
 
 var testBlockStore *BlockStore

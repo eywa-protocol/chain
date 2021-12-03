@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"github.com/eywa-protocol/bls-crypto/bls"
+	"github.com/eywa-protocol/chain/account"
+	"github.com/eywa-protocol/chain/cmd/utils"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/core/payload"
+	"github.com/eywa-protocol/chain/core/signature"
+	"github.com/eywa-protocol/chain/core/types"
 	"github.com/stretchr/testify/assert"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/account"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/cmd/utils"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/signature"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 )
 
 func TestSign(t *testing.T) {

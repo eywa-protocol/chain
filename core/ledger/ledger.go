@@ -3,14 +3,14 @@ package ledger
 import (
 	"bytes"
 	"fmt"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/states"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/ledgerstore"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/event"
-	cstate "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/states"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/common/log"
+	"github.com/eywa-protocol/chain/core/states"
+	"github.com/eywa-protocol/chain/core/store"
+	"github.com/eywa-protocol/chain/core/store/ledgerstore"
+	"github.com/eywa-protocol/chain/core/types"
+	"github.com/eywa-protocol/chain/native/event"
+	cstate "github.com/eywa-protocol/chain/native/states"
 )
 
 var DefLedger *Ledger

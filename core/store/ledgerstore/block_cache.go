@@ -3,9 +3,9 @@ package ledgerstore
 import (
 	"fmt"
 
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/core/types"
 	"github.com/hashicorp/golang-lru"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 )
 
 const (

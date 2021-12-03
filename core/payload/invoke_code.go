@@ -2,7 +2,7 @@ package payload
 
 import (
 	"fmt"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"github.com/eywa-protocol/chain/common"
 )
 
 // InvokeCode is an implementation of transaction payload for invoke smartcontract

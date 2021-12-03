@@ -1,12 +1,12 @@
 package test
 
 import (
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"github.com/eywa-protocol/chain/common"
 	"testing"
 
 	"bytes"
+	ser "github.com/eywa-protocol/chain/common/serialization"
 	"github.com/stretchr/testify/assert"
-	ser "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/serialization"
 )
 
 func TestSourceSink(t *testing.T) {

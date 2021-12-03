@@ -3,7 +3,7 @@ package test
 import (
 	"bytes"
 	"crypto/rand"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
+	"github.com/eywa-protocol/chain/common"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

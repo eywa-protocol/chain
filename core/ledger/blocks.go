@@ -3,11 +3,11 @@ package ledger
 import (
 	"errors"
 	"fmt"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/common/log"
+	"github.com/eywa-protocol/chain/core/payload"
+	"github.com/eywa-protocol/chain/core/types"
 	"github.com/eywa-protocol/wrappers"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
 )
 
 func newBridgeEventTransaction(evt wrappers.BridgeOracleRequest) (*types.Transaction, error) {

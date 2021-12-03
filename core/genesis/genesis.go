@@ -3,12 +3,12 @@ package genesis
 import (
 	"fmt"
 	"github.com/eywa-protocol/bls-crypto/bls"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/constants"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/service/utils"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/states"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/common/constants"
+	"github.com/eywa-protocol/chain/core/payload"
+	"github.com/eywa-protocol/chain/core/types"
+	"github.com/eywa-protocol/chain/native/service/utils"
+	"github.com/eywa-protocol/chain/native/states"
 )
 
 const (

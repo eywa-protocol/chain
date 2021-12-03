@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/serialization"
-	scom "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/leveldbstore"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/common/serialization"
+	scom "github.com/eywa-protocol/chain/core/store/common"
+	"github.com/eywa-protocol/chain/core/store/leveldbstore"
+	"github.com/eywa-protocol/chain/core/types"
 	"io"
 )
 

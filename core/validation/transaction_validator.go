@@ -1,14 +1,24 @@
 package validation
 
+/*
+import (
+	"fmt"
+	"github.com/sirupsen/logrus"
+	"github.com/eywa-protocol/chain/core/ledger"
+	"github.com/eywa-protocol/chain/core/payload"
+	"github.com/eywa-protocol/chain/core/signature"
+	"github.com/eywa-protocol/chain/core/types"
+)
+
 // VerifyTransaction verifys received single transaction
-/*func VerifyTransaction(tx *types.Transaction) ontErrors.ErrCode {
+func VerifyTransaction(tx *types.Transaction) ontErrors.ErrCode {
 	if err := checkTransactionSignatures(tx); err != nil {
-		log.Info("transaction verify error:", err)
+		logrus.Info("transaction verify error:", err)
 		return ontErrors.ErrVerifySignature
 	}
 
 	if err := checkTransactionPayload(tx); err != nil {
-		log.Warn("[VerifyTransaction],", err)
+		logrus.Warn("[VerifyTransaction],", err)
 		return ontErrors.ErrTransactionPayload
 	}
 
@@ -76,4 +86,5 @@ func checkTransactionPayload(tx *types.Transaction) error {
 		return errors.New(fmt.Sprint("[txValidator], unimplemented transaction payload type.", pld))
 	}
 	return nil
-}*/
+}
+*/

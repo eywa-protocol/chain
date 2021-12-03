@@ -3,9 +3,9 @@ package overlaydb
 import (
 	"crypto/sha256"
 
+	comm "github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/core/store/common"
 	"github.com/syndtr/goleveldb/leveldb/util"
-	comm "gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/store/common"
 )
 
 type OverlayDB struct {

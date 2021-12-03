@@ -4,9 +4,9 @@ import (
 	"crypto"
 	"encoding/binary"
 	"fmt"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/native"
 	"github.com/ontio/ontology-crypto/vrf"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native"
 )
 
 func ConcatKey(contract common.Address, args ...[]byte) []byte {

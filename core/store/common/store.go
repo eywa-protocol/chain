@@ -2,9 +2,9 @@ package common
 
 import (
 	"errors"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/states"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/native/event"
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/core/states"
+	"github.com/eywa-protocol/chain/native/event"
 )
 
 var ErrNotFound = errors.New("not found")

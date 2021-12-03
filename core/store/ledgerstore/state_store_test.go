@@ -4,9 +4,9 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/merkle"
 	"github.com/stretchr/testify/assert"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
-	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/merkle"
 )
 
 func TestStateMerkleRoot(t *testing.T) {
