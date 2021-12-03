@@ -3,11 +3,11 @@ package ledger
 import (
 	"errors"
 	"fmt"
+	"github.com/eywa-protocol/wrappers"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/common/log"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/payload"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-overhead-chain/core/types"
-	"gitlab.digiu.ai/blockchainlaboratory/wrappers"
 )
 
 func newBridgeEventTransaction(evt wrappers.BridgeOracleRequest) (*types.Transaction, error) {
@@ -88,10 +88,14 @@ func (self *Ledger) makeBlock(transactions []*types.Transaction) (block *types.B
 func (self *Ledger) ExecAndSaveBlock(block *types.Block) error {
 	result, err := self.ExecuteBlock(block)
 	if err != nil {
+		log.Error("ExecuteBlock")
+		log.Error(err)
 		return fmt.Errorf("execAndSaveBlock ExecuteBlock Height:%d error:%s", block.Header.Height, err)
 	}
 	err = self.SubmitBlock(block, result)
 	if err != nil {
+		log.Error("SubmitBlock")
+		log.Error(err)
 		return fmt.Errorf("execAndSaveBlock SubmitBlock Height:%d error:%s", block.Header.Height, err)
 	}
 	return nil
