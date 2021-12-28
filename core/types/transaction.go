@@ -5,10 +5,16 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"sort"
+
+	common2 "github.com/ethereum/go-ethereum/common"
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/core/payload"
-	"sort"
+)
+
+var (
+	ErrNotSupportedTxType = errors.New("not supported tx type")
 )
 
 const MAX_TX_SIZE = 1024 * 1024 // The max size of a transaction to prevent DOS attacks
@@ -28,7 +34,7 @@ type Transaction struct {
 	GasLimit   uint64
 	GasPrice   uint64
 	Payload    Payload
-	Attributes []byte //this must be 0 now, Attribute Array length use VarUint encoding, so byte is enough for extension
+	Attributes []byte // this must be 0 now, Attribute Array length use VarUint encoding, so byte is enough for extension
 	Payer      common.Address
 	CoinType   CoinType
 	Sig        Sig
@@ -44,7 +50,7 @@ func (tx *Transaction) SerializeUnsigned(sink *common.ZeroCopySink) error {
 	sink.WriteUint64(tx.ChainID)
 	sink.WriteUint64(tx.GasLimit)
 	sink.WriteUint64(tx.GasPrice)
-	//Payload
+	// Payload
 	if tx.Payload == nil {
 		return errors.New("transaction payload is nil")
 	}
@@ -275,6 +281,23 @@ const (
 	BridgeEvent TransactionType = 0x1f
 )
 
+func (tt TransactionType) String() string {
+	switch tt {
+	case Invoke:
+		return "invoke"
+	case Node:
+		return "node"
+	case Epoch:
+		return "epoch"
+	case UpTime:
+		return "up_time"
+	case BridgeEvent:
+		return "bridge_event"
+	default:
+		return "unknown"
+	}
+}
+
 // Payload define the func for loading the payload data
 // base on payload type which have different structure
 type Payload interface {
@@ -297,6 +320,22 @@ func (tx *Transaction) Type() common.InventoryType {
 	return common.TRANSACTION
 }
 
+func (tx *Transaction) LogHash() (common2.Hash, error) {
+	if tx.TxType != BridgeEvent {
+		return common2.Hash{}, fmt.Errorf("log hash %w [%s]", ErrNotSupportedTxType, tx.TxType.String())
+	}
+	sink := common.NewZeroCopySink(nil)
+	tx.Payload.Serialization(sink)
+	var bridgeEvent payload.BridgeEvent
+	if err := bridgeEvent.Deserialization(common.NewZeroCopySource(sink.Bytes())); err != nil {
+
+		return common2.Hash{}, err
+	}
+
+	return bridgeEvent.OriginData.Raw.TxHash, nil
+
+}
+
 const MULTI_SIG_MAX_PUBKEY_SIZE = 16
 
 func EncodeMultiPubKeyProgramInto(sink *common.ZeroCopySink, pubkeys []bls.PublicKey, m uint16) error {
@@ -307,7 +346,7 @@ func EncodeMultiPubKeyProgramInto(sink *common.ZeroCopySink, pubkeys []bls.Publi
 	pubkeys = SortPublicKeys(pubkeys)
 	sink.WriteUint16(uint16(len(pubkeys)))
 	for _, pubkey := range pubkeys {
-		//fmt.Printf("\npubkey %v", common.ToHexString(pubkey.Marshal()))
+		// fmt.Printf("\npubkey %v", common.ToHexString(pubkey.Marshal()))
 		key := pubkey.Marshal()
 		sink.WriteVarBytes(key)
 	}

@@ -2,8 +2,6 @@ module github.com/eywa-protocol/chain
 
 go 1.1
 
-replace github.com/eywa-protocol/chain => ./
-
 require (
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/ethereum/go-ethereum v1.10.12
