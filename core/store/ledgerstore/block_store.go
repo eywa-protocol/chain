@@ -103,7 +103,6 @@ func (this *BlockStore) GetBlock(blockHash common.Uint256) (*types.Block, error)
 	}
 	txList := make([]*types.Transaction, 0, len(txHashes))
 	for _, txHash := range txHashes {
-		fmt.Print("TXHASH", txHash)
 
 		tx, _, err := this.GetTransaction(txHash)
 		if err != nil {
