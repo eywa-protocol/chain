@@ -5,11 +5,11 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"math/big"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/wrappers"
-	"math/big"
 )
 
 type BridgeSolanaEvent struct {
@@ -38,7 +38,7 @@ func unmarshalSolBinary(data []byte, st *wrappers.BridgeOracleRequestSolana) err
 	r := bytes.NewReader(data)
 	var dec struct {
 		RequestType    string
-		Bridge         ethCommon.Address
+		Bridge         [32]byte
 		RequestId      [32]byte
 		Selector       []byte
 		ReceiveSide    [32]byte
@@ -48,6 +48,7 @@ func unmarshalSolBinary(data []byte, st *wrappers.BridgeOracleRequestSolana) err
 	}
 	gob.NewDecoder(r).Decode(&dec)
 	st.RequestType = dec.RequestType
+
 	st.Bridge = dec.Bridge
 	st.RequestId = dec.RequestId
 	st.Selector = dec.Selector
@@ -67,7 +68,7 @@ func MarshalSolBinary(be *wrappers.BridgeOracleRequestSolana) (data []byte, err 
 	)
 	if err := gob.NewEncoder(w).Encode(struct {
 		RequestType    string
-		Bridge         ethCommon.Address
+		Bridge         [32]byte
 		RequestId      [32]byte
 		Selector       []byte
 		ReceiveSide    [32]byte
