@@ -29,9 +29,42 @@ func newBridgeEventTransaction(evt wrappers.BridgeOracleRequest) (*types.Transac
 	return tx, nil
 }
 
+func newBridgeSolanaEventTransaction(evt wrappers.BridgeOracleRequestSolana) (*types.Transaction, error) {
+	event := &payload.BridgeSolanaEvent{OriginData: evt}
+	tx := &types.Transaction{
+		TxType:  types.BridgeEvent,
+		Payload: event,
+		ChainID: 0,
+	}
+	sink := common.NewZeroCopySink(nil)
+	err := tx.Serialization(sink)
+	if err != nil {
+		return &types.Transaction{}, err
+	}
+	tx, err = types.TransactionFromRawBytes(sink.Bytes())
+	if err != nil {
+		return &types.Transaction{}, err
+	}
+	return tx, nil
+}
+
 func (self *Ledger) CreateBlockFromEvent(evt wrappers.BridgeOracleRequest) (block *types.Block, err error) {
 	txs := []*types.Transaction{}
 	tx, err := newBridgeEventTransaction(evt)
+	if err != nil {
+		return nil, err
+	}
+	txs = append(txs, tx)
+	block, err = self.makeBlock(txs)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("makeBlock %v", err.Error()))
+	}
+	return block, self.ExecAndSaveBlock(block)
+}
+
+func (self *Ledger) CreateBlockFromSolanaEvent(evt wrappers.BridgeOracleRequestSolana) (block *types.Block, err error) {
+	txs := []*types.Transaction{}
+	tx, err := newBridgeSolanaEventTransaction(evt)
 	if err != nil {
 		return nil, err
 	}
