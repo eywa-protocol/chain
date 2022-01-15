@@ -745,6 +745,15 @@ func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cach
 			return nil, nil, fmt.Errorf("HandleBridgeTransaction tx %s error %s", txHash.ToHexString(), err)
 		}
 		return notify, crossHashes, nil
+	} else if tx.TxType == types.BridgeEventSolana {
+		crossHashes, err := this.stateStore.HandleBridgeTransaction(this, overlay, cache, tx, block, notify)
+		if overlay.Error() != nil {
+			return nil, nil, fmt.Errorf("HandleBridgeTransaction tx %s error %s", txHash.ToHexString(), overlay.Error())
+		}
+		if err != nil {
+			return nil, nil, fmt.Errorf("HandleBridgeTransaction tx %s error %s", txHash.ToHexString(), err)
+		}
+		return notify, crossHashes, nil
 	} else {
 		return nil, nil, fmt.Errorf("Unsupported transaction type! type=%v payload=%v", tx.TxType, tx.Payload)
 	}

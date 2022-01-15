@@ -22,7 +22,7 @@ func (self *BridgeSolanaEvent) Deserialization(source *common.ZeroCopySource) er
 	if eof {
 		return fmt.Errorf("[InvokeCode] deserialize code error")
 	}
-	err := unmarshalSolBinary(code, &self.OriginData)
+	err := unmarshalBinarySolana(code, &self.OriginData)
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (self *BridgeSolanaEvent) Serialization(sink *common.ZeroCopySink) {
 	sink.WriteVarBytes(oracleRequestBytes)
 }
 
-func unmarshalSolBinary(data []byte, st *wrappers.BridgeOracleRequestSolana) error {
+func unmarshalBinarySolana(data []byte, st *wrappers.BridgeOracleRequestSolana) error {
 	r := bytes.NewReader(data)
 	var dec struct {
 		RequestType    string

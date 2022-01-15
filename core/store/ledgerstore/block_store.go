@@ -332,7 +332,6 @@ func (this *BlockStore) loadTransaction(txHash common.Uint256) (*types.Transacti
 			return tx, height, nil
 		}
 	}
-	fmt.Print("KEY", key)
 	value, err := this.store.Get(key)
 	if err != nil {
 		return nil, 0, err

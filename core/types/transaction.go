@@ -61,6 +61,8 @@ func (tx *Transaction) SerializeUnsigned(sink *common.ZeroCopySink) error {
 		pl.Serialization(sink)
 	case *payload.BridgeEvent:
 		pl.Serialization(sink)
+	case *payload.BridgeSolanaEvent:
+		pl.Serialization(sink)
 	default:
 		return errors.New("wrong transaction payload type")
 	}
@@ -182,6 +184,14 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 		}
 		tx.Payload = pl
 
+	case BridgeEventSolana:
+		pl := new(payload.InvokeCode)
+		err := pl.Deserialization(source)
+		if err != nil {
+			return err
+		}
+		tx.Payload = pl
+
 	default:
 		return fmt.Errorf("unsupported tx type %v", tx.Type())
 	}
@@ -274,11 +284,12 @@ func (this *Sig) Deserialize(source *common.ZeroCopySource) error {
 type TransactionType byte
 
 const (
-	Invoke      TransactionType = 0xd1
-	Node        TransactionType = 0xd2
-	Epoch       TransactionType = 0x22
-	UpTime      TransactionType = 0xd4
-	BridgeEvent TransactionType = 0x1f
+	Invoke            TransactionType = 0xd1
+	Node              TransactionType = 0xd2
+	Epoch             TransactionType = 0x22
+	UpTime            TransactionType = 0xd4
+	BridgeEvent       TransactionType = 0x1f
+	BridgeEventSolana TransactionType = 0x20
 )
 
 func (tt TransactionType) String() string {

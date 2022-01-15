@@ -32,7 +32,7 @@ func newBridgeEventTransaction(evt wrappers.BridgeOracleRequest) (*types.Transac
 func newBridgeSolanaEventTransaction(evt wrappers.BridgeOracleRequestSolana) (*types.Transaction, error) {
 	event := &payload.BridgeSolanaEvent{OriginData: evt}
 	tx := &types.Transaction{
-		TxType:  types.BridgeEvent,
+		TxType:  types.BridgeEventSolana,
 		Payload: event,
 		ChainID: 0,
 	}
