@@ -52,7 +52,6 @@ func unmarshalBinarySolana(data []byte, st *wrappers.BridgeOracleRequestSolana) 
 	st.Bridge = dec.Bridge
 	st.RequestId = dec.RequestId
 	st.Selector = dec.Selector
-	st.ReceiveSide = dec.ReceiveSide
 	st.OppositeBridge = dec.OppositeBridge
 	st.Chainid = dec.Chainid
 	st.Raw = dec.Raw
@@ -71,7 +70,6 @@ func MarshalSolBinary(be *wrappers.BridgeOracleRequestSolana) (data []byte, err 
 		Bridge         [32]byte
 		RequestId      [32]byte
 		Selector       []byte
-		ReceiveSide    [32]byte
 		OppositeBridge [32]byte
 		Chainid        *big.Int
 		Raw            types.Log
@@ -80,7 +78,6 @@ func MarshalSolBinary(be *wrappers.BridgeOracleRequestSolana) (data []byte, err 
 		be.Bridge,
 		be.RequestId,
 		be.Selector,
-		be.ReceiveSide,
 		be.OppositeBridge,
 		be.Chainid,
 		be.Raw,
