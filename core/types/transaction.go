@@ -332,19 +332,23 @@ func (tx *Transaction) Type() common.InventoryType {
 }
 
 func (tx *Transaction) LogHash() (common2.Hash, error) {
-	if tx.TxType != BridgeEvent {
-		return common2.Hash{}, fmt.Errorf("log hash %w [%s]", ErrNotSupportedTxType, tx.TxType.String())
-	}
 	sink := common.NewZeroCopySink(nil)
 	tx.Payload.Serialization(sink)
-	var bridgeEvent payload.BridgeEvent
-	if err := bridgeEvent.Deserialization(common.NewZeroCopySource(sink.Bytes())); err != nil {
-
-		return common2.Hash{}, err
+	if tx.TxType == BridgeEvent {
+		var bridgeEvent payload.BridgeEvent
+		if err := bridgeEvent.Deserialization(common.NewZeroCopySource(sink.Bytes())); err != nil {
+			return common2.Hash{}, err
+		}
+		return bridgeEvent.OriginData.Raw.TxHash, nil
+	} else if tx.TxType == BridgeEventSolana {
+		var bridgeEvent payload.BridgeSolanaEvent
+		if err := bridgeEvent.Deserialization(common.NewZeroCopySource(sink.Bytes())); err != nil {
+			return common2.Hash{}, err
+		}
+		return bridgeEvent.OriginData.Raw.TxHash, nil
+	} else {
+		return common2.Hash{}, fmt.Errorf("log hash %w [%s]", ErrNotSupportedTxType, tx.TxType.String())
 	}
-
-	return bridgeEvent.OriginData.Raw.TxHash, nil
-
 }
 
 const MULTI_SIG_MAX_PUBKEY_SIZE = 16
