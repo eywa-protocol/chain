@@ -186,8 +186,8 @@ github.com/ethereum/go-ethereum v1.10.12 h1:el/KddB3gLEsnNgGQ3SQuZuiZjwnFTYHe5Tw
 github.com/ethereum/go-ethereum v1.10.12/go.mod h1:W3yfrFyL9C1pHcwY5hmRHVDaorTiQxhYBkKyu5mEDHw=
 github.com/eywa-protocol/bls-crypto v0.1.2 h1:XmK8mDubg4mVYKm1G8SKRovMmLLC69z1q88zfGGdDk8=
 github.com/eywa-protocol/bls-crypto v0.1.2/go.mod h1:7zniOGuZnyY4Ew2QW+BhDpzV8EtlNg2RoN1Vm3DTOv0=
-github.com/eywa-protocol/wrappers v0.1.1 h1:Ea+nHQnFqX37ZSufbptTFFePBBOZhnIuMPn8ZmDj7Yc=
-github.com/eywa-protocol/wrappers v0.1.1/go.mod h1:BN+/JFJ+pybIpuWfbiNulrQcrx2H+ZJUdkyxPcqLLQs=
+github.com/eywa-protocol/wrappers v0.2.9 h1:lxEtnPkoJR+wk8D2lUwouhR+mKW9Tn3SXI6K+jAS/Ic=
+github.com/eywa-protocol/wrappers v0.2.9/go.mod h1:5XmxG0CeEqKLuRf0hqaFtT5ET/c8LKCoF+M+Axocmho=
 github.com/facebookgo/atomicfile v0.0.0-20151019160806-2de1f203e7d5/go.mod h1:JpoxHjuQauoxiFMl1ie8Xc/7TfLuMZ5eOCONd1sUBHg=
 github.com/fatih/color v1.3.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
