@@ -332,7 +332,7 @@ func (tx *Transaction) Type() common.InventoryType {
 }
 
 func (tx *Transaction) LogHash() (string, error) {
-	if tx.TxType == BridgeEvent || tx.TxType == BridgeEventSolana {
+	if tx.TxType == BridgeEvent {
 		sink := common.NewZeroCopySink(nil)
 		tx.Payload.Serialization(sink)
 		var bridgeEvent payload.BridgeEvent
@@ -341,6 +341,17 @@ func (tx *Transaction) LogHash() (string, error) {
 		}
 		return bridgeEvent.OriginData.Raw.TxHash.String(), nil
 	}
+
+	if tx.TxType == BridgeEventSolana {
+		sink := common.NewZeroCopySink(nil)
+		tx.Payload.Serialization(sink)
+		var bridgeEvent payload.BridgeSolanaEvent
+		if err := bridgeEvent.Deserialization(common.NewZeroCopySource(sink.Bytes())); err != nil {
+			return "", err
+		}
+		return bridgeEvent.OriginData.Raw.TxHash.String(), nil
+	}
+
 	if tx.TxType == SolanaToEVMEvent {
 		sink := common.NewZeroCopySink(nil)
 		tx.Payload.Serialization(sink)

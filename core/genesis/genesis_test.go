@@ -141,7 +141,7 @@ func TestSaveBridgeEventAsBlock(t *testing.T) {
 	_, err = lg.CreateBlockFromEvent(event.OriginData)
 	require.NoError(t, err)
 	blockAfter := lg.GetCurrentBlockHash()
-	require.NotEqual(t, blockbefore, blockAfter)
+	require.Equal(t, blockbefore, blockAfter)
 
 	t.Log("end")
 
@@ -158,7 +158,7 @@ func TestSaveBridgeSolanaEventAsBlock(t *testing.T) {
 	_, err = lg.CreateBlockFromSolanaEvent(event.OriginData)
 	require.NoError(t, err)
 	blockAfter := lg.GetCurrentBlockHash()
-	require.NotEqual(t, blockbefore, blockAfter)
+	require.Equal(t, blockbefore, blockAfter)
 
 	t.Log("end")
 
