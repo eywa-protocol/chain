@@ -5,10 +5,8 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/sha3"
 	"sort"
 
-	common2 "github.com/ethereum/go-ethereum/common"
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/core/payload"
@@ -333,27 +331,27 @@ func (tx *Transaction) Type() common.InventoryType {
 	return common.TRANSACTION
 }
 
-func (tx *Transaction) LogHash() (common2.Hash, error) {
+func (tx *Transaction) LogHash() (string, error) {
 	if tx.TxType == BridgeEvent {
 		sink := common.NewZeroCopySink(nil)
 		tx.Payload.Serialization(sink)
 		var bridgeEvent payload.BridgeEvent
 		if err := bridgeEvent.Deserialization(common.NewZeroCopySource(sink.Bytes())); err != nil {
-			return common2.Hash{}, err
+			return "", err
 		}
-		return bridgeEvent.OriginData.Raw.TxHash, nil
+		return bridgeEvent.OriginData.Raw.TxHash.String(), nil
 	}
 	if tx.TxType == SolanaToEVMEvent {
 		sink := common.NewZeroCopySink(nil)
 		tx.Payload.Serialization(sink)
 		var bridgeEvent payload.SolanaToEVMEvent
 		if err := bridgeEvent.Deserialization(common.NewZeroCopySource(sink.Bytes())); err != nil {
-			return common2.Hash{}, err
+			return "", err
 		}
-		return sha3.Sum256([]byte(bridgeEvent.OriginData.LogResult.Value.Signature.String())), nil
+		return bridgeEvent.OriginData.LogResult.Value.Signature.String(), nil
 	}
 
-	return common2.Hash{}, fmt.Errorf("log hash %w [%s]", ErrNotSupportedTxType, tx.TxType.String())
+	return "", fmt.Errorf("log hash %w [%s]", ErrNotSupportedTxType, tx.TxType.String())
 
 }
 
