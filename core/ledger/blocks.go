@@ -3,6 +3,7 @@ package ledger
 import (
 	"errors"
 	"fmt"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/common/log"
 	"github.com/eywa-protocol/chain/core/payload"
@@ -59,7 +60,7 @@ func (self *Ledger) CreateBlockFromEvent(evt wrappers.BridgeOracleRequest) (bloc
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("makeBlock %v", err.Error()))
 	}
-	return block, self.ExecAndSaveBlock(block)
+	return block, nil
 }
 
 func (self *Ledger) CreateBlockFromSolanaEvent(evt wrappers.BridgeOracleRequestSolana) (block *types.Block, err error) {
@@ -73,7 +74,7 @@ func (self *Ledger) CreateBlockFromSolanaEvent(evt wrappers.BridgeOracleRequestS
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("makeBlock %v", err.Error()))
 	}
-	return block, self.ExecAndSaveBlock(block)
+	return block, nil
 }
 
 func (self *Ledger) makeBlock(transactions []*types.Transaction) (block *types.Block, err error) {
