@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"golang.org/x/crypto/sha3"
 	"sort"
 
 	common2 "github.com/ethereum/go-ethereum/common"
@@ -290,6 +291,7 @@ const (
 	UpTime            TransactionType = 0xd4
 	BridgeEvent       TransactionType = 0x1f
 	BridgeEventSolana TransactionType = 0x20
+	SolanaToEVMEvent  TransactionType = 0x21
 )
 
 func (tt TransactionType) String() string {
@@ -332,18 +334,26 @@ func (tx *Transaction) Type() common.InventoryType {
 }
 
 func (tx *Transaction) LogHash() (common2.Hash, error) {
-	if tx.TxType != BridgeEvent {
-		return common2.Hash{}, fmt.Errorf("log hash %w [%s]", ErrNotSupportedTxType, tx.TxType.String())
+	if tx.TxType == BridgeEvent {
+		sink := common.NewZeroCopySink(nil)
+		tx.Payload.Serialization(sink)
+		var bridgeEvent payload.BridgeEvent
+		if err := bridgeEvent.Deserialization(common.NewZeroCopySource(sink.Bytes())); err != nil {
+			return common2.Hash{}, err
+		}
+		return bridgeEvent.OriginData.Raw.TxHash, nil
 	}
-	sink := common.NewZeroCopySink(nil)
-	tx.Payload.Serialization(sink)
-	var bridgeEvent payload.BridgeEvent
-	if err := bridgeEvent.Deserialization(common.NewZeroCopySource(sink.Bytes())); err != nil {
-
-		return common2.Hash{}, err
+	if tx.TxType == SolanaToEVMEvent {
+		sink := common.NewZeroCopySink(nil)
+		tx.Payload.Serialization(sink)
+		var bridgeEvent payload.SolanaToEVMEvent
+		if err := bridgeEvent.Deserialization(common.NewZeroCopySource(sink.Bytes())); err != nil {
+			return common2.Hash{}, err
+		}
+		return sha3.Sum256([]byte(bridgeEvent.OriginData.LogResult.Value.Signature.String())), nil
 	}
 
-	return bridgeEvent.OriginData.Raw.TxHash, nil
+	return common2.Hash{}, fmt.Errorf("log hash %w [%s]", ErrNotSupportedTxType, tx.TxType.String())
 
 }
 
