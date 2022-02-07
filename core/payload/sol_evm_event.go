@@ -6,9 +6,8 @@ import (
 	"encoding/gob"
 	"fmt"
 	"github.com/eywa-protocol/chain/common"
-	"github.com/gagliardetto/solana-go/rpc/ws"
+	"github.com/gagliardetto/solana-go"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
-	"math/big"
 )
 
 type SolanaToEVMEvent struct {
@@ -35,52 +34,35 @@ func (self *SolanaToEVMEvent) Serialization(sink *common.ZeroCopySink) {
 
 func unmarshalBinarySolanaToEVMEvent(data []byte, st *bridge.BridgeEvent) error {
 	r := bytes.NewReader(data)
-	var dec struct {
-		RequestType    string
-		Bridge         [32]byte
-		RequestId      [32]byte
-		Selector       []byte
-		ReceiveSide    [32]byte
-		OppositeBridge [20]byte
-		Chainid        *big.Int
-		LogResult      ws.LogResult
+	var dec = bridge.BridgeEvent{
+		OracleRequest: bridge.OracleRequest{},
+		Signature:     solana.Signature{},
+		Slot:          0,
 	}
 	gob.NewDecoder(r).Decode(&dec)
-	st.RequestType = dec.RequestType
-
-	st.BridgePubKey = dec.Bridge
-	st.RequestId = dec.RequestId
-	st.Selector = dec.Selector
+	st.ChainId = dec.ChainId
+	st.BridgePubKey = dec.BridgePubKey
+	st.Slot = dec.Slot
 	st.OppositeBridge = dec.OppositeBridge
-	st.ChainId = dec.Chainid.Uint64()
-	st.LogResult = dec.LogResult
+	st.ReceiveSide = dec.ReceiveSide
+	st.Signature = dec.Signature
+	st.RequestType = dec.RequestType
+	st.Selector = dec.Selector
+	st.RequestId = dec.RequestId
 
 	return nil
 }
 
 // MarshalBinary implements encoding.BinaryMarshaler
 func MarshalBinarySolanaToEVMEvent(be *bridge.BridgeEvent) (data []byte, err error) {
+
 	var (
 		b bytes.Buffer
 		w = bufio.NewWriter(&b)
 	)
-	if err := gob.NewEncoder(w).Encode(struct {
-		RequestType    string
-		Bridge         [32]byte
-		RequestId      [32]byte
-		Selector       []byte
-		OppositeBridge [20]byte
-		Chainid        *big.Int
-		LogResult      ws.LogResult
-	}{
-		be.RequestType,
-		be.BridgePubKey,
-		be.RequestId,
-		be.Selector,
-		be.OppositeBridge,
-		big.NewInt(int64(be.ChainId)),
-		be.LogResult,
-	}); err != nil {
+
+	br := be
+	if err := gob.NewEncoder(w).Encode(br); err != nil {
 		return nil, err
 	}
 

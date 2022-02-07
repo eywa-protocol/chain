@@ -359,7 +359,7 @@ func (tx *Transaction) LogHash() (string, error) {
 		if err := bridgeEvent.Deserialization(common.NewZeroCopySource(sink.Bytes())); err != nil {
 			return "", err
 		}
-		return bridgeEvent.OriginData.LogResult.Value.Signature.String(), nil
+		return bridgeEvent.OriginData.Signature.String(), nil
 	}
 
 	return "", fmt.Errorf("log hash %w [%s]", ErrNotSupportedTxType, tx.TxType.String())
