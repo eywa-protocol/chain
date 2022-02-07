@@ -332,7 +332,7 @@ func (tx *Transaction) Type() common.InventoryType {
 }
 
 func (tx *Transaction) LogHash() (string, error) {
-	if tx.TxType == BridgeEvent {
+	if tx.TxType == BridgeEvent || tx.TxType == BridgeEventSolana {
 		sink := common.NewZeroCopySink(nil)
 		tx.Payload.Serialization(sink)
 		var bridgeEvent payload.BridgeEvent
