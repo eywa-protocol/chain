@@ -62,6 +62,8 @@ func (tx *Transaction) SerializeUnsigned(sink *common.ZeroCopySink) error {
 		pl.Serialization(sink)
 	case *payload.BridgeSolanaEvent:
 		pl.Serialization(sink)
+	case *payload.SolanaToEVMEvent:
+		pl.Serialization(sink)
 	default:
 		return errors.New("wrong transaction payload type")
 	}
@@ -190,7 +192,13 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 			return err
 		}
 		tx.Payload = pl
-
+	case SolanaToEVMEvent:
+		pl := new(payload.SolanaToEVMEvent)
+		err := pl.Deserialization(source)
+		if err != nil {
+			return err
+		}
+		tx.Payload = pl
 	default:
 		return fmt.Errorf("unsupported tx type %v", tx.Type())
 	}

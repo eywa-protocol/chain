@@ -11,8 +11,10 @@ import (
 	"github.com/eywa-protocol/chain/core/payload"
 	"github.com/eywa-protocol/chain/core/types"
 	"github.com/eywa-protocol/wrappers"
+	"github.com/gagliardetto/solana-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -156,6 +158,33 @@ func TestSaveBridgeSolanaEventAsBlock(t *testing.T) {
 			Chainid:     big.NewInt(94),
 		}}
 	_, err = lg.CreateBlockFromSolanaEvent(event.OriginData)
+	require.NoError(t, err)
+	blockAfter := lg.GetCurrentBlockHash()
+	require.Equal(t, blockbefore, blockAfter)
+
+	t.Log("end")
+
+}
+
+func TestSaveBridgeFromSolanaEventAsBlock(t *testing.T) {
+	blockbefore := lg.GetCurrentBlockHash()
+	event := payload.SolanaToEVMEvent{
+		OriginData: bridge.BridgeEvent{
+			OracleRequest: bridge.OracleRequest{
+				RequestType:    "test",
+				BridgePubKey:   solana.PublicKey{},
+				RequestId:      solana.PublicKey{},
+				Selector:       []byte("test"),
+				ReceiveSide:    [20]uint8{},
+				OppositeBridge: [20]uint8{},
+				ChainId:        0,
+			},
+			Signature: solana.Signature{},
+			Slot:      20,
+		},
+	}
+
+	_, err = lg.CreateBlockFromSolanaToEvmEvent(event.OriginData)
 	require.NoError(t, err)
 	blockAfter := lg.GetCurrentBlockHash()
 	require.Equal(t, blockbefore, blockAfter)

@@ -3,6 +3,7 @@ package ledger
 import (
 	"errors"
 	"fmt"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
 
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/common/log"
@@ -10,6 +11,25 @@ import (
 	"github.com/eywa-protocol/chain/core/types"
 	"github.com/eywa-protocol/wrappers"
 )
+
+func newBridgeFromSolanaEventTransaction(evt bridge.BridgeEvent) (*types.Transaction, error) {
+	event := &payload.SolanaToEVMEvent{OriginData: evt}
+	tx := &types.Transaction{
+		TxType:  types.SolanaToEVMEvent,
+		Payload: event,
+		ChainID: 0,
+	}
+	sink := common.NewZeroCopySink(nil)
+	err := tx.Serialization(sink)
+	if err != nil {
+		return &types.Transaction{}, err
+	}
+	tx, err = types.TransactionFromRawBytes(sink.Bytes())
+	if err != nil {
+		return &types.Transaction{}, err
+	}
+	return tx, nil
+}
 
 func newBridgeEventTransaction(evt wrappers.BridgeOracleRequest) (*types.Transaction, error) {
 	event := &payload.BridgeEvent{OriginData: evt}
@@ -47,6 +67,20 @@ func newBridgeSolanaEventTransaction(evt wrappers.BridgeOracleRequestSolana) (*t
 		return &types.Transaction{}, err
 	}
 	return tx, nil
+}
+
+func (self *Ledger) CreateBlockFromSolanaToEvmEvent(evt bridge.BridgeEvent) (block *types.Block, err error) {
+	txs := []*types.Transaction{}
+	tx, err := newBridgeFromSolanaEventTransaction(evt)
+	if err != nil {
+		return nil, err
+	}
+	txs = append(txs, tx)
+	block, err = self.makeBlock(txs)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("makeBlock %v", err.Error()))
+	}
+	return block, nil
 }
 
 func (self *Ledger) CreateBlockFromEvent(evt wrappers.BridgeOracleRequest) (block *types.Block, err error) {
