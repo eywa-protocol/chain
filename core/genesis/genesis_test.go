@@ -192,3 +192,33 @@ func TestSaveBridgeFromSolanaEventAsBlock(t *testing.T) {
 	t.Log("end")
 
 }
+
+func TestBridgeSolToEvmEvent_Serialize2(t *testing.T) {
+	bEvt := payload.SolanaToEVMEvent{
+		OriginData: bridge.BridgeEvent{
+			OracleRequest: bridge.OracleRequest{
+				RequestType:    "test",
+				BridgePubKey:   solana.PublicKey{},
+				RequestId:      solana.PublicKey{},
+				Selector:       []byte("testselector"),
+				ReceiveSide:    common.Address{},
+				OppositeBridge: common.Address{},
+				ChainId:        uint64(3),
+			},
+			Signature: solana.Signature{},
+			Slot:      uint64(3),
+		},
+	}
+
+	sink := common.NewZeroCopySink(nil)
+	bEvt.Serialization(sink)
+	t.Log(bEvt)
+	var bridgeEvent2 payload.SolanaToEVMEvent
+	err := bridgeEvent2.Deserialization(common.NewZeroCopySource(sink.Bytes()))
+	assert.NoError(t, err)
+	assert.Equal(t, bEvt, bridgeEvent2)
+	blk, err := lg.CreateBlockFromSolanaToEvmEvent(bEvt.OriginData)
+	assert.NoError(t, err)
+	err = lg.ExecAndSaveBlock(blk)
+	assert.NoError(t, err)
+}
