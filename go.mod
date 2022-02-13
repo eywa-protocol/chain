@@ -13,6 +13,6 @@ require (
 	github.com/ontio/ontology-crypto v1.2.1
 	github.com/stretchr/testify v1.7.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
-	gitlab.digiu.ai/blockchainlaboratory/eywa-solana v1.1.7
+	gitlab.digiu.ai/blockchainlaboratory/eywa-solana v1.1.9
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 )

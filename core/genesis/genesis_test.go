@@ -11,8 +11,10 @@ import (
 	"github.com/eywa-protocol/chain/core/payload"
 	"github.com/eywa-protocol/chain/core/types"
 	"github.com/eywa-protocol/wrappers"
+	"github.com/gagliardetto/solana-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -162,4 +164,61 @@ func TestSaveBridgeSolanaEventAsBlock(t *testing.T) {
 
 	t.Log("end")
 
+}
+
+func TestSaveBridgeFromSolanaEventAsBlock(t *testing.T) {
+	blockbefore := lg.GetCurrentBlockHash()
+	event := payload.SolanaToEVMEvent{
+		OriginData: bridge.BridgeEvent{
+			OracleRequest: bridge.OracleRequest{
+				RequestType:    "test",
+				BridgePubKey:   solana.PublicKey{},
+				RequestId:      solana.PublicKey{},
+				Selector:       []byte("test"),
+				ReceiveSide:    [20]uint8{},
+				OppositeBridge: [20]uint8{},
+				ChainId:        0,
+			},
+			Signature: solana.Signature{},
+			Slot:      20,
+		},
+	}
+
+	_, err = lg.CreateBlockFromSolanaToEvmEvent(event.OriginData)
+	require.NoError(t, err)
+	blockAfter := lg.GetCurrentBlockHash()
+	require.Equal(t, blockbefore, blockAfter)
+
+	t.Log("end")
+
+}
+
+func TestBridgeSolToEvmEvent_Serialize2(t *testing.T) {
+	bEvt := payload.SolanaToEVMEvent{
+		OriginData: bridge.BridgeEvent{
+			OracleRequest: bridge.OracleRequest{
+				RequestType:    "test",
+				BridgePubKey:   solana.PublicKey{},
+				RequestId:      solana.PublicKey{},
+				Selector:       []byte("testselector"),
+				ReceiveSide:    common.Address{},
+				OppositeBridge: common.Address{},
+				ChainId:        uint64(3),
+			},
+			Signature: solana.Signature{},
+			Slot:      uint64(3),
+		},
+	}
+
+	sink := common.NewZeroCopySink(nil)
+	bEvt.Serialization(sink)
+	t.Log(bEvt)
+	var bridgeEvent2 payload.SolanaToEVMEvent
+	err := bridgeEvent2.Deserialization(common.NewZeroCopySource(sink.Bytes()))
+	assert.NoError(t, err)
+	assert.Equal(t, bEvt, bridgeEvent2)
+	blk, err := lg.CreateBlockFromSolanaToEvmEvent(bEvt.OriginData)
+	assert.NoError(t, err)
+	err = lg.ExecAndSaveBlock(blk)
+	assert.NoError(t, err)
 }
