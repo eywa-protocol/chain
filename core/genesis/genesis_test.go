@@ -67,7 +67,7 @@ func saveBlockToFile(block *types.Block, file string) (err error) {
 	if err != nil {
 		return err
 	}
-	genesisBlockBytes := block.ToArray()
+	genesisBlockBytes, _ := block.ToArray()
 	err = ioutil.WriteFile(file, genesisBlockBytes, os.ModePerm)
 	defer f.Close()
 	if err != nil {
