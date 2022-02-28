@@ -80,10 +80,13 @@ func (self *Block) Deserialization(source *common.ZeroCopySource) error {
 	return nil
 }
 
-func (b *Block) ToArray() []byte {
+func (b *Block) ToArray() ([]byte, error) {
 	sink := common.NewZeroCopySink(nil)
-	b.Serialization(sink)
-	return sink.Bytes()
+	err := b.Serialization(sink)
+	if err != nil {
+		return nil, err
+	}
+	return sink.Bytes(), nil
 }
 
 func (b *Block) Hash() common.Uint256 {
