@@ -1,272 +1,88 @@
 package test
 
 import (
-	"bytes"
-	"errors"
-	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/eywa-protocol/bls-crypto/bls"
-	"github.com/eywa-protocol/chain/account"
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/core/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTransaction(t *testing.T) {
-	acc := account.NewAccount(0)
+	proof := types.CryptoProof{
+		PartSignature: bls.ZeroSignature(),
+		PartPublicKey: bls.ZeroPublicKey(),
+		SigMask:       *big.NewInt(0),
+	}
 	header := types.Header{
 		ChainID:          0,
 		PrevBlockHash:    common.UINT256_EMPTY,
+		EpochBlockHash:   common.UINT256_EMPTY,
 		TransactionsRoot: common.UINT256_EMPTY,
-		BlockRoot:        common.UINT256_EMPTY,
-		Timestamp:        12,
+		SourceHeight:     12,
 		Height:           12,
-		ConsensusData:    12,
-		ConsensusPayload: []byte{1, 2},
-		NextEpoch:        common.ADDRESS_EMPTY,
-		EpochValidators:  []bls.PublicKey{acc.PublicKey},
-		SigData:          [][]byte{{1, 2, 3}},
-		EpochKey:         acc.PublicKey,
+		Signature:        proof,
 	}
 
-	buf := bytes.NewBuffer(nil)
-	err := header.Serialize(buf)
-
+	sink := common.NewZeroCopySink(nil)
+	err := header.Serialization(sink)
 	assert.NoError(t, err)
 
 	var h types.Header
-	err = h.Deserialize(buf)
-
+	source := common.NewZeroCopySource(sink.Bytes())
+	err = h.Deserialization(source)
 	assert.NoError(t, err)
 
 	assert.Equal(t, header, h)
 }
 
 func BenchmarkT1(b *testing.B) {
-	acc := account.NewAccount(0)
-	header := Header{
-		Version:          0,
+	proof := types.CryptoProof{
+		PartSignature: bls.ZeroSignature(),
+		PartPublicKey: bls.ZeroPublicKey(),
+		SigMask:       *big.NewInt(0),
+	}
+	header := types.Header{
 		ChainID:          0,
 		PrevBlockHash:    common.UINT256_EMPTY,
+		EpochBlockHash:   common.UINT256_EMPTY,
 		TransactionsRoot: common.UINT256_EMPTY,
-		CrossStatesRoot:  common.UINT256_EMPTY,
-		BlockRoot:        common.UINT256_EMPTY,
-		Timestamp:        12,
+		SourceHeight:     12,
 		Height:           12,
-		ConsensusData:    12,
-		ConsensusPayload: []byte{1, 2},
-		NextEpoch:        common.ADDRESS_EMPTY,
-		EpochValidators:  []bls.PublicKey{acc.PublicKey},
-		SigData:          [][]byte{{1, 2, 3}},
+		Signature:        proof,
 	}
+
 	buf := common.NewZeroCopySink([]byte(""))
 	header.Serialization(buf)
 	for i := 0; i < b.N; i++ {
-		var h Header
+		var h types.Header
 		err := h.Deserialization(common.NewZeroCopySource(buf.Bytes()))
 		assert.NoError(b, err)
 	}
 }
 
 func BenchmarkT3(b *testing.B) {
-	acc := account.NewAccount(0)
+	proof := types.CryptoProof{
+		PartSignature: bls.ZeroSignature(),
+		PartPublicKey: bls.ZeroPublicKey(),
+		SigMask:       *big.NewInt(0),
+	}
 	header := types.Header{
 		ChainID:          0,
 		PrevBlockHash:    common.UINT256_EMPTY,
+		EpochBlockHash:   common.UINT256_EMPTY,
 		TransactionsRoot: common.UINT256_EMPTY,
-		BlockRoot:        common.UINT256_EMPTY,
-		Timestamp:        12,
+		SourceHeight:     12,
 		Height:           12,
-		ConsensusData:    12,
-		ConsensusPayload: []byte{1, 2},
-		NextEpoch:        common.ADDRESS_EMPTY,
-		EpochValidators:  []bls.PublicKey{acc.PublicKey},
-		SigData:          [][]byte{{1, 2, 3}},
+		Signature:        proof,
 	}
 
-	for i := 0; i < b.N; i++ {
-		buf := bytes.NewBuffer(nil)
-		header.Serialize(buf)
-		var h types.Header
-		h.Deserialize(buf)
-	}
-}
-
-func BenchmarkT2(b *testing.B) {
-	acc := account.NewAccount(0)
-	header := types.Header{
-		ChainID:          0,
-		PrevBlockHash:    common.UINT256_EMPTY,
-		TransactionsRoot: common.UINT256_EMPTY,
-		BlockRoot:        common.UINT256_EMPTY,
-		Timestamp:        12,
-		Height:           12,
-		ConsensusData:    12,
-		ConsensusPayload: []byte{1, 2},
-		NextEpoch:        common.ADDRESS_EMPTY,
-		EpochValidators:  []bls.PublicKey{acc.PublicKey},
-		SigData:          [][]byte{{1, 2, 3}},
-	}
 	for i := 0; i < b.N; i++ {
 		buf := common.NewZeroCopySink(nil)
 		header.Serialization(buf)
 		var h types.Header
 		h.Deserialization(common.NewZeroCopySource(buf.Bytes()))
 	}
-}
-
-type Header struct {
-	Version          uint32
-	ChainID          uint64
-	PrevBlockHash    common.Uint256
-	TransactionsRoot common.Uint256
-	CrossStatesRoot  common.Uint256
-	BlockRoot        common.Uint256
-	Timestamp        uint32
-	Height           uint32
-	ConsensusData    uint64
-	ConsensusPayload []byte
-	NextEpoch        common.Address
-
-	//Program *program.Program
-	EpochValidators []bls.PublicKey
-	SigData         [][]byte
-	Epochkey        bls.PublicKey
-	hash            *common.Uint256
-}
-
-func (bd *Header) Serialization(sink *common.ZeroCopySink) error {
-	bd.serializationUnsigned(sink)
-	sink.WriteVarUint(uint64(len(bd.EpochValidators)))
-
-	for _, pubkey := range bd.EpochValidators {
-		sink.WriteVarBytes(pubkey.Marshal())
-	}
-
-	sink.WriteVarUint(uint64(len(bd.SigData)))
-	for _, sig := range bd.SigData {
-		sink.WriteVarBytes(sig)
-	}
-
-	return nil
-}
-
-//Serialize the blockheader data without program
-func (bd *Header) serializationUnsigned(sink *common.ZeroCopySink) {
-	if bd.Version > types.CURR_HEADER_VERSION {
-		panic(fmt.Errorf("invalid header %d over max version:%d", bd.Version, types.CURR_HEADER_VERSION))
-	}
-	sink.WriteUint32(bd.Version)
-	sink.WriteUint64(bd.ChainID)
-	sink.WriteBytes(bd.PrevBlockHash[:])
-	sink.WriteBytes(bd.TransactionsRoot[:])
-	sink.WriteBytes(bd.CrossStatesRoot[:])
-	sink.WriteBytes(bd.BlockRoot[:])
-	sink.WriteUint32(bd.Timestamp)
-	sink.WriteUint32(bd.Height)
-	sink.WriteUint64(bd.ConsensusData)
-	sink.WriteVarBytes(bd.ConsensusPayload)
-	sink.WriteBytes(bd.NextEpoch[:])
-	sink.WriteBytes(bd.Epochkey.Marshal())
-}
-
-func (bd *Header) Deserialization(source *common.ZeroCopySource) error {
-	err := bd.deserializationUnsigned(source)
-	if err != nil {
-		return err
-	}
-
-	n, eof := source.NextVarUint()
-	if eof {
-		return errors.New("[Header] deserialize bookkeepers length error")
-	}
-
-	for i := 0; i < int(n); i++ {
-		buf, eof := source.NextVarBytes()
-		if eof {
-			return errors.New("[Header] deserialize bookkeepers public key error")
-		}
-		pubkey, err := bls.UnmarshalPublicKey(buf)
-		if err != nil {
-			return err
-		}
-		bd.EpochValidators = append(bd.EpochValidators, pubkey)
-	}
-
-	m, eof := source.NextVarUint()
-	if eof {
-		return errors.New("[Header] deserialize sigData length error")
-	}
-
-	for i := 0; i < int(m); i++ {
-		sig, eof := source.NextVarBytes()
-		if eof {
-			return errors.New("[Header] deserialize sigData error")
-		}
-		bd.SigData = append(bd.SigData, sig)
-	}
-
-	return nil
-}
-
-func (bd *Header) deserializationUnsigned(source *common.ZeroCopySource) error {
-	var eof bool
-	bd.Version, eof = source.NextUint32()
-	if eof {
-		return errors.New("[Header] read version error")
-	}
-	if bd.Version > types.CURR_HEADER_VERSION {
-		return fmt.Errorf("[Header] header version %d over max version %d", bd.Version, types.CURR_HEADER_VERSION)
-	}
-	bd.ChainID, eof = source.NextUint64()
-	if eof {
-		return errors.New("[Header] read chainID error")
-	}
-	bd.PrevBlockHash, eof = source.NextHash()
-	if eof {
-		return errors.New("[Header] read prevBlockHash error")
-	}
-	bd.TransactionsRoot, eof = source.NextHash()
-	if eof {
-		return errors.New("[Header] read transactionsRoot error")
-	}
-	bd.CrossStatesRoot, eof = source.NextHash()
-	if eof {
-		return errors.New("[Header] read crossStatesRoot error")
-	}
-	bd.BlockRoot, eof = source.NextHash()
-	if eof {
-		return errors.New("[Header] read blockRoot error")
-	}
-	bd.Timestamp, eof = source.NextUint32()
-	if eof {
-		return errors.New("[Header] read timestamp error")
-	}
-	bd.Height, eof = source.NextUint32()
-	if eof {
-		return errors.New("[Header] read height error")
-	}
-	bd.ConsensusData, eof = source.NextUint64()
-	if eof {
-		return errors.New("[Header] read consensusData error")
-	}
-	bd.ConsensusPayload, eof = source.NextVarBytes()
-	if eof {
-		return errors.New("[Header] read consensusPayload error")
-	}
-	bd.NextEpoch, eof = source.NextAddress()
-	if eof {
-		return errors.New("[Header] read nextEpoch error")
-	}
-	epochKeyBytes, eof := source.NextVarBytes()
-	if eof {
-		return errors.New("[Header] read epochKeyBytes error")
-	}
-	var err error
-	bd.Epochkey, err = bls.UnmarshalPublicKey(epochKeyBytes)
-	if err != nil {
-		return errors.New(fmt.Sprintf("[Header] read epochKeyBytes error %v", err))
-	}
-	return nil
 }

@@ -2,123 +2,60 @@ package types
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"errors"
-	"fmt"
-	"github.com/eywa-protocol/bls-crypto/bls"
 	"io"
+	"math/big"
+
+	"github.com/eywa-protocol/bls-crypto/bls"
 
 	"github.com/eywa-protocol/chain/common"
-	"github.com/eywa-protocol/chain/common/serialization"
 )
+
+// CryptoProof is a BLS multisignature proof that anyone may provide to
+// convince the verifier that the listed nodes has signed the message
+// TODO: move this and session.CryproProof to bls repo.
+type CryptoProof struct {
+	PartSignature bls.Signature // Aggregated partial signature collected by this node
+	PartPublicKey bls.PublicKey // Aggregated partial public key collected by this node
+	SigMask       big.Int       // Bitmask of nodes that the correct signature is received from
+}
 
 type Header struct {
 	ChainID          uint64
 	PrevBlockHash    common.Uint256
+	EpochBlockHash   common.Uint256
 	TransactionsRoot common.Uint256
-	CrossStateRoot   common.Uint256
-	BlockRoot        common.Uint256
-	Timestamp        uint32
-	Height           uint32
-	ConsensusData    uint64
-	ConsensusPayload []byte
-	NextEpoch        common.Address
-	EpochValidators  []bls.PublicKey
-	SigData          [][]byte
-	EpochKey         bls.PublicKey
+	SourceHeight     uint64
+	Height           uint64
+	Signature        CryptoProof
 	hash             *common.Uint256
 }
 
+const BLOCK_SIZE = 124
+
 func (bd *Header) Serialization(sink *common.ZeroCopySink) error {
 	bd.serializationUnsigned(sink)
-	sink.WriteVarUint(uint64(len(bd.EpochValidators)))
-
-	for _, pubkey := range bd.EpochValidators {
-		sink.WriteVarBytes(pubkey.Marshal())
-	}
-
-	sink.WriteVarUint(uint64(len(bd.SigData)))
-	for _, sig := range bd.SigData {
-		sink.WriteVarBytes(sig)
-	}
-
+	sink.WriteVarBytes(bd.Signature.PartSignature.Marshal())
+	sink.WriteVarBytes(bd.Signature.PartPublicKey.Marshal())
+	sink.WriteString(bd.Signature.SigMask.Text(16))
 	return nil
 }
 
-//Serialize the blockheader data without program
 func (bd *Header) serializationUnsigned(sink *common.ZeroCopySink) {
 	sink.WriteUint64(bd.ChainID)
 	sink.WriteBytes(bd.PrevBlockHash[:])
+	sink.WriteBytes(bd.EpochBlockHash[:])
 	sink.WriteBytes(bd.TransactionsRoot[:])
-	sink.WriteBytes(bd.CrossStateRoot[:])
-	sink.WriteBytes(bd.BlockRoot[:])
-	sink.WriteUint32(bd.Timestamp)
-	sink.WriteUint32(bd.Height)
-	sink.WriteUint64(bd.ConsensusData)
-	sink.WriteVarBytes(bd.ConsensusPayload)
-	sink.WriteBytes(bd.NextEpoch[:])
-	sink.WriteVarBytes(bd.EpochKey.Marshal())
+	sink.WriteUint64(bd.SourceHeight)
+	sink.WriteUint64(bd.Height)
 }
 
 func (bd *Header) Serialize(w io.Writer) error {
-	if err := bd.serializeUnsigned(w); err != nil {
-		return err
-	}
-	if err := serialization.WriteVarUint(w, uint64(len(bd.EpochValidators))); err != nil {
-		return err
-	}
-
-	for _, pubkey := range bd.EpochValidators {
-		if err := serialization.WriteVarBytes(w, pubkey.Marshal()); err != nil {
-			return err
-		}
-	}
-
-	if err := serialization.WriteVarUint(w, uint64(len(bd.SigData))); err != nil {
-		return err
-	}
-	for _, sig := range bd.SigData {
-		if err := serialization.WriteVarBytes(w, sig); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (bd *Header) serializeUnsigned(w io.Writer) error {
-	if err := serialization.WriteUint64(w, bd.ChainID); err != nil {
-		return err
-	}
-	if err := serialization.WriteBytes(w, bd.PrevBlockHash[:]); err != nil {
-		return err
-	}
-	if err := serialization.WriteBytes(w, bd.TransactionsRoot[:]); err != nil {
-		return err
-	}
-	if err := serialization.WriteBytes(w, bd.CrossStateRoot[:]); err != nil {
-		return err
-	}
-	if err := serialization.WriteBytes(w, bd.BlockRoot[:]); err != nil {
-		return err
-	}
-	if err := serialization.WriteUint32(w, bd.Timestamp); err != nil {
-		return err
-	}
-	if err := serialization.WriteUint32(w, bd.Height); err != nil {
-		return err
-	}
-	if err := serialization.WriteUint64(w, bd.ConsensusData); err != nil {
-		return err
-	}
-	if err := serialization.WriteVarBytes(w, bd.ConsensusPayload); err != nil {
-		return err
-	}
-	if err := serialization.WriteBytes(w, bd.NextEpoch[:]); err != nil {
-		return err
-	}
-	if err := serialization.WriteBytes(w, bd.EpochKey.Marshal()); err != nil {
-		return err
-	}
-	return nil
+	sink := common.NewZeroCopySink(nil)
+	bd.Serialization(sink)
+	_, err := w.Write(sink.Bytes())
+	return err
 }
 
 func HeaderFromRawBytes(raw []byte) (*Header, error) {
@@ -138,34 +75,31 @@ func (bd *Header) Deserialization(source *common.ZeroCopySource) error {
 		return err
 	}
 
-	n, eof := source.NextVarUint()
+	partSig, eof := source.NextVarBytes()
 	if eof {
-		return errors.New("[Header] deserialize bookkeepers length error")
+		return errors.New("[Header] deserialize partSig error")
+	}
+	bd.Signature.PartSignature, err = bls.UnmarshalSignature(partSig)
+	if err != nil {
+		return errors.New("[Header] unmarshal partSig error")
 	}
 
-	for i := 0; i < int(n); i++ {
-		buf, eof := source.NextVarBytes()
-		if eof {
-			return errors.New("[Header] deserialize bookkeepers public key error")
-		}
-		pubkey, err := bls.UnmarshalPublicKey(buf)
-		if err != nil {
-			return err
-		}
-		bd.EpochValidators = append(bd.EpochValidators, pubkey)
-	}
-
-	m, eof := source.NextVarUint()
+	partPub, eof := source.NextVarBytes()
 	if eof {
-		return errors.New("[Header] deserialize sigData length error")
+		return errors.New("[Header] deserialize partPub error")
+	}
+	bd.Signature.PartPublicKey, err = bls.UnmarshalPublicKey(partPub)
+	if err != nil {
+		return errors.New("[Header] unmarshal partPub error")
 	}
 
-	for i := 0; i < int(m); i++ {
-		sig, eof := source.NextVarBytes()
-		if eof {
-			return errors.New("[Header] deserialize sigData error")
-		}
-		bd.SigData = append(bd.SigData, sig)
+	sigMask, eof := source.NextString()
+	if eof {
+		return errors.New("[Header] deserialize sigMask error")
+	}
+	err = json.Unmarshal([]byte(sigMask), &bd.Signature.SigMask)
+	if err != nil {
+		return errors.New("[Header] unmarshal sigMask error")
 	}
 
 	return nil
@@ -181,139 +115,22 @@ func (bd *Header) deserializationUnsigned(source *common.ZeroCopySource) error {
 	if eof {
 		return errors.New("[Header] read prevBlockHash error")
 	}
+	bd.EpochBlockHash, eof = source.NextHash()
+	if eof {
+		return errors.New("[Header] read epochBlockHash error")
+	}
 	bd.TransactionsRoot, eof = source.NextHash()
 	if eof {
 		return errors.New("[Header] read transactionsRoot error")
 	}
-	bd.CrossStateRoot, eof = source.NextHash()
+	bd.SourceHeight, eof = source.NextUint64()
 	if eof {
-		return errors.New("[Header] read crossStatesRoot error")
+		return errors.New("[Header] read sourceHeight error")
 	}
-	bd.BlockRoot, eof = source.NextHash()
-	if eof {
-		return errors.New("[Header] read blockRoot error")
-	}
-	bd.Timestamp, eof = source.NextUint32()
-	if eof {
-		return errors.New("[Header] read timestamp error")
-	}
-	bd.Height, eof = source.NextUint32()
+	bd.Height, eof = source.NextUint64()
 	if eof {
 		return errors.New("[Header] read height error")
 	}
-	bd.ConsensusData, eof = source.NextUint64()
-	if eof {
-		return errors.New("[Header] read consensusData error")
-	}
-	bd.ConsensusPayload, eof = source.NextVarBytes()
-	if eof {
-		return errors.New("[Header] read consensusPayload error")
-	}
-	bd.NextEpoch, eof = source.NextAddress()
-	if eof {
-		return errors.New("[Header] read nextEpoch error")
-	}
-	epochKeyBytes, eof := source.NextVarBytes()
-	if eof {
-		return errors.New("[Header] read epochKeyBytes error")
-	}
-	var err error
-	bd.EpochKey, err = bls.UnmarshalPublicKey(epochKeyBytes)
-	if err != nil {
-		return errors.New(fmt.Sprintf("[Header] read UnmarshalPublicKey error %v ", err))
-	}
-	return nil
-}
-
-func (bd *Header) Deserialize(w io.Reader) error {
-	err := bd.deserializeUnsigned(w)
-	if err != nil {
-		return err
-	}
-
-	n, err := serialization.ReadVarUint(w, 0)
-	if err != nil {
-		return errors.New("[Header] deserialize bookkeepers length error")
-	}
-
-	for i := 0; i < int(n); i++ {
-		buf, err := serialization.ReadVarBytes(w)
-		if err != nil {
-			return errors.New("[Header] deserialize bookkeepers public key error")
-		}
-		pubkey, err := bls.UnmarshalPublicKey(buf)
-		if err != nil {
-			return err
-		}
-		bd.EpochValidators = append(bd.EpochValidators, pubkey)
-	}
-
-	m, err := serialization.ReadVarUint(w, 0)
-	if err != nil {
-		return errors.New("[Header] deserialize sigData length error")
-	}
-
-	for i := 0; i < int(m); i++ {
-		sig, err := serialization.ReadVarBytes(w)
-		if err != nil {
-			return errors.New("[Header] deserialize sigData error")
-		}
-		bd.SigData = append(bd.SigData, sig)
-	}
-	return nil
-}
-
-func (bd *Header) deserializeUnsigned(w io.Reader) error {
-	var err error
-	bd.ChainID, err = serialization.ReadUint64(w)
-	if err != nil {
-		return errors.New("[Header] read chainID error")
-	}
-	bd.PrevBlockHash, err = serialization.ReadHash(w)
-	if err != nil {
-		return errors.New("[Header] read prevBlockHash error")
-	}
-	bd.TransactionsRoot, err = serialization.ReadHash(w)
-	if err != nil {
-		return errors.New("[Header] read transactionsRoot error")
-	}
-	bd.CrossStateRoot, err = serialization.ReadHash(w)
-	if err != nil {
-		return errors.New("[Header] read crossStatesRoot error")
-	}
-	bd.BlockRoot, err = serialization.ReadHash(w)
-	if err != nil {
-		return errors.New("[Header] read blockRoot error")
-	}
-	bd.Timestamp, err = serialization.ReadUint32(w)
-	if err != nil {
-		return errors.New("[Header] read timestamp error")
-	}
-	bd.Height, err = serialization.ReadUint32(w)
-	if err != nil {
-		return errors.New("[Header] read height error")
-	}
-	bd.ConsensusData, err = serialization.ReadUint64(w)
-	if err != nil {
-		return errors.New("[Header] read consensusData error")
-	}
-	bd.ConsensusPayload, err = serialization.ReadVarBytes(w)
-	if err != nil {
-		return errors.New("[Header] read consensusPayload error")
-	}
-	bd.NextEpoch, err = serialization.ReadAddress(w)
-	if err != nil {
-		return errors.New("[Header] read nextEpoch error")
-	}
-	epochkeyBytes, _ := serialization.ReadBLSPubKeyBytes(w)
-	if err != nil {
-		return errors.New(fmt.Sprintf("[Header] read epochkeyBytes error: %v", err))
-	}
-	bd.EpochKey, err = bls.UnmarshalPublicKey(epochkeyBytes)
-	if err != nil {
-		return errors.New(fmt.Sprintf("[Header] read UnmarshalPublicKey error %v", err))
-	}
-
 	return nil
 }
 

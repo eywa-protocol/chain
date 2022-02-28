@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/common/serialization"
 	scom "github.com/eywa-protocol/chain/core/store/common"
 	"github.com/eywa-protocol/chain/core/store/leveldbstore"
 	"github.com/eywa-protocol/chain/core/types"
-	"io"
 )
 
 //Block store save the data of block & transaction
@@ -284,21 +285,21 @@ func (this *BlockStore) SaveBlockHash(height uint32, blockHash common.Uint256) {
 }
 
 //SaveTransaction persist transaction to store
-func (this *BlockStore) SaveTransaction(tx *types.Transaction, height uint32) error {
+func (this *BlockStore) SaveTransaction(tx *types.Transaction, height uint64) error {
 	if this.enableCache {
 		this.cache.AddTransaction(tx, height)
 	}
 	return this.putTransaction(tx, height)
 }
 
-func (this *BlockStore) putTransaction(tx *types.Transaction, height uint32) error {
+func (this *BlockStore) putTransaction(tx *types.Transaction, height uint64) error {
 	txHash := tx.Hash()
 
 	key := this.getTransactionKey(txHash)
 
 	value := bytes.NewBuffer(nil)
 
-	if err := serialization.WriteUint32(value, height); err != nil {
+	if err := serialization.WriteUint64(value, height); err != nil {
 		return err
 	}
 
@@ -311,7 +312,7 @@ func (this *BlockStore) putTransaction(tx *types.Transaction, height uint32) err
 }
 
 //GetTransaction return transaction by transaction hash
-func (this *BlockStore) GetTransaction(txHash common.Uint256) (*types.Transaction, uint32, error) {
+func (this *BlockStore) GetTransaction(txHash common.Uint256) (*types.Transaction, uint64, error) {
 	if this.enableCache {
 		tx, height := this.cache.GetTransaction(txHash)
 		if tx != nil {
@@ -321,11 +322,11 @@ func (this *BlockStore) GetTransaction(txHash common.Uint256) (*types.Transactio
 	return this.loadTransaction(txHash)
 }
 
-func (this *BlockStore) loadTransaction(txHash common.Uint256) (*types.Transaction, uint32, error) {
+func (this *BlockStore) loadTransaction(txHash common.Uint256) (*types.Transaction, uint64, error) {
 	key := this.getTransactionKey(txHash)
 
 	var tx *types.Transaction
-	var height uint32
+	var height uint64
 	if this.enableCache {
 		tx, height = this.cache.GetTransaction(txHash)
 		if tx != nil {
@@ -338,7 +339,7 @@ func (this *BlockStore) loadTransaction(txHash common.Uint256) (*types.Transacti
 	}
 	source := common.NewZeroCopySource(value)
 	var eof bool
-	height, eof = source.NextUint32()
+	height, eof = source.NextUint64()
 	if eof {
 		return nil, 0, io.ErrUnexpectedEOF
 	}

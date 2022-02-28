@@ -2,7 +2,6 @@ package validation
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/eywa-protocol/chain/core/types"
 )
@@ -70,17 +69,8 @@ func VerifyHeader(header, prevHeader *types.Header) error {
 		return errors.New("[BlockValidator], block height is incorrect.")
 	}
 
-	if prevHeader.Timestamp >= header.Timestamp {
-		return errors.New("[BlockValidator], block timestamp is incorrect.")
-	}
-
-	address, err := types.AddressFromPubLeySlice(header.EpochValidators)
-	if err != nil {
-		return err
-	}
-
-	if prevHeader.NextEpoch != address {
-		return fmt.Errorf("bookkeeper address error")
+	if prevHeader.SourceHeight >= header.SourceHeight {
+		return errors.New("[BlockValidator], block source height is incorrect.")
 	}
 
 	return nil
