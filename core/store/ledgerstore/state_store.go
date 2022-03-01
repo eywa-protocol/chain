@@ -28,7 +28,7 @@ type StateStore struct {
 	merkleTree           *merkle.CompactMerkleTree //Merkle tree of block root
 	deltaMerkleTree      *merkle.CompactMerkleTree //Merkle tree of delta state root
 	merkleHashStore      merkle.HashStore
-	stateHashCheckHeight uint32
+	stateHashCheckHeight uint64
 }
 
 //NewStateStore return state store instance
@@ -55,7 +55,7 @@ func NewStateStore(dbDir, merklePath string) (*StateStore, error) {
 }
 
 // for test
-func NewMemStateStore(stateHashHeight uint32) *StateStore {
+func NewMemStateStore(stateHashHeight uint64) *StateStore {
 	store, _ := leveldbstore.NewMemLevelDBStore()
 	stateStore := &StateStore{
 		store:                store,
@@ -80,7 +80,7 @@ func (self *StateStore) BatchDeleteRawKey(key []byte) {
 	self.store.BatchDelete(key)
 }
 
-func (self *StateStore) init(currBlockHeight uint32) error {
+func (self *StateStore) init(currBlockHeight uint64) error {
 	treeSize, hashes, err := self.GetBlockMerkleTree()
 	if err != nil && err != scom.ErrNotFound {
 		return err
@@ -108,27 +108,27 @@ func (self *StateStore) init(currBlockHeight uint32) error {
 }
 
 //GetStateMerkleTree return merkle tree size an tree node
-func (self *StateStore) GetStateMerkleTree() (uint32, []common.Uint256, error) {
+func (self *StateStore) GetStateMerkleTree() (uint64, []common.Uint256, error) {
 	key := self.genStateMerkleTreeKey()
 	return self.getMerkleTree(key)
 }
 
 //GetBlockMerkleTree return merkle tree size an tree node
-func (self *StateStore) GetBlockMerkleTree() (uint32, []common.Uint256, error) {
+func (self *StateStore) GetBlockMerkleTree() (uint64, []common.Uint256, error) {
 	key := self.genBlockMerkleTreeKey()
 	return self.getMerkleTree(key)
 }
-func (self *StateStore) getMerkleTree(key []byte) (uint32, []common.Uint256, error) {
+func (self *StateStore) getMerkleTree(key []byte) (uint64, []common.Uint256, error) {
 	data, err := self.store.Get(key)
 	if err != nil {
 		return 0, nil, err
 	}
 	value := bytes.NewBuffer(data)
-	treeSize, err := serialization.ReadUint32(value)
+	treeSize, err := serialization.ReadUint64(value)
 	if err != nil {
 		return 0, nil, err
 	}
-	hashCount := (len(data) - 4) / common.UINT256_SIZE
+	hashCount := (len(data) - 8) / common.UINT256_SIZE
 	hashes := make([]common.Uint256, 0, hashCount)
 	for i := 0; i < hashCount; i++ {
 		var hash = new(common.Uint256)
@@ -141,7 +141,7 @@ func (self *StateStore) getMerkleTree(key []byte) (uint32, []common.Uint256, err
 	return treeSize, hashes, nil
 }
 
-func (self *StateStore) GetStateMerkleRoot(height uint32) (result common.Uint256, err error) {
+func (self *StateStore) GetStateMerkleRoot(height uint64) (result common.Uint256, err error) {
 	if height < self.stateHashCheckHeight {
 		return
 	}
@@ -160,7 +160,7 @@ func (self *StateStore) GetStateMerkleRoot(height uint32) (result common.Uint256
 	return
 }
 
-func (self *StateStore) AddStateMerkleTreeRoot(blockHeight uint32, writeSetHash common.Uint256) error {
+func (self *StateStore) AddStateMerkleTreeRoot(blockHeight uint64, writeSetHash common.Uint256) error {
 	if blockHeight < self.stateHashCheckHeight {
 		return nil
 	} else if blockHeight == self.stateHashCheckHeight {
@@ -171,8 +171,8 @@ func (self *StateStore) AddStateMerkleTreeRoot(blockHeight uint32, writeSetHash 
 	self.deltaMerkleTree.Append(writeSetHash.ToArray())
 	treeSize := self.deltaMerkleTree.TreeSize()
 	hashes := self.deltaMerkleTree.Hashes()
-	value := common.NewZeroCopySink(make([]byte, 0, 4+len(hashes)*common.UINT256_SIZE))
-	value.WriteUint32(treeSize)
+	value := common.NewZeroCopySink(make([]byte, 0, 8+len(hashes)*common.UINT256_SIZE))
+	value.WriteUint64(treeSize)
 	for _, hash := range hashes {
 		value.WriteHash(hash)
 	}
@@ -187,7 +187,7 @@ func (self *StateStore) AddStateMerkleTreeRoot(blockHeight uint32, writeSetHash 
 	return nil
 }
 
-func (self *StateStore) AddCrossStates(height uint32, crossStates []common.Uint256, crossStatesHash common.Uint256) error {
+func (self *StateStore) AddCrossStates(height uint64, crossStates []common.Uint256, crossStatesHash common.Uint256) error {
 	if len(crossStates) == 0 {
 		return nil
 	}
@@ -207,7 +207,7 @@ func (self *StateStore) AddCrossStates(height uint32, crossStates []common.Uint2
 	return nil
 }
 
-func (self *StateStore) GetCrossStateRoot(height uint32) (common.Uint256, error) {
+func (self *StateStore) GetCrossStateRoot(height uint64) (common.Uint256, error) {
 	var hash common.Uint256
 	key := genCrossStatesRootKey(height)
 	value, err := self.store.Get(key)
@@ -225,7 +225,7 @@ func (self *StateStore) GetCrossStateRoot(height uint32) (common.Uint256, error)
 	return hash, nil
 }
 
-func (self *StateStore) GetCrossStates(height uint32) (hashes []common.Uint256, err error) {
+func (self *StateStore) GetCrossStates(height uint64) (hashes []common.Uint256, err error) {
 	key := genCrossStatesKey(height)
 
 	var value []byte
@@ -258,8 +258,8 @@ func (self *StateStore) AddBlockMerkleTreeRoot(preBlockHash common.Uint256) erro
 	self.merkleTree.Append(preBlockHash.ToArray())
 	treeSize := self.merkleTree.TreeSize()
 	hashes := self.merkleTree.Hashes()
-	value := common.NewZeroCopySink(make([]byte, 0, 4+len(hashes)*common.UINT256_SIZE))
-	value.WriteUint32(treeSize)
+	value := common.NewZeroCopySink(make([]byte, 0, 8+len(hashes)*common.UINT256_SIZE))
+	value.WriteUint64(treeSize)
 	for _, hash := range hashes {
 		value.WriteHash(hash)
 	}
@@ -268,7 +268,7 @@ func (self *StateStore) AddBlockMerkleTreeRoot(preBlockHash common.Uint256) erro
 }
 
 //GetMerkleProof return merkle proof of block hash
-func (self *StateStore) GetMerkleProof(raw []byte, proofHeight, rootHeight uint32) ([]byte, error) {
+func (self *StateStore) GetMerkleProof(raw []byte, proofHeight, rootHeight uint64) ([]byte, error) {
 	return self.merkleTree.MerkleInclusionLeafPath(raw, proofHeight, rootHeight+1)
 }
 
@@ -351,7 +351,7 @@ func (self *StateStore) GetStorageValue(key []byte) ([]byte, error) {
 }
 
 //GetCurrentBlock return current block height and current hash in state store
-func (self *StateStore) GetCurrentBlock() (common.Uint256, uint32, error) {
+func (self *StateStore) GetCurrentBlock() (common.Uint256, uint64, error) {
 	key := self.getCurrentBlockKey()
 	data, err := self.store.Get(key)
 	if err != nil {
@@ -363,7 +363,7 @@ func (self *StateStore) GetCurrentBlock() (common.Uint256, uint32, error) {
 	if err != nil {
 		return common.Uint256{}, 0, err
 	}
-	height, err := serialization.ReadUint32(reader)
+	height, err := serialization.ReadUint64(reader)
 	if err != nil {
 		return common.Uint256{}, 0, err
 	}
@@ -371,11 +371,11 @@ func (self *StateStore) GetCurrentBlock() (common.Uint256, uint32, error) {
 }
 
 //SaveCurrentBlock persist current block to state store
-func (self *StateStore) SaveCurrentBlock(height uint32, blockHash common.Uint256) error {
+func (self *StateStore) SaveCurrentBlock(height uint64, blockHash common.Uint256) error {
 	key := self.getCurrentBlockKey()
 	value := bytes.NewBuffer(nil)
 	blockHash.Serialize(value)
-	serialization.WriteUint32(value, height)
+	serialization.WriteUint64(value, height)
 	self.store.BatchPut(key, value.Bytes())
 	return nil
 }
@@ -423,24 +423,24 @@ func (self *StateStore) genStateMerkleTreeKey() []byte {
 	return []byte{byte(scom.SYS_STATE_MERKLE_TREE)}
 }
 
-func genCrossStatesKey(height uint32) []byte {
-	key := make([]byte, 5, 5)
+func genCrossStatesKey(height uint64) []byte {
+	key := make([]byte, 9, 9)
 	key[0] = byte(scom.SYS_CROSS_STATES)
-	binary.LittleEndian.PutUint32(key[1:], height)
+	binary.LittleEndian.PutUint64(key[1:], height)
 	return key
 }
 
-func genCrossStatesRootKey(height uint32) []byte {
-	key := make([]byte, 5, 5)
+func genCrossStatesRootKey(height uint64) []byte {
+	key := make([]byte, 9, 9)
 	key[0] = byte(scom.SYS_CROSS_STATES_HASH)
-	binary.LittleEndian.PutUint32(key[1:], height)
+	binary.LittleEndian.PutUint64(key[1:], height)
 	return key
 }
 
-func (self *StateStore) genStateMerkleRootKey(height uint32) []byte {
-	key := make([]byte, 5, 5)
+func (self *StateStore) genStateMerkleRootKey(height uint64) []byte {
+	key := make([]byte, 9, 9)
 	key[0] = byte(scom.DATA_STATE_MERKLE_ROOT)
-	binary.LittleEndian.PutUint32(key[1:], height)
+	binary.LittleEndian.PutUint64(key[1:], height)
 	return key
 }
 

@@ -26,7 +26,7 @@ func TestMerkleLeaf3(t *testing.T) {
 
 	hashes := make([]common.Uint256, 5, 5)
 	for i := 0; i < 4; i++ {
-		hashes[i], _ = tree.hashStore.GetHash(uint32(i))
+		hashes[i], _ = tree.hashStore.GetHash(uint64(i))
 	}
 	hashes[4] = tree.Root()
 
@@ -79,7 +79,7 @@ func TestMerkle(t *testing.T) {
 
 	hashes := make([]common.Uint256, 6, 6)
 	for i := 0; i < 6; i++ {
-		hashes[i], _ = tree.hashStore.GetHash(uint32(i))
+		hashes[i], _ = tree.hashStore.GetHash(uint64(i))
 	}
 	cmp := []common.Uint256{
 		leafs[0],
@@ -129,7 +129,7 @@ func TestMerkleRoot(t *testing.T) {
 
 	cmp := make([]common.Uint256, n, n)
 	for i := 0; i < n; i++ {
-		cmp[i] = tree.merkleRoot(uint32(i) + 1)
+		cmp[i] = tree.merkleRoot(uint64(i) + 1)
 		if cmp[i] != roots[i] {
 			t.Error(fmt.Sprintf("error merkle root is not equal at %d", i))
 		}
@@ -144,16 +144,16 @@ func TestGetSubTreeSize(t *testing.T) {
 
 // zero based return merkle root of D[0:n]
 func TestMerkleIncludeProof(t *testing.T) {
-	n := uint32(9)
+	n := uint64(9)
 	store, _ := NewFileHashStore("merkletree.db", 0)
 	defer func() { os.Remove("merkletree.db") }()
 	tree := NewTree(0, nil, store)
-	for i := uint32(0); i < n; i++ {
+	for i := uint64(0); i < n; i++ {
 		tree.Append([]byte{byte(i + 1)})
 	}
 	verify := NewMerkleVerifier()
 	root := tree.Root()
-	for i := uint32(2); i < n; i++ {
+	for i := uint64(2); i < n; i++ {
 		proof, _ := tree.InclusionProof(i, n)
 		leaf_hash := tree.hasher.hash_leaf([]byte{byte(i + 1)})
 		res := verify.VerifyLeafHashInclusion(leaf_hash, i, proof, root, n)
@@ -164,15 +164,15 @@ func TestMerkleIncludeProof(t *testing.T) {
 }
 
 func TestMerkleInclusionLeafPath(t *testing.T) {
-	n := uint32(10)
+	n := uint64(10)
 	store, _ := NewFileHashStore("merkletree.db", 0)
 	defer func() { os.Remove("merkletree.db") }()
 	tree := NewTree(0, nil, store)
-	for i := uint32(0); i < n; i++ {
+	for i := uint64(0); i < n; i++ {
 		tree.Append([]byte{byte(i + 1)})
 	}
 	root := tree.Root()
-	for i := uint32(0); i < n; i++ {
+	for i := uint64(0); i < n; i++ {
 		data := []byte{byte(i + 1)}
 		path, err := tree.MerkleInclusionLeafPath(data, i, n)
 		assert.Nil(t, err)
@@ -183,15 +183,15 @@ func TestMerkleInclusionLeafPath(t *testing.T) {
 }
 
 func TestMerkleConsistencyProofLen(t *testing.T) {
-	n := uint32(7)
+	n := uint64(7)
 	store, _ := NewFileHashStore("merkletree.db", 0)
 	tree := NewTree(0, nil, store)
-	for i := uint32(0); i < n; i++ {
+	for i := uint64(0); i < n; i++ {
 		tree.Append([]byte{byte(i + 1)})
 	}
 
 	cmp := []int{3, 2, 4, 1, 4, 3, 0}
-	for i := uint32(0); i < n; i++ {
+	for i := uint64(0); i < n; i++ {
 		proof := tree.ConsistencyProof(i+1, n)
 		if len(proof) != cmp[i] {
 			t.Fatal("error: wrong proof length")
@@ -201,18 +201,18 @@ func TestMerkleConsistencyProofLen(t *testing.T) {
 }
 
 func TestMerkleConsistencyProof(t *testing.T) {
-	n := uint32(140)
+	n := uint64(140)
 	roots := make([]common.Uint256, n, n)
 	store, _ := NewFileHashStore("merkletree.db", 0)
 	tree := NewTree(0, nil, store)
-	for i := uint32(0); i < n; i++ {
+	for i := uint64(0); i < n; i++ {
 		tree.Append([]byte{byte(i + 1)})
 		roots[i] = tree.Root()
 	}
 
 	verify := NewMerkleVerifier()
 
-	for i := uint32(0); i < n; i++ {
+	for i := uint64(0); i < n; i++ {
 		proof := tree.ConsistencyProof(i+1, n)
 		err := verify.VerifyConsistency(i+1, n, roots[i], roots[n-1], proof)
 		if err != nil {
@@ -249,14 +249,14 @@ func init() {
 // ~20w
 func BenchmarkMerkleInclusionProof(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		treeTest.InclusionProof(uint32(i), uint32(N))
+		treeTest.InclusionProof(uint64(i), uint64(N))
 	}
 }
 
 // ~20w
 func BenchmarkMerkleConsistencyProof(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		treeTest.ConsistencyProof(uint32(i+1), uint32(N))
+		treeTest.ConsistencyProof(uint64(i+1), uint64(N))
 	}
 }
 */
@@ -280,7 +280,7 @@ func TestTreeHasher_HashFullTree(t *testing.T) {
 func TestTreeHasher(t *testing.T) {
 	tree := NewTree(0, nil, nil)
 	leaves := make([][]byte, 0)
-	for i := uint32(0); i < 1000; i++ {
+	for i := uint64(0); i < 1000; i++ {
 		leaf := []byte{byte(i + 1)}
 		leaves = append(leaves, leaf)
 		tree.Append(leaf)

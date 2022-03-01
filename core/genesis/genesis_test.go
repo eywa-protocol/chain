@@ -2,6 +2,11 @@ package genesis
 
 import (
 	"fmt"
+	"io/ioutil"
+	"math/big"
+	"os"
+	"testing"
+
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/account"
@@ -15,10 +20,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
-	"io/ioutil"
-	"math/big"
-	"os"
-	"testing"
 )
 
 var (
@@ -104,8 +105,6 @@ func Test_BlockFromRawBytes(t *testing.T) {
 
 	assert.Equal(t, genesisBlockFromBytes.Hash(), genesisBlock.Hash())
 	assert.Equal(t, genesisBlockFromBytes, genesisBlock)
-
-	t.Log("bookkeepers", genesisBlockFromBytes.Header.EpochValidators[0].Marshal())
 
 }
 

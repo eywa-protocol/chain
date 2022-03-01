@@ -3,6 +3,7 @@ package ledger
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/common/log"
 	"github.com/eywa-protocol/chain/core/states"
@@ -34,7 +35,7 @@ func (self *Ledger) GetStore() store.LedgerStore {
 }
 
 func (self *Ledger) Init(genesisBlock *types.Block) error {
-	err := self.ldgStore.InitLedgerStoreWithGenesisBlock(genesisBlock, genesisBlock.Header.EpochValidators)
+	err := self.ldgStore.InitLedgerStoreWithGenesisBlock(genesisBlock)
 	if err != nil {
 		return fmt.Errorf("InitLedgerStoreWithGenesisBlock error %s", err)
 	}
@@ -61,19 +62,19 @@ func (self *Ledger) SubmitBlock(b *types.Block, exec store.ExecuteResult) error 
 	return self.ldgStore.SubmitBlock(b, exec)
 }
 
-func (self *Ledger) GetStateMerkleRoot(height uint32) (result common.Uint256, err error) {
+func (self *Ledger) GetStateMerkleRoot(height uint64) (result common.Uint256, err error) {
 	return self.ldgStore.GetStateMerkleRoot(height)
 }
 
-func (self *Ledger) GetCrossStateRoot(height uint32) (common.Uint256, error) {
+func (self *Ledger) GetCrossStateRoot(height uint64) (common.Uint256, error) {
 	return self.ldgStore.GetCrossStateRoot(height)
 }
 
-func (self *Ledger) GetBlockRootWithPreBlockHashes(startHeight uint32, txRoots []common.Uint256) common.Uint256 {
+func (self *Ledger) GetBlockRootWithPreBlockHashes(startHeight uint64, txRoots []common.Uint256) common.Uint256 {
 	return self.ldgStore.GetBlockRootWithPreBlockHashes(startHeight, txRoots)
 }
 
-func (self *Ledger) GetBlockByHeight(height uint32) (*types.Block, error) {
+func (self *Ledger) GetBlockByHeight(height uint64) (*types.Block, error) {
 	return self.ldgStore.GetBlockByHeight(height)
 }
 
@@ -81,7 +82,7 @@ func (self *Ledger) GetBlockByHash(blockHash common.Uint256) (*types.Block, erro
 	return self.ldgStore.GetBlockByHash(blockHash)
 }
 
-func (self *Ledger) GetHeaderByHeight(height uint32) (*types.Header, error) {
+func (self *Ledger) GetHeaderByHeight(height uint64) (*types.Header, error) {
 	return self.ldgStore.GetHeaderByHeight(height)
 }
 
@@ -89,7 +90,7 @@ func (self *Ledger) GetHeaderByHash(blockHash common.Uint256) (*types.Header, er
 	return self.ldgStore.GetHeaderByHash(blockHash)
 }
 
-func (self *Ledger) GetBlockHash(height uint32) common.Uint256 {
+func (self *Ledger) GetBlockHash(height uint64) common.Uint256 {
 	return self.ldgStore.GetBlockHash(height)
 }
 
@@ -98,11 +99,11 @@ func (self *Ledger) GetTransaction(txHash common.Uint256) (*types.Transaction, e
 	return tx, err
 }
 
-func (self *Ledger) GetTransactionWithHeight(txHash common.Uint256) (*types.Transaction, uint32, error) {
+func (self *Ledger) GetTransactionWithHeight(txHash common.Uint256) (*types.Transaction, uint64, error) {
 	return self.ldgStore.GetTransaction(txHash)
 }
 
-func (self *Ledger) GetCurrentBlockHeight() uint32 {
+func (self *Ledger) GetCurrentBlockHeight() uint64 {
 	return self.ldgStore.GetCurrentBlockHeight()
 }
 
@@ -110,7 +111,7 @@ func (self *Ledger) GetCurrentBlockHash() common.Uint256 {
 	return self.ldgStore.GetCurrentBlockHash()
 }
 
-func (self *Ledger) GetCurrentHeaderHeight() uint32 {
+func (self *Ledger) GetCurrentHeaderHeight() uint64 {
 	return self.ldgStore.GetCurrentHeaderHeight()
 }
 
@@ -146,7 +147,7 @@ func (self *Ledger) GetStorageItem(codeHash common.Address, key []byte) ([]byte,
 	return storageItem.Value, nil
 }
 
-func (self *Ledger) GetMerkleProof(proofHeight, rootHeight uint32) ([]byte, error) {
+func (self *Ledger) GetMerkleProof(proofHeight, rootHeight uint64) ([]byte, error) {
 	blockHash := self.ldgStore.GetBlockHash(proofHeight)
 	if bytes.Equal(blockHash.ToArray(), common.UINT256_EMPTY.ToArray()) {
 		return nil, fmt.Errorf("GetBlockHash(%d) empty", proofHeight)
@@ -154,7 +155,7 @@ func (self *Ledger) GetMerkleProof(proofHeight, rootHeight uint32) ([]byte, erro
 	return self.ldgStore.GetMerkleProof(blockHash.ToArray(), proofHeight+1, rootHeight)
 }
 
-func (self *Ledger) GetCrossStatesProof(height uint32, key []byte) ([]byte, error) {
+func (self *Ledger) GetCrossStatesProof(height uint64, key []byte) ([]byte, error) {
 	return self.ldgStore.GetCrossStatesProof(height, key)
 }
 
@@ -166,7 +167,7 @@ func (self *Ledger) GetEventNotifyByTx(tx common.Uint256) (*event.ExecuteNotify,
 	return self.ldgStore.GetEventNotifyByTx(tx)
 }
 
-func (self *Ledger) GetEventNotifyByBlock(height uint32) ([]*event.ExecuteNotify, error) {
+func (self *Ledger) GetEventNotifyByBlock(height uint64) ([]*event.ExecuteNotify, error) {
 	return self.ldgStore.GetEventNotifyByBlock(height)
 }
 

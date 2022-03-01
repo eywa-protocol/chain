@@ -3,6 +3,7 @@ package ledger
 import (
 	"errors"
 	"fmt"
+
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
 
 	"github.com/eywa-protocol/chain/common"
@@ -122,10 +123,6 @@ func (self *Ledger) makeBlock(transactions []*types.Transaction) (block *types.B
 	txRoot := common.ComputeMerkleRoot(hashes)
 	blockRoot := self.GetBlockRootWithPreBlockHashes(height+1, []common.Uint256{prevHash})
 
-	mainEpochKey, err := self.GetEpochState()
-	if err != nil {
-		return &types.Block{}, err
-	}
 	log.Infof(" - > prev hash %v", prevHash.ToHexString())
 	log.Infof(" - > blockRoot %v", blockRoot.ToHexString())
 	log.Infof(" - > height %v", height)
@@ -134,11 +131,7 @@ func (self *Ledger) makeBlock(transactions []*types.Transaction) (block *types.B
 	header := &types.Header{
 		PrevBlockHash:    prevHash,
 		TransactionsRoot: txRoot,
-		BlockRoot:        blockRoot,
-		Timestamp:        transactions[0].Nonce,
 		Height:           height + 1,
-		ConsensusData:    uint64(transactions[0].Nonce),
-		EpochKey:         mainEpochKey.CurrEpoch[0],
 	}
 	block = &types.Block{
 		Header:       header,

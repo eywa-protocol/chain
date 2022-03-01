@@ -1,7 +1,6 @@
 package store
 
 import (
-	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/core/states"
 	"github.com/eywa-protocol/chain/core/store/overlaydb"
@@ -21,32 +20,32 @@ type ExecuteResult struct {
 
 // LedgerStore provides func with store package.
 type LedgerStore interface {
-	InitLedgerStoreWithGenesisBlock(genesisblock *types.Block, defaultEpoch []bls.PublicKey) error
+	InitLedgerStoreWithGenesisBlock(genesisblock *types.Block) error
 	Close() error
 	AddHeaders(headers []*types.Header) error
 	AddBlock(block *types.Block, stateMerkleRoot common.Uint256) error
 	ExecuteBlock(b *types.Block) (ExecuteResult, error)   // called by consensus
 	SubmitBlock(b *types.Block, exec ExecuteResult) error // called by consensus
-	GetStateMerkleRoot(height uint32) (result common.Uint256, err error)
-	GetCrossStateRoot(height uint32) (result common.Uint256, err error)
+	GetStateMerkleRoot(height uint64) (result common.Uint256, err error)
+	GetCrossStateRoot(height uint64) (result common.Uint256, err error)
 	GetCurrentBlockHash() common.Uint256
-	GetCurrentBlockHeight() uint32
-	GetCurrentHeaderHeight() uint32
+	GetCurrentBlockHeight() uint64
+	GetCurrentHeaderHeight() uint64
 	GetCurrentHeaderHash() common.Uint256
-	GetBlockHash(height uint32) common.Uint256
+	GetBlockHash(height uint64) common.Uint256
 	GetHeaderByHash(blockHash common.Uint256) (*types.Header, error)
-	GetHeaderByHeight(height uint32) (*types.Header, error)
+	GetHeaderByHeight(height uint64) (*types.Header, error)
 	GetBlockByHash(blockHash common.Uint256) (*types.Block, error)
-	GetBlockByHeight(height uint32) (*types.Block, error)
-	GetTransaction(txHash common.Uint256) (*types.Transaction, uint32, error)
+	GetBlockByHeight(height uint64) (*types.Block, error)
+	GetTransaction(txHash common.Uint256) (*types.Transaction, uint64, error)
 	IsContainBlock(blockHash common.Uint256) (bool, error)
 	IsContainTransaction(txHash common.Uint256) (bool, error)
-	GetBlockRootWithPreBlockHashes(startHeight uint32, txRoots []common.Uint256) common.Uint256
-	GetMerkleProof(raw []byte, m, n uint32) ([]byte, error)
-	GetCrossStatesProof(height uint32, key []byte) ([]byte, error)
+	GetBlockRootWithPreBlockHashes(startHeight uint64, txRoots []common.Uint256) common.Uint256
+	GetMerkleProof(raw []byte, m, n uint64) ([]byte, error)
+	GetCrossStatesProof(height uint64, key []byte) ([]byte, error)
 	GetEpochState() (*states.EpochState, error)
 	GetStorageItem(key *states.StorageKey) (*states.StorageItem, error)
 	PreExecuteContract(tx *types.Transaction) (*cstates.PreExecResult, error)
 	GetEventNotifyByTx(tx common.Uint256) (*event.ExecuteNotify, error)
-	GetEventNotifyByBlock(height uint32) ([]*event.ExecuteNotify, error)
+	GetEventNotifyByBlock(height uint64) ([]*event.ExecuteNotify, error)
 }

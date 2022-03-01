@@ -52,16 +52,16 @@ func init() {
 }
 
 func TestEvmMerkleProve(t *testing.T) {
-	n := uint32(10)
+	n := uint64(10)
 	store, _ := NewFileHashStore("merkletree.db", 0)
 	defer func() { os.Remove("merkletree.db") }()
 	tree := NewTree(0, nil, store)
-	for i := uint32(0); i < n; i++ {
+	for i := uint64(0); i < n; i++ {
 		tree.Append([]byte{byte(i + 1)})
 	}
 	root := tree.Root()
 
-	for i := uint32(0); i < n; i++ {
+	for i := uint64(0); i < n; i++ {
 		data := []byte{byte(i + 1)}
 		path, err := tree.MerkleInclusionLeafPath(data, i, n)
 		require.NoError(t, err)

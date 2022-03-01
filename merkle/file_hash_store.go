@@ -13,7 +13,7 @@ type HashStore interface {
 	Append(hash []common.Uint256) error
 	Flush() error
 	Close()
-	GetHash(pos uint32) (common.Uint256, error)
+	GetHash(pos uint64) (common.Uint256, error)
 }
 
 type fileHashStore struct {
@@ -22,7 +22,7 @@ type fileHashStore struct {
 }
 
 // NewFileHashStore returns a HashStore implement in file
-func NewFileHashStore(name string, tree_size uint32) (HashStore, error) {
+func NewFileHashStore(name string, tree_size uint64) (HashStore, error) {
 	f, err := os.OpenFile(name, os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func NewFileHashStore(name string, tree_size uint32) (HashStore, error) {
 	return store, nil
 }
 
-func getStoredHashNum(tree_size uint32) int64 {
+func getStoredHashNum(tree_size uint64) int64 {
 	subtreesize := getSubTreeSize(tree_size)
 	sum := int64(0)
 	for _, v := range subtreesize {
@@ -57,7 +57,7 @@ func getStoredHashNum(tree_size uint32) int64 {
 	return sum
 }
 
-func (self *fileHashStore) checkConsistence(tree_size uint32) error {
+func (self *fileHashStore) checkConsistence(tree_size uint64) error {
 	num_hashes := getStoredHashNum(tree_size)
 
 	stat, err := self.file.Stat()
@@ -96,7 +96,7 @@ func (self *fileHashStore) Close() {
 	self.file.Close()
 }
 
-func (self *fileHashStore) GetHash(pos uint32) (common.Uint256, error) {
+func (self *fileHashStore) GetHash(pos uint64) (common.Uint256, error) {
 	if self == nil {
 		return EMPTY_HASH, errors.New("FileHashstore is nil")
 	}
@@ -123,7 +123,7 @@ func (self *memHashStore) Append(hash []common.Uint256) error {
 	return nil
 }
 
-func (self *memHashStore) GetHash(pos uint32) (common.Uint256, error) {
+func (self *memHashStore) GetHash(pos uint64) (common.Uint256, error) {
 	return self.hashes[pos], nil
 }
 

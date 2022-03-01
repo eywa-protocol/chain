@@ -10,16 +10,16 @@ import (
 )
 
 func TestStateMerkleRoot(t *testing.T) {
-	teststatemerkleroot := func(H, effectiveStateHashHeight uint32) {
+	teststatemerkleroot := func(H, effectiveStateHashHeight uint64) {
 		diffHashes := make([]common.Uint256, 0, H)
-		for i := uint32(0); i < H; i++ {
+		for i := uint64(0); i < H; i++ {
 			var hash common.Uint256
 			rand.Read(hash[:])
 			diffHashes = append(diffHashes, hash)
 		}
 		db := NewMemStateStore(effectiveStateHashHeight)
 		for h, hash := range diffHashes[:effectiveStateHashHeight] {
-			height := uint32(h)
+			height := uint64(h)
 			db.NewBatch()
 			err := db.AddStateMerkleTreeRoot(height, hash)
 			assert.Nil(t, err)
@@ -30,7 +30,7 @@ func TestStateMerkleRoot(t *testing.T) {
 
 		merkleTree := merkle.NewTree(0, nil, nil)
 		for h, hash := range diffHashes[effectiveStateHashHeight:] {
-			height := uint32(h) + effectiveStateHashHeight
+			height := uint64(h) + effectiveStateHashHeight
 			merkleTree.Append(hash.ToArray())
 			root1 := db.GetStateMerkleRootWithNewHash(hash)
 			db.NewBatch()
@@ -46,9 +46,9 @@ func TestStateMerkleRoot(t *testing.T) {
 	}
 
 	for i := 0; i < 200; i++ {
-		teststatemerkleroot(1024, uint32(i))
-		h := rand.Uint32()%1000 + 1
-		eff := rand.Uint32() % h
+		teststatemerkleroot(1024, uint64(i))
+		h := rand.Uint64()%1000 + 1
+		eff := rand.Uint64() % h
 		teststatemerkleroot(h, eff)
 	}
 
