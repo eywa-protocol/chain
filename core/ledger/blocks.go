@@ -77,7 +77,6 @@ func newReceiveRequestTransaction(evt wrappers.BridgeReceiveRequest) (*types.Tra
 	return tx, nil
 }
 
-
 func newBridgeSolanaEventTransaction(evt wrappers.BridgeOracleRequestSolana) (*types.Transaction, error) {
 	event := &payload.BridgeSolanaEvent{OriginData: evt}
 	tx := &types.Transaction{
@@ -100,8 +99,7 @@ func newBridgeSolanaEventTransaction(evt wrappers.BridgeOracleRequestSolana) (*t
 	return tx, nil
 }
 
-
-func (self *Ledger) CreateBlockFromEvents(blockEvents BlockEvents) (block *types.Block, err error) {
+func (self *Ledger) CreateBlockFromEvents(blockEvents BlockEvents, sourceHeight uint64) (block *types.Block, err error) {
 
 	txs := []*types.Transaction{}
 	for _, tx1 := range blockEvents.OracleRequests {
@@ -140,8 +138,7 @@ func (self *Ledger) CreateBlockFromEvents(blockEvents BlockEvents) (block *types
 		txs = append(txs, tx)
 	}
 
-
-	block, err = self.makeBlock(txs)
+	block, err = self.makeBlock(txs, sourceHeight)
 
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("CreateBlockFromEvents %v", err.Error()))

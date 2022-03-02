@@ -140,14 +140,12 @@ func TestSaveBridgeEventAsBlock(t *testing.T) {
 			Chainid:     big.NewInt(94),
 		}}
 
-
 	solEvent := payload.BridgeSolanaEvent{
 		OriginData: wrappers.BridgeOracleRequestSolana{
 			RequestType: "setRequest",
 			Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
 			Chainid:     big.NewInt(94),
 		}}
-
 
 	sol2EVMEvent := payload.SolanaToEVMEvent{
 		OriginData: bridge.BridgeEvent{
@@ -169,7 +167,7 @@ func TestSaveBridgeEventAsBlock(t *testing.T) {
 	be.OracleRequests = append(be.OracleRequests, &event.OriginData)
 	be.OracleSolanaRequests = append(be.OracleSolanaRequests, &solEvent.OriginData)
 	be.SolanaBridgeEvents = append(be.SolanaBridgeEvents, &sol2EVMEvent.OriginData)
-	_, err = lg.CreateBlockFromEvents(be)
+	_, err = lg.CreateBlockFromEvents(be, 123)
 
 	require.NoError(t, err)
 	blockAfter := lg.GetCurrentBlockHash()
