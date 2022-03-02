@@ -12,6 +12,13 @@ import (
 	"github.com/eywa-protocol/wrappers"
 )
 
+type BlockEvents struct {
+	OracleRequests       []*wrappers.BridgeOracleRequest
+	ReceiveRequests      []*wrappers.BridgeReceiveRequest
+	OracleSolanaRequests []*wrappers.BridgeOracleRequestSolana
+	SolanaBridgeEvents   []*bridge.BridgeEvent
+}
+
 func newBridgeFromSolanaEventTransaction(evt bridge.BridgeEvent) (*types.Transaction, error) {
 	event := &payload.SolanaToEVMEvent{OriginData: evt}
 	tx := &types.Transaction{
@@ -50,6 +57,25 @@ func newBridgeEventTransaction(evt wrappers.BridgeOracleRequest) (*types.Transac
 	return tx, nil
 }
 
+func newReceiveRequestTransaction(evt wrappers.BridgeReceiveRequest) (*types.Transaction, error) {
+	event := &payload.ReceiveRequestEvent{OriginData: evt}
+	tx := &types.Transaction{
+		TxType:  types.ReceiveRequestEvent,
+		Payload: event,
+		ChainID: 0,
+	}
+	sink := common.NewZeroCopySink(nil)
+	err := tx.Serialization(sink)
+	if err != nil {
+		return &types.Transaction{}, err
+	}
+	tx, err = types.TransactionFromRawBytes(sink.Bytes())
+	if err != nil {
+		return &types.Transaction{}, err
+	}
+	return tx, nil
+}
+
 func newBridgeSolanaEventTransaction(evt wrappers.BridgeOracleRequestSolana) (*types.Transaction, error) {
 	event := &payload.BridgeSolanaEvent{OriginData: evt}
 	tx := &types.Transaction{
@@ -69,44 +95,47 @@ func newBridgeSolanaEventTransaction(evt wrappers.BridgeOracleRequestSolana) (*t
 	return tx, nil
 }
 
-func (self *Ledger) CreateBlockFromSolanaToEvmEvent(evt bridge.BridgeEvent) (block *types.Block, err error) {
+func (self *Ledger) CreateBlockFromEvents(blockEvents BlockEvents) (block *types.Block, err error) {
 	txs := []*types.Transaction{}
-	tx, err := newBridgeFromSolanaEventTransaction(evt)
-	if err != nil {
-		return nil, err
+	for _, tx1 := range blockEvents.OracleRequests {
+		tx, err := newBridgeEventTransaction(*tx1)
+		if err != nil {
+			log.Errorf("newBridgeEventTransaction: %v", err)
+			continue
+		}
+		txs = append(txs, tx)
 	}
-	txs = append(txs, tx)
-	block, err = self.makeBlock(txs)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("makeBlock %v", err.Error()))
-	}
-	return block, nil
-}
 
-func (self *Ledger) CreateBlockFromEvent(evt wrappers.BridgeOracleRequest) (block *types.Block, err error) {
-	txs := []*types.Transaction{}
-	tx, err := newBridgeEventTransaction(evt)
-	if err != nil {
-		return nil, err
+	for _, tx1 := range blockEvents.OracleSolanaRequests {
+		tx, err := newBridgeSolanaEventTransaction(*tx1)
+		if err != nil {
+			log.Errorf("newBridgeSolanaEventTransaction: %v", err)
+			continue
+		}
+		txs = append(txs, tx)
 	}
-	txs = append(txs, tx)
-	block, err = self.makeBlock(txs)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("makeBlock %v", err.Error()))
-	}
-	return block, nil
-}
 
-func (self *Ledger) CreateBlockFromSolanaEvent(evt wrappers.BridgeOracleRequestSolana) (block *types.Block, err error) {
-	txs := []*types.Transaction{}
-	tx, err := newBridgeSolanaEventTransaction(evt)
-	if err != nil {
-		return nil, err
+	for _, tx1 := range blockEvents.ReceiveRequests {
+		tx, err := newReceiveRequestTransaction(*tx1)
+		if err != nil {
+			log.Errorf("newReceiveRequestTransaction: %v", err)
+			continue
+		}
+		txs = append(txs, tx)
 	}
-	txs = append(txs, tx)
+
+	for _, tx1 := range blockEvents.SolanaBridgeEvents {
+		tx, err := newBridgeFromSolanaEventTransaction(*tx1)
+		if err != nil {
+			log.Errorf("newReceiveRequestTransaction: %v", err)
+			continue
+		}
+		txs = append(txs, tx)
+	}
+
 	block, err = self.makeBlock(txs)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("makeBlock %v", err.Error()))
+		return nil, errors.New(fmt.Sprintf("CreateBlockFromEvents %v", err.Error()))
 	}
 	return block, nil
 }

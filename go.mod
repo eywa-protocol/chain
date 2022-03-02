@@ -10,6 +10,7 @@ require (
 	github.com/gagliardetto/solana-go v1.0.2
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d
 	github.com/itchyny/base58-go v0.1.0
+	github.com/near/borsh-go v0.3.1-0.20210831082424-4377deff6791
 	github.com/ontio/ontology-crypto v1.2.1
 	github.com/stretchr/testify v1.7.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
