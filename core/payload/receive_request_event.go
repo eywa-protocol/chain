@@ -9,12 +9,11 @@ import (
 	"github.com/near/borsh-go"
 )
 
-type BridgeEvent struct {
-	OriginData wrappers.BridgeOracleRequest
+type ReceiveRequestEvent struct {
+	OriginData wrappers.BridgeReceiveRequest
 }
 
-// `ContractInvokeParam.Args` has reference of `source`
-func (self *BridgeEvent) Deserialization(source *common.ZeroCopySource) error {
+func (self *ReceiveRequestEvent) Deserialization(source *common.ZeroCopySource) error {
 	code, eof := source.NextVarBytes()
 	if eof {
 		return fmt.Errorf("[InvokeCode] deserialize code error")
@@ -26,13 +25,12 @@ func (self *BridgeEvent) Deserialization(source *common.ZeroCopySource) error {
 	return nil
 }
 
-func (self *BridgeEvent) Serialization(sink *common.ZeroCopySink) {
-	oracleRequestBytes, _ := MarshalBinary(&self.OriginData)
+func (self *ReceiveRequestEvent) Serialization(sink *common.ZeroCopySink) {
+	oracleRequestBytes, _ := marshalBinaryRecievRequest(&self.OriginData)
 	sink.WriteVarBytes(oracleRequestBytes)
 }
 
-// MarshalBinary implements encoding.BinaryMarshaler
-func MarshalBinary(be *wrappers.BridgeOracleRequest) (data []byte, err error) {
+func marshalBinaryRecievRequest(be *wrappers.BridgeReceiveRequest) (data []byte, err error) {
 	var (
 		b bytes.Buffer
 		w = bufio.NewWriter(&b)
