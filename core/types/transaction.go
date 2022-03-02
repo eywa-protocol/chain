@@ -18,38 +18,16 @@ var (
 
 const MAX_TX_SIZE = 1024 * 1024 // The max size of a transaction to prevent DOS attacks
 
-type CoinType byte
-
-const (
-	EYW CoinType = iota
-	ETH
-	BTC
-)
-
 type Transaction struct {
-	TxType     TransactionType
-	Nonce      uint32
-	ChainID    uint64
-	GasLimit   uint64
-	GasPrice   uint64
-	Payload    Payload
-	Attributes []byte // this must be 0 now, Attribute Array length use VarUint encoding, so byte is enough for extension
-	Payer      common.Address
-	CoinType   CoinType
-	Sig        Sig
+	TxType  TransactionType
+	Payload Payload
 
-	Raw        []byte // raw transaction data
-	hash       common.Uint256
-	SignedAddr []common.Address // this is assigned when passed signature verification
+	hash common.Uint256
 }
 
 func (tx *Transaction) SerializeUnsigned(sink *common.ZeroCopySink) error {
 	sink.WriteByte(byte(tx.TxType))
-	sink.WriteUint32(tx.Nonce)
-	sink.WriteUint64(tx.ChainID)
-	sink.WriteUint64(tx.GasLimit)
-	sink.WriteUint64(tx.GasPrice)
-	// Payload
+
 	if tx.Payload == nil {
 		return errors.New("transaction payload is nil")
 	}
@@ -69,22 +47,12 @@ func (tx *Transaction) SerializeUnsigned(sink *common.ZeroCopySink) error {
 	default:
 		return errors.New("wrong transaction payload type")
 	}
-	if len(tx.Attributes) > MAX_ATTRIBUTES_LEN {
-		return fmt.Errorf("attributes length %d over max length %d", tx.Attributes, MAX_ATTRIBUTES_LEN)
-	}
-	sink.WriteVarBytes(tx.Attributes)
-	sink.WriteAddress(tx.Payer)
-	sink.WriteByte(byte(tx.CoinType))
 	return nil
 }
 
 // Serialize the Transaction
 func (tx *Transaction) Serialization(sink *common.ZeroCopySink) error {
 	if err := tx.SerializeUnsigned(sink); err != nil {
-		return err
-	}
-
-	if err := tx.Sig.Serialize(sink); err != nil {
 		return err
 	}
 
@@ -121,19 +89,6 @@ func (tx *Transaction) Deserialization(source *common.ZeroCopySource) error {
 	temp := sha256.Sum256(rawUnsigned)
 	tx.hash = sha256.Sum256(temp[:])
 
-	var sig Sig
-	if err := sig.Deserialize(source); err != nil {
-		return err
-	}
-	tx.Sig = sig
-
-	pend := source.Pos()
-	lenAll := pend - pstart
-	if lenAll > MAX_TX_SIZE {
-		return fmt.Errorf("execced max transaction size:%d", lenAll)
-	}
-	source.BackUp(lenAll)
-	tx.Raw, _ = source.NextBytes(lenAll)
 	return nil
 }
 
@@ -144,22 +99,6 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 		return errors.New("[deserializationUnsigned] read txType error")
 	}
 	tx.TxType = TransactionType(txType)
-	tx.Nonce, eof = source.NextUint32()
-	if eof {
-		return errors.New("[deserializationUnsigned] read nonce error")
-	}
-	tx.ChainID, eof = source.NextUint64()
-	if eof {
-		return errors.New("[deserializationUnsigned] read chainid error")
-	}
-	tx.GasLimit, eof = source.NextUint64()
-	if eof {
-		return errors.New("[deserializationUnsigned] read gaslimit error")
-	}
-	tx.GasPrice, eof = source.NextUint64()
-	if eof {
-		return errors.New("[deserializationUnsigned] read gasprice error")
-	}
 
 	switch tx.TxType {
 
@@ -212,67 +151,6 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 	default:
 		return fmt.Errorf("unsupported tx type %v", tx.Type())
 	}
-	tx.Attributes, eof = source.NextVarBytes()
-	if eof {
-		return errors.New("[deserializationUnsigned] read attributes error")
-	}
-	if len(tx.Attributes) > MAX_ATTRIBUTES_LEN {
-		return fmt.Errorf("[deserializationUnsigned] attributes length %d over max limit %d", tx.Attributes, MAX_ATTRIBUTES_LEN)
-	}
-	tx.Payer, eof = source.NextAddress()
-	if eof {
-		return errors.New("[deserializationUnsigned] read payer error")
-	}
-	coinType, eof := source.NextByte()
-	if eof {
-		return errors.New("[deserializationUnsigned] read coinType error")
-	}
-	tx.CoinType = CoinType(coinType)
-	if tx.CoinType != EYW {
-		return errors.New("[deserializationUnsigned] unsupported coinType")
-	}
-	return nil
-}
-
-type Sig struct {
-	SigData bls.Signature // aggregated signature of all who signed
-	PubKey  bls.PublicKey // aggregated public key of all who signed
-	M       uint64        // bitmask of all who signed
-}
-
-func (this *Sig) Serialize(sink *common.ZeroCopySink) error {
-	sink.WriteVarBytes(this.SigData.Marshal())
-	sink.WriteVarBytes(this.PubKey.Marshal())
-	sink.WriteUint64(this.M)
-	return nil
-}
-
-func (this *Sig) Deserialize(source *common.ZeroCopySource) error {
-	data, eof := source.NextVarBytes()
-	if eof {
-		return errors.New("[Sig] deserialize read sigData error")
-	}
-	sig, err := bls.UnmarshalSignature(data)
-	if err != nil {
-		return err
-	}
-	this.SigData = sig
-
-	data, eof = source.NextVarBytes()
-	if eof {
-		return errors.New("[Sig] deserialize read pubKey error")
-	}
-	pk, err := bls.UnmarshalPublicKey(data)
-	if err != nil {
-		return err
-	}
-	this.PubKey = pk
-
-	m, eof := source.NextUint64()
-	if eof {
-		return errors.New("[Sig] deserialize read M error")
-	}
-	this.M = m
 	return nil
 }
 

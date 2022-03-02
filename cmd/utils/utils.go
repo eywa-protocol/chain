@@ -2,19 +2,11 @@ package utils
 
 import (
 	"bytes"
-	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"sort"
 	"strings"
-
-	"github.com/eywa-protocol/bls-crypto/bls"
-
-	"github.com/eywa-protocol/chain/account"
-	"github.com/eywa-protocol/chain/core/types"
 )
 
 func GetJsonObjectFromFile(filePath string, jsonObject interface{}) error {
@@ -167,57 +159,57 @@ func GetTxHeight(txHash string) (uint32, error) {
 		return 0, fmt.Errorf("json.Unmarshal error:%s", err)
 	}
 	return height, nil
-}*/
+}
 
 func SignTransaction(signer *account.Account, tx *types.Transaction) error {
 	txHash := tx.Hash()
 	tx.Sig.SigData = signer.PrivateKey.Sign(txHash.ToArray())
-	// sigData, err := Sign(txHash.ToArray(), signer)
-	// if err != nil {
-	// 	return fmt.Errorf("sign error:%s", err)
-	// }
-	// hasSig := false
-	// for i, sig := range tx.Sigs {
-	// 	if len(sig.PubKeys) == 1 && pubKeysEqual(sig.PubKeys, []bls.PublicKey{signer.PublicKey}) {
-	// 		if hasAlreadySig(txHash.ToArray(), signer.PublicKey, sig.SigData) {
-	// 			//has already signed
-	// 			return nil
-	// 		}
-	// 		hasSig = true
-	// 		//replace
-	// 		tx.Sigs[i].SigData = [][]byte{sigData}
-	// 	}
-	// }
-	// if !hasSig {
-	// 	tx.Sigs = append(tx.Sigs, types.Sig{
-	// 		PubKeys: []bls.PublicKey{signer.PublicKey},
-	// 		M:       1,
-	// 		SigData: [][]byte{sigData},
-	// 	})
-	// }
+	sigData, err := Sign(txHash.ToArray(), signer)
+	if err != nil {
+		return fmt.Errorf("sign error:%s", err)
+	}
+	hasSig := false
+	for i, sig := range tx.Sigs {
+		if len(sig.PubKeys) == 1 && pubKeysEqual(sig.PubKeys, []bls.PublicKey{signer.PublicKey}) {
+			if hasAlreadySig(txHash.ToArray(), signer.PublicKey, sig.SigData) {
+				//has already signed
+				return nil
+			}
+			hasSig = true
+			//replace
+			tx.Sigs[i].SigData = [][]byte{sigData}
+		}
+	}
+	if !hasSig {
+		tx.Sigs = append(tx.Sigs, types.Sig{
+			PubKeys: []bls.PublicKey{signer.PublicKey},
+			M:       1,
+			SigData: [][]byte{sigData},
+		})
+	}
 	return nil
 }
 
 func MultiSigTransaction(mutTx *types.Transaction, mk bls.Signature, allPub bls.PublicKey, signer *account.Account) error {
-	// pkSize := len(pubKeys)
-	// if m == 0 || int(m) > pkSize || pkSize > constants.MULTI_SIG_MAX_PUBKEY_SIZE {
-	// 	return fmt.Errorf("invalid params")
-	// }
+	pkSize := len(pubKeys)
+	if m == 0 || int(m) > pkSize || pkSize > constants.MULTI_SIG_MAX_PUBKEY_SIZE {
+		return fmt.Errorf("invalid params")
+	}
 
-	//validPubKey := false
-	//for _, pk := range pubKeys {
-	//	if keypair.ComparePublicKey(pk, signer.PublicKey.Marshal()) {
-	//		validPubKey = true
-	//		break
-	//	}
-	//}
-	//if !validPubKey {
-	//	return fmt.Errorf("invalid signer")
-	//}
+	validPubKey := false
+	for _, pk := range pubKeys {
+		if keypair.ComparePublicKey(pk, signer.PublicKey.Marshal()) {
+			validPubKey = true
+			break
+		}
+	}
+	if !validPubKey {
+		return fmt.Errorf("invalid signer")
+	}
 
-	// if len(mutTx.Sigs) == 0 {
-	// 	mutTx.Sigs = make([]types.Sig, 0)
-	// }
+	if len(mutTx.Sigs) == 0 {
+		mutTx.Sigs = make([]types.Sig, 0)
+	}
 
 	m := uint64(1) << signer.Id
 	if mutTx.Sig.M&m != 0 {
@@ -229,33 +221,33 @@ func MultiSigTransaction(mutTx *types.Transaction, mk bls.Signature, allPub bls.
 	mutTx.Sig.PubKey = mutTx.Sig.PubKey.Aggregate(signer.PublicKey)
 	mutTx.Sig.SigData = mutTx.Sig.SigData.Aggregate(sig)
 
-	// sigData, err := Sign(txHash.ToArray(), signer)
-	// if err != nil {
-	// 	return fmt.Errorf("sign error:%s", err)
-	// }
+	sigData, err := Sign(txHash.ToArray(), signer)
+	if err != nil {
+		return fmt.Errorf("sign error:%s", err)
+	}
 
-	// hasMutilSig := false
-	// for i, sigs := range mutTx.Sigs {
-	// 	if !pubKeysEqual(sigs.PubKeys, pubKeys) {
-	// 		continue
-	// 	}
-	// 	hasMutilSig = true
-	// 	if hasAlreadySig(txHash.ToArray(), signer.PublicKey, sigs.SigData) {
-	// 		break
-	// 	}
-	// 	sigs.SigData = append(sigs.SigData, sigData)
-	// 	mutTx.Sigs[i] = sigs
-	// 	break
-	// }
-	// if !hasMutilSig {
-	// 	mutTx.Sigs = append(mutTx.Sigs, types.Sig{
-	// 		PubKeys: pubKeys,
-	// 		M:       uint16(m),
-	// 		SigData: [][]byte{sigData},
-	// 	})
-	// }
+	hasMutilSig := false
+	for i, sigs := range mutTx.Sigs {
+		if !pubKeysEqual(sigs.PubKeys, pubKeys) {
+			continue
+		}
+		hasMutilSig = true
+		if hasAlreadySig(txHash.ToArray(), signer.PublicKey, sigs.SigData) {
+			break
+		}
+		sigs.SigData = append(sigs.SigData, sigData)
+		mutTx.Sigs[i] = sigs
+		break
+	}
+	if !hasMutilSig {
+		mutTx.Sigs = append(mutTx.Sigs, types.Sig{
+			PubKeys: pubKeys,
+			M:       uint16(m),
+			SigData: [][]byte{sigData},
+		})
+	}
 	return nil
-}
+}*/
 
 /*func GetSmartContractEventInfo(txHash string) ([]byte, error) {
 	data, ontErr := sendRpcRequest("getsmartcodeevent", []interface{}{txHash})
@@ -279,7 +271,7 @@ func MultiSigTransaction(mutTx *types.Transaction, mk bls.Signature, allPub bls.
 	return false
 }*/
 
-func pubKeysEqual(pks1, pks2 []bls.PublicKey) bool {
+/*func pubKeysEqual(pks1, pks2 []bls.PublicKey) bool {
 	if len(pks1) != len(pks2) {
 		return false
 	}
@@ -303,13 +295,13 @@ func pubKeysEqual(pks1, pks2 []bls.PublicKey) bool {
 		}
 	}
 	return true
-}
+}*/
 
-func Sign(data []byte, signer *account.Account) (bls.Signature, error) {
+/*func Sign(data []byte, signer *account.Account) (bls.Signature, error) {
 
 	s := signer.PrivateKey.Sign(data)
 
 	//sigData := s.Marshal()
 
 	return s, nil
-}
+}*/

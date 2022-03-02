@@ -76,8 +76,6 @@ func NewInvokeTransaction(invokeCode []byte, nonce uint32) *types.Transaction {
 	tx := &types.Transaction{
 		TxType:  types.Invoke,
 		Payload: invokePayload,
-		Nonce:   nonce,
-		ChainID: 0,
 	}
 
 	sink := common.NewZeroCopySink(nil)
@@ -95,8 +93,6 @@ func NewEpochTransaction(invokeCode []byte, nonce uint32) *types.Transaction {
 	tx := &types.Transaction{
 		TxType:  types.Epoch,
 		Payload: &payload.Epoch{Data: invokeCode},
-		Nonce:   nonce,
-		ChainID: 0,
 	}
 
 	sink := common.NewZeroCopySink(nil)
