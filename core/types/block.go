@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/eywa-protocol/chain/common"
 )
@@ -96,11 +95,6 @@ func (b *Block) Hash() common.Uint256 {
 func (b *Block) HashString() string {
 	hash := b.Header.Hash()
 	return hash.ToHexString()
-}
-
-func (b *Block) Time() time.Time {
-
-	return time.Unix(int64(b.Header.Timestamp), 0)
 }
 
 func (b *Block) Type() common.InventoryType {

@@ -3,6 +3,7 @@ package ledger
 import (
 	"errors"
 	"fmt"
+
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
 
 	"github.com/eywa-protocol/chain/common"
@@ -76,6 +77,7 @@ func newReceiveRequestTransaction(evt wrappers.BridgeReceiveRequest) (*types.Tra
 	return tx, nil
 }
 
+
 func newBridgeSolanaEventTransaction(evt wrappers.BridgeOracleRequestSolana) (*types.Transaction, error) {
 	event := &payload.BridgeSolanaEvent{OriginData: evt}
 	tx := &types.Transaction{
@@ -85,17 +87,22 @@ func newBridgeSolanaEventTransaction(evt wrappers.BridgeOracleRequestSolana) (*t
 	}
 	sink := common.NewZeroCopySink(nil)
 	err := tx.Serialization(sink)
+
 	if err != nil {
 		return &types.Transaction{}, err
 	}
+
 	tx, err = types.TransactionFromRawBytes(sink.Bytes())
+
 	if err != nil {
 		return &types.Transaction{}, err
 	}
 	return tx, nil
 }
 
+
 func (self *Ledger) CreateBlockFromEvents(blockEvents BlockEvents) (block *types.Block, err error) {
+
 	txs := []*types.Transaction{}
 	for _, tx1 := range blockEvents.OracleRequests {
 		tx, err := newBridgeEventTransaction(*tx1)
@@ -133,14 +140,16 @@ func (self *Ledger) CreateBlockFromEvents(blockEvents BlockEvents) (block *types
 		txs = append(txs, tx)
 	}
 
+
 	block, err = self.makeBlock(txs)
+
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("CreateBlockFromEvents %v", err.Error()))
 	}
 	return block, nil
 }
 
-func (self *Ledger) makeBlock(transactions []*types.Transaction) (block *types.Block, err error) {
+func (self *Ledger) makeBlock(transactions []*types.Transaction, sourceHeight uint64) (block *types.Block, err error) {
 	prevHash := self.GetCurrentBlockHash()
 
 	height := self.GetCurrentBlockHeight()
@@ -151,10 +160,6 @@ func (self *Ledger) makeBlock(transactions []*types.Transaction) (block *types.B
 	txRoot := common.ComputeMerkleRoot(hashes)
 	blockRoot := self.GetBlockRootWithPreBlockHashes(height+1, []common.Uint256{prevHash})
 
-	mainEpochKey, err := self.GetEpochState()
-	if err != nil {
-		return &types.Block{}, err
-	}
 	log.Infof(" - > prev hash %v", prevHash.ToHexString())
 	log.Infof(" - > blockRoot %v", blockRoot.ToHexString())
 	log.Infof(" - > height %v", height)
@@ -163,11 +168,8 @@ func (self *Ledger) makeBlock(transactions []*types.Transaction) (block *types.B
 	header := &types.Header{
 		PrevBlockHash:    prevHash,
 		TransactionsRoot: txRoot,
-		BlockRoot:        blockRoot,
-		Timestamp:        transactions[0].Nonce,
 		Height:           height + 1,
-		ConsensusData:    uint64(transactions[0].Nonce),
-		EpochKey:         mainEpochKey.CurrEpoch[0],
+		SourceHeight:     sourceHeight,
 	}
 	block = &types.Block{
 		Header:       header,

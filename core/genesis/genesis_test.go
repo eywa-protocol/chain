@@ -2,6 +2,11 @@ package genesis
 
 import (
 	"fmt"
+	"io/ioutil"
+	"math/big"
+	"os"
+	"testing"
+
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/account"
@@ -15,10 +20,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
-	"io/ioutil"
-	"math/big"
-	"os"
-	"testing"
 )
 
 var (
@@ -105,8 +106,6 @@ func Test_BlockFromRawBytes(t *testing.T) {
 	assert.Equal(t, genesisBlockFromBytes.Hash(), genesisBlock.Hash())
 	assert.Equal(t, genesisBlockFromBytes, genesisBlock)
 
-	t.Log("bookkeepers", genesisBlockFromBytes.Header.EpochValidators[0].Marshal())
-
 }
 
 func Test_GetGenesisFromFileAndInitNewLedger(t *testing.T) {
@@ -141,12 +140,14 @@ func TestSaveBridgeEventAsBlock(t *testing.T) {
 			Chainid:     big.NewInt(94),
 		}}
 
+
 	solEvent := payload.BridgeSolanaEvent{
 		OriginData: wrappers.BridgeOracleRequestSolana{
 			RequestType: "setRequest",
 			Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
 			Chainid:     big.NewInt(94),
 		}}
+
 
 	sol2EVMEvent := payload.SolanaToEVMEvent{
 		OriginData: bridge.BridgeEvent{
@@ -163,11 +164,13 @@ func TestSaveBridgeEventAsBlock(t *testing.T) {
 			Slot:      20,
 		},
 	}
+
 	var be ledger.BlockEvents
 	be.OracleRequests = append(be.OracleRequests, &event.OriginData)
 	be.OracleSolanaRequests = append(be.OracleSolanaRequests, &solEvent.OriginData)
 	be.SolanaBridgeEvents = append(be.SolanaBridgeEvents, &sol2EVMEvent.OriginData)
 	_, err = lg.CreateBlockFromEvents(be)
+
 	require.NoError(t, err)
 	blockAfter := lg.GetCurrentBlockHash()
 	require.Equal(t, blockbefore, blockAfter)

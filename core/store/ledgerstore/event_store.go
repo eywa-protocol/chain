@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/common/log"
 	"github.com/eywa-protocol/chain/common/serialization"
@@ -48,7 +49,7 @@ func (this *EventStore) SaveEventNotifyByTx(txHash common.Uint256, notify *event
 }
 
 //SaveEventNotifyByBlock persist transaction hash which have event notify to store
-func (this *EventStore) SaveEventNotifyByBlock(height uint32, txHashs []common.Uint256) error {
+func (this *EventStore) SaveEventNotifyByBlock(height uint64, txHashs []common.Uint256) error {
 	key, err := this.getEventNotifyByBlockKey(height)
 	if err != nil {
 		return err
@@ -85,7 +86,7 @@ func (this *EventStore) GetEventNotifyByTx(txHash common.Uint256) (*event.Execut
 }
 
 //GetEventNotifyByBlock return all event notify of transaction in block
-func (this *EventStore) GetEventNotifyByBlock(height uint32) ([]*event.ExecuteNotify, error) {
+func (this *EventStore) GetEventNotifyByBlock(height uint64) ([]*event.ExecuteNotify, error) {
 	key, err := this.getEventNotifyByBlockKey(height)
 	if err != nil {
 		return nil, err
@@ -95,12 +96,12 @@ func (this *EventStore) GetEventNotifyByBlock(height uint32) ([]*event.ExecuteNo
 		return nil, err
 	}
 	reader := bytes.NewBuffer(data)
-	size, err := serialization.ReadUint32(reader)
+	size, err := serialization.ReadUint64(reader)
 	if err != nil {
 		return nil, fmt.Errorf("ReadUint32 error %s", err)
 	}
 	evtNotifies := make([]*event.ExecuteNotify, 0)
-	for i := uint32(0); i < size; i++ {
+	for i := uint64(0); i < size; i++ {
 		var txHash common.Uint256
 		err = txHash.Deserialize(reader)
 		if err != nil {
@@ -141,11 +142,11 @@ func (this *EventStore) ClearAll() error {
 }
 
 //SaveCurrentBlock persist current block height and block hash to event store
-func (this *EventStore) SaveCurrentBlock(height uint32, blockHash common.Uint256) error {
+func (this *EventStore) SaveCurrentBlock(height uint64, blockHash common.Uint256) error {
 	key := this.getCurrentBlockKey()
 	value := bytes.NewBuffer(nil)
 	blockHash.Serialize(value)
-	serialization.WriteUint32(value, height)
+	serialization.WriteUint64(value, height)
 	this.store.BatchPut(key, value.Bytes())
 
 	return nil
@@ -175,10 +176,10 @@ func (this *EventStore) getCurrentBlockKey() []byte {
 	return []byte{byte(scom.SYS_CURRENT_BLOCK)}
 }
 
-func (this *EventStore) getEventNotifyByBlockKey(height uint32) ([]byte, error) {
-	key := make([]byte, 5, 5)
+func (this *EventStore) getEventNotifyByBlockKey(height uint64) ([]byte, error) {
+	key := make([]byte, 9, 9)
 	key[0] = byte(scom.EVENT_NOTIFY)
-	binary.LittleEndian.PutUint32(key[1:], height)
+	binary.LittleEndian.PutUint64(key[1:], height)
 	return key, nil
 }
 

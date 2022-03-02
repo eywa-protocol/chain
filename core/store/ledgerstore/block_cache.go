@@ -5,7 +5,7 @@ import (
 
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/core/types"
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 )
 
 const (
@@ -16,7 +16,7 @@ const (
 //Value of transaction cache
 type TransactionCacheaValue struct {
 	Tx     *types.Transaction
-	Height uint32
+	Height uint64
 }
 
 //BlockCache with block cache and transaction hash
@@ -62,7 +62,7 @@ func (this *BlockCache) ContainBlock(blockHash common.Uint256) bool {
 }
 
 //AddTransaction add transaction to block cache
-func (this *BlockCache) AddTransaction(tx *types.Transaction, height uint32) {
+func (this *BlockCache) AddTransaction(tx *types.Transaction, height uint64) {
 	txHash := tx.Hash()
 	this.transactionCache.Add(string(txHash.ToArray()), &TransactionCacheaValue{
 		Tx:     tx,
@@ -71,7 +71,7 @@ func (this *BlockCache) AddTransaction(tx *types.Transaction, height uint32) {
 }
 
 //GetTransaction return transaction by transaction hash from cache
-func (this *BlockCache) GetTransaction(txHash common.Uint256) (*types.Transaction, uint32) {
+func (this *BlockCache) GetTransaction(txHash common.Uint256) (*types.Transaction, uint64) {
 	value, ok := this.transactionCache.Get(string(txHash.ToArray()))
 	if !ok {
 		return nil, 0

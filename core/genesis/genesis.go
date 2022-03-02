@@ -2,9 +2,9 @@ package genesis
 
 import (
 	"fmt"
+
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/common"
-	"github.com/eywa-protocol/chain/common/constants"
 	"github.com/eywa-protocol/chain/core/payload"
 	"github.com/eywa-protocol/chain/core/types"
 	"github.com/eywa-protocol/chain/native/service/utils"
@@ -12,8 +12,6 @@ import (
 )
 
 const (
-	GenesisNonce uint64 = 1
-
 	INIT_CONFIG = "initConfig"
 )
 
@@ -28,20 +26,14 @@ func BuildGenesisBlock(defaultEpoch []bls.PublicKey) (*types.Block, error) {
 		return nil, fmt.Errorf("[Block],BuildGenesisBlock err with GetEpochAddress: %s", err)
 	}
 	nodeManagerConfig := newNodeManagerEpochInit([]byte(nextEpoch.ToHexString()))
-	consensusPayload := []byte("0")
 
 	genesisHeader := &types.Header{
 		ChainID:          0,
 		PrevBlockHash:    common.Uint256{},
+		EpochBlockHash:   common.Uint256{},
 		TransactionsRoot: common.Uint256{},
-		Timestamp:        constants.GENESIS_BLOCK_TIMESTAMP,
-		Height:           uint32(0),
-		ConsensusData:    GenesisNonce,
-		NextEpoch:        nextEpoch,
-		ConsensusPayload: consensusPayload,
-		BlockRoot:        common.UINT256_EMPTY,
-		EpochValidators:  GenesisEpochValidators,
-		SigData:          nil,
+		SourceHeight:     0,
+		Height:           0,
 	}
 
 	genesisBlock := &types.Block{

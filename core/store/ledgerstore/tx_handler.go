@@ -1,11 +1,12 @@
 /*
-* Copyright 2021 by EYWA chain <blockchain@digiu.ai>
+ * Copyright 2021 by EYWA chain <blockchain@digiu.ai>
  */
 
 package ledgerstore
 
 import (
 	"fmt"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/core/payload"
 	"github.com/eywa-protocol/chain/core/store"
@@ -21,7 +22,7 @@ import (
 func (self *StateStore) HandleBridgeTransaction(store store.LedgerStore, overlay *overlaydb.OverlayDB, cache *storage.CacheDB,
 	tx *types.Transaction, block *types.Block, notify *event.ExecuteNotify) ([]common.Uint256, error) {
 	beBytes := common.SerializeToBytes(tx.Payload)
-	service, err := native.NewNativeService(cache, tx, block.Header.Timestamp, block.Header.Height,
+	service, err := native.NewNativeService(cache, tx, block.Header.Height,
 		block.Hash(), block.Header.ChainID, beBytes, false)
 	if err != nil {
 		return nil, fmt.Errorf("HandleBridgeTransaction Error: %+v\n", err)
@@ -34,7 +35,7 @@ func (self *StateStore) HandleBridgeTransaction(store store.LedgerStore, overlay
 func (self *StateStore) HandleInvokeTransaction(store store.LedgerStore, overlay *overlaydb.OverlayDB, cache *storage.CacheDB,
 	tx *types.Transaction, block *types.Block, notify *event.ExecuteNotify) ([]common.Uint256, error) {
 	invoke := tx.Payload.(*payload.InvokeCode)
-	service, err := native.NewNativeService(cache, tx, block.Header.Timestamp, block.Header.Height,
+	service, err := native.NewNativeService(cache, tx, block.Header.Height,
 		block.Hash(), block.Header.ChainID, invoke.Code, false)
 	if err != nil {
 		return nil, fmt.Errorf("HandleInvokeTransaction Error: %+v\n", err)
@@ -51,7 +52,7 @@ func (self *StateStore) HandleInvokeTransaction(store store.LedgerStore, overlay
 func (self *StateStore) HandleEpochTransaction(store store.LedgerStore, overlay *overlaydb.OverlayDB, cache *storage.CacheDB,
 	tx *types.Transaction, block *types.Block, notify *event.ExecuteNotify) ([]common.Uint256, error) {
 	var epoch = tx.Payload.(*payload.Epoch)
-	service, err := native.NewNativeService(cache, tx, block.Header.Timestamp, block.Header.Height,
+	service, err := native.NewNativeService(cache, tx, block.Header.Height,
 		block.Hash(), block.Header.ChainID, epoch.Data, false)
 	if err != nil {
 		return nil, fmt.Errorf("HandleInvokeTransaction Error: %+v\n", err)

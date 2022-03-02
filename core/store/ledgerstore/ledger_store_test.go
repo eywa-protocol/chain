@@ -2,9 +2,10 @@ package ledgerstore
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/account"
@@ -96,7 +97,7 @@ func TestInitLedgerStoreWithGenesisBlock(t *testing.T) {
 	//	Transactions: []*types.Transaction{},
 	//}
 
-	err = testLedgerStore.InitLedgerStoreWithGenesisBlock(block, bookkeepers)
+	err = testLedgerStore.InitLedgerStoreWithGenesisBlock(block)
 	if err != nil {
 		t.Errorf("TestInitLedgerStoreWithGenesisBlock error %s", err)
 		return

@@ -33,8 +33,7 @@ type NativeService struct {
 	notifications []*event.NotifyEventInfo
 	input         []byte
 	tx            *types.Transaction
-	height        uint32
-	time          uint32
+	height        uint64
 	blockHash     common.Uint256
 	crossHashes   []common.Uint256
 	contexts      []common.Address
@@ -42,14 +41,13 @@ type NativeService struct {
 }
 
 func NewNativeService(cacheDB *storage.CacheDB, tx *types.Transaction,
-	time, height uint32, blockHash common.Uint256, chainID uint64, input []byte, preExec bool) (*NativeService, error) {
+	height uint64, blockHash common.Uint256, chainID uint64, input []byte, preExec bool) (*NativeService, error) {
 	if tx.ChainID != chainID {
 		return nil, fmt.Errorf("NewNativeService Error: ChainId in Tx not equal to current block ChainId, expect: %d, got: %d", chainID, tx.ChainID)
 	}
 	service := &NativeService{
 		cacheDB:    cacheDB,
 		tx:         tx,
-		time:       time,
 		height:     height,
 		blockHash:  blockHash,
 		serviceMap: make(map[string]Handler),
@@ -189,7 +187,7 @@ func (this *NativeService) GetTx() *types.Transaction {
 	return this.tx
 }
 
-func (this *NativeService) GetHeight() uint32 {
+func (this *NativeService) GetHeight() uint64 {
 	return this.height
 }
 
