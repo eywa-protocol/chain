@@ -42,9 +42,9 @@ type NativeService struct {
 
 func NewNativeService(cacheDB *storage.CacheDB, tx *types.Transaction,
 	height uint64, blockHash common.Uint256, chainID uint64, input []byte, preExec bool) (*NativeService, error) {
-	if tx.ChainID != chainID {
-		return nil, fmt.Errorf("NewNativeService Error: ChainId in Tx not equal to current block ChainId, expect: %d, got: %d", chainID, tx.ChainID)
-	}
+	// if tx.ChainID != chainID {
+	// 	return nil, fmt.Errorf("NewNativeService Error: ChainId in Tx not equal to current block ChainId, expect: %d, got: %d", chainID, tx.ChainID)
+	// }
 	service := &NativeService{
 		cacheDB:    cacheDB,
 		tx:         tx,

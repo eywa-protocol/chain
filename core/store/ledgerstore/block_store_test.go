@@ -180,7 +180,7 @@ func TestSaveBridgeEventTransaction(t *testing.T) {
 	require.NoError(t, err)
 
 	err = tx.Deserialization(common.NewZeroCopySource(sink.Bytes()))
-	require.Error(t, err)
+	require.NoError(t, err)
 
 	blockHeight := uint64(1)
 	txHash := tx.Hash()
@@ -228,7 +228,7 @@ func TestSaveEpochTransaction(t *testing.T) {
 	require.NoError(t, err)
 
 	err = tx.Deserialization(common.NewZeroCopySource(sink.Bytes()))
-	require.Error(t, err)
+	require.NoError(t, err)
 
 	blockHeight := uint64(1)
 	txHash := tx.Hash()

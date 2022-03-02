@@ -25,7 +25,6 @@ func newBridgeFromSolanaEventTransaction(evt bridge.BridgeEvent) (*types.Transac
 	tx := &types.Transaction{
 		TxType:  types.SolanaToEVMEvent,
 		Payload: event,
-		ChainID: 0,
 	}
 	sink := common.NewZeroCopySink(nil)
 	err := tx.Serialization(sink)
@@ -44,7 +43,6 @@ func newBridgeEventTransaction(evt wrappers.BridgeOracleRequest) (*types.Transac
 	tx := &types.Transaction{
 		TxType:  types.BridgeEvent,
 		Payload: event,
-		ChainID: 0,
 	}
 	sink := common.NewZeroCopySink(nil)
 	err := tx.Serialization(sink)
@@ -63,7 +61,6 @@ func newReceiveRequestTransaction(evt wrappers.BridgeReceiveRequest) (*types.Tra
 	tx := &types.Transaction{
 		TxType:  types.ReceiveRequestEvent,
 		Payload: event,
-		ChainID: 0,
 	}
 	sink := common.NewZeroCopySink(nil)
 	err := tx.Serialization(sink)
@@ -82,7 +79,6 @@ func newBridgeSolanaEventTransaction(evt wrappers.BridgeOracleRequestSolana) (*t
 	tx := &types.Transaction{
 		TxType:  types.BridgeEventSolana,
 		Payload: event,
-		ChainID: 0,
 	}
 	sink := common.NewZeroCopySink(nil)
 	err := tx.Serialization(sink)
