@@ -139,7 +139,7 @@ func TestSaveBridgeEventAsBlock(t *testing.T) {
 			Bridge:      ethCommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
 			Chainid:     big.NewInt(94),
 		}}
-	_, err = lg.CreateBlockFromEvent(event.OriginData)
+	_, err = lg.CreateBlockFromEvent(event.OriginData, 1)
 	require.NoError(t, err)
 	blockAfter := lg.GetCurrentBlockHash()
 	require.Equal(t, blockbefore, blockAfter)
@@ -156,7 +156,7 @@ func TestSaveBridgeSolanaEventAsBlock(t *testing.T) {
 			Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
 			Chainid:     big.NewInt(94),
 		}}
-	_, err = lg.CreateBlockFromSolanaEvent(event.OriginData)
+	_, err = lg.CreateBlockFromSolanaEvent(event.OriginData, 1)
 	require.NoError(t, err)
 	blockAfter := lg.GetCurrentBlockHash()
 	require.Equal(t, blockbefore, blockAfter)
@@ -183,7 +183,7 @@ func TestSaveBridgeFromSolanaEventAsBlock(t *testing.T) {
 		},
 	}
 
-	_, err = lg.CreateBlockFromSolanaToEvmEvent(event.OriginData)
+	_, err = lg.CreateBlockFromSolanaToEvmEvent(event.OriginData, 1)
 	require.NoError(t, err)
 	blockAfter := lg.GetCurrentBlockHash()
 	require.Equal(t, blockbefore, blockAfter)
@@ -216,7 +216,7 @@ func TestBridgeSolToEvmEvent_Serialize2(t *testing.T) {
 	err := bridgeEvent2.Deserialization(common.NewZeroCopySource(sink.Bytes()))
 	assert.NoError(t, err)
 	assert.Equal(t, bEvt, bridgeEvent2)
-	blk, err := lg.CreateBlockFromSolanaToEvmEvent(bEvt.OriginData)
+	blk, err := lg.CreateBlockFromSolanaToEvmEvent(bEvt.OriginData, 1)
 	assert.NoError(t, err)
 	err = lg.ExecAndSaveBlock(blk)
 	assert.NoError(t, err)

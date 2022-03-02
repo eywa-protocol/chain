@@ -133,12 +133,12 @@ func (this *BlockStore) loadHeaderWithTx(blockHash common.Uint256) (*types.Heade
 	if err != nil {
 		return nil, nil, err
 	}
-	txSize, eof := source.NextUint32()
+	txSize, eof := source.NextUint64()
 	if eof {
 		return nil, nil, io.ErrUnexpectedEOF
 	}
 	txHashes := make([]common.Uint256, 0, int(txSize))
-	for i := uint32(0); i < txSize; i++ {
+	for i := uint64(0); i < txSize; i++ {
 		txHash, eof := source.NextHash()
 		if eof {
 			return nil, nil, io.ErrUnexpectedEOF
@@ -154,7 +154,7 @@ func (this *BlockStore) SaveHeader(block *types.Block) error {
 	key := this.getHeaderKey(blockHash)
 	sink := common.NewZeroCopySink(nil)
 	block.Header.Serialization(sink)
-	sink.WriteUint32(uint32(len(block.Transactions)))
+	sink.WriteUint64(uint64(len(block.Transactions)))
 	for _, tx := range block.Transactions {
 		txHash := tx.Hash()
 		sink.WriteHash(txHash)
@@ -253,9 +253,9 @@ func (this *BlockStore) GetHeaderIndexList() (map[uint64]common.Uint256, error) 
 //SaveHeaderIndexList persist header index list to store
 func (this *BlockStore) SaveHeaderIndexList(startIndex uint64, indexList []common.Uint256) error {
 	indexKey := this.getHeaderIndexListKey(startIndex)
-	indexSize := uint32(len(indexList))
+	indexSize := uint64(len(indexList))
 	value := bytes.NewBuffer(nil)
-	serialization.WriteUint32(value, indexSize)
+	serialization.WriteUint64(value, indexSize)
 	for _, hash := range indexList {
 		hash.Serialize(value)
 	}

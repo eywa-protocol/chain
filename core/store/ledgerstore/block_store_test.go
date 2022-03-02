@@ -89,7 +89,7 @@ func TestBlockHash(t *testing.T) {
 }
 
 func TestSaveTransaction(t *testing.T) {
-	invoke := &payload.InvokeCode{}
+	invoke := &payload.InvokeCode{Code: []byte{1, 2, 3}}
 
 	tx := &types.Transaction{
 		TxType:  types.Invoke,

@@ -70,49 +70,49 @@ func newBridgeSolanaEventTransaction(evt wrappers.BridgeOracleRequestSolana) (*t
 	return tx, nil
 }
 
-func (self *Ledger) CreateBlockFromSolanaToEvmEvent(evt bridge.BridgeEvent) (block *types.Block, err error) {
+func (self *Ledger) CreateBlockFromSolanaToEvmEvent(evt bridge.BridgeEvent, sourceHeight uint64) (block *types.Block, err error) {
 	txs := []*types.Transaction{}
 	tx, err := newBridgeFromSolanaEventTransaction(evt)
 	if err != nil {
 		return nil, err
 	}
 	txs = append(txs, tx)
-	block, err = self.makeBlock(txs)
+	block, err = self.makeBlock(txs, sourceHeight)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("makeBlock %v", err.Error()))
 	}
 	return block, nil
 }
 
-func (self *Ledger) CreateBlockFromEvent(evt wrappers.BridgeOracleRequest) (block *types.Block, err error) {
+func (self *Ledger) CreateBlockFromEvent(evt wrappers.BridgeOracleRequest, sourceHeight uint64) (block *types.Block, err error) {
 	txs := []*types.Transaction{}
 	tx, err := newBridgeEventTransaction(evt)
 	if err != nil {
 		return nil, err
 	}
 	txs = append(txs, tx)
-	block, err = self.makeBlock(txs)
+	block, err = self.makeBlock(txs, sourceHeight)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("makeBlock %v", err.Error()))
 	}
 	return block, nil
 }
 
-func (self *Ledger) CreateBlockFromSolanaEvent(evt wrappers.BridgeOracleRequestSolana) (block *types.Block, err error) {
+func (self *Ledger) CreateBlockFromSolanaEvent(evt wrappers.BridgeOracleRequestSolana, sourceHeight uint64) (block *types.Block, err error) {
 	txs := []*types.Transaction{}
 	tx, err := newBridgeSolanaEventTransaction(evt)
 	if err != nil {
 		return nil, err
 	}
 	txs = append(txs, tx)
-	block, err = self.makeBlock(txs)
+	block, err = self.makeBlock(txs, sourceHeight)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("makeBlock %v", err.Error()))
 	}
 	return block, nil
 }
 
-func (self *Ledger) makeBlock(transactions []*types.Transaction) (block *types.Block, err error) {
+func (self *Ledger) makeBlock(transactions []*types.Transaction, sourceHeight uint64) (block *types.Block, err error) {
 	prevHash := self.GetCurrentBlockHash()
 
 	height := self.GetCurrentBlockHeight()
@@ -132,6 +132,7 @@ func (self *Ledger) makeBlock(transactions []*types.Transaction) (block *types.B
 		PrevBlockHash:    prevHash,
 		TransactionsRoot: txRoot,
 		Height:           height + 1,
+		SourceHeight:     sourceHeight,
 	}
 	block = &types.Block{
 		Header:       header,
