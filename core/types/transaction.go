@@ -64,6 +64,8 @@ func (tx *Transaction) SerializeUnsigned(sink *common.ZeroCopySink) error {
 		pl.Serialization(sink)
 	case *payload.SolanaToEVMEvent:
 		pl.Serialization(sink)
+	case *payload.ReceiveRequestEvent:
+		pl.Serialization(sink)
 	default:
 		return errors.New("wrong transaction payload type")
 	}
@@ -160,6 +162,14 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 	}
 
 	switch tx.TxType {
+
+	case ReceiveRequestEvent:
+		pl := new(payload.ReceiveRequestEvent)
+		err := pl.Deserialization(source)
+		if err != nil {
+			return err
+		}
+		tx.Payload = pl
 
 	case BridgeEvent:
 		pl := new(payload.InvokeCode)
@@ -291,13 +301,14 @@ func (this *Sig) Deserialize(source *common.ZeroCopySource) error {
 type TransactionType byte
 
 const (
-	Invoke            TransactionType = 0xd1
-	Node              TransactionType = 0xd2
-	Epoch             TransactionType = 0x22
-	UpTime            TransactionType = 0xd4
-	BridgeEvent       TransactionType = 0x1f
-	BridgeEventSolana TransactionType = 0x20
-	SolanaToEVMEvent  TransactionType = 0x21
+	Invoke              TransactionType = 0xd1
+	Node                TransactionType = 0xd2
+	Epoch               TransactionType = 0x22
+	UpTime              TransactionType = 0xd4
+	BridgeEvent         TransactionType = 0x1f
+	BridgeEventSolana   TransactionType = 0x20
+	SolanaToEVMEvent    TransactionType = 0x21
+	ReceiveRequestEvent TransactionType = 0x23
 )
 
 func (tt TransactionType) String() string {
@@ -312,6 +323,8 @@ func (tt TransactionType) String() string {
 		return "up_time"
 	case BridgeEvent:
 		return "bridge_event"
+	case ReceiveRequestEvent:
+		return "receive_request_event"
 	default:
 		return "unknown"
 	}
@@ -368,6 +381,16 @@ func (tx *Transaction) LogHash() (string, error) {
 			return "", err
 		}
 		return bridgeEvent.OriginData.Signature.String(), nil
+	}
+
+	if tx.TxType == ReceiveRequestEvent {
+		sink := common.NewZeroCopySink(nil)
+		tx.Payload.Serialization(sink)
+		var bridgeEvent payload.ReceiveRequestEvent
+		if err := bridgeEvent.Deserialization(common.NewZeroCopySource(sink.Bytes())); err != nil {
+			return "", err
+		}
+		return bridgeEvent.OriginData.Raw.TxHash.String(), nil
 	}
 
 	return "", fmt.Errorf("log hash %w [%s]", ErrNotSupportedTxType, tx.TxType.String())

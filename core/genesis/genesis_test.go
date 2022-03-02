@@ -139,35 +139,17 @@ func TestSaveBridgeEventAsBlock(t *testing.T) {
 			Bridge:      ethCommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
 			Chainid:     big.NewInt(94),
 		}}
-	_, err = lg.CreateBlockFromEvent(event.OriginData, 1)
-	require.NoError(t, err)
-	blockAfter := lg.GetCurrentBlockHash()
-	require.Equal(t, blockbefore, blockAfter)
 
-	t.Log("end")
 
-}
-
-func TestSaveBridgeSolanaEventAsBlock(t *testing.T) {
-	blockbefore := lg.GetCurrentBlockHash()
-	event := payload.BridgeSolanaEvent{
+	solEvent := payload.BridgeSolanaEvent{
 		OriginData: wrappers.BridgeOracleRequestSolana{
 			RequestType: "setRequest",
 			Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
 			Chainid:     big.NewInt(94),
 		}}
-	_, err = lg.CreateBlockFromSolanaEvent(event.OriginData, 1)
-	require.NoError(t, err)
-	blockAfter := lg.GetCurrentBlockHash()
-	require.Equal(t, blockbefore, blockAfter)
 
-	t.Log("end")
 
-}
-
-func TestSaveBridgeFromSolanaEventAsBlock(t *testing.T) {
-	blockbefore := lg.GetCurrentBlockHash()
-	event := payload.SolanaToEVMEvent{
+	sol2EVMEvent := payload.SolanaToEVMEvent{
 		OriginData: bridge.BridgeEvent{
 			OracleRequest: bridge.OracleRequest{
 				RequestType:    "test",
@@ -183,41 +165,16 @@ func TestSaveBridgeFromSolanaEventAsBlock(t *testing.T) {
 		},
 	}
 
-	_, err = lg.CreateBlockFromSolanaToEvmEvent(event.OriginData, 1)
+	var be ledger.BlockEvents
+	be.OracleRequests = append(be.OracleRequests, &event.OriginData)
+	be.OracleSolanaRequests = append(be.OracleSolanaRequests, &solEvent.OriginData)
+	be.SolanaBridgeEvents = append(be.SolanaBridgeEvents, &sol2EVMEvent.OriginData)
+	_, err = lg.CreateBlockFromEvents(be)
+
 	require.NoError(t, err)
 	blockAfter := lg.GetCurrentBlockHash()
 	require.Equal(t, blockbefore, blockAfter)
 
 	t.Log("end")
 
-}
-
-func TestBridgeSolToEvmEvent_Serialize2(t *testing.T) {
-	bEvt := payload.SolanaToEVMEvent{
-		OriginData: bridge.BridgeEvent{
-			OracleRequest: bridge.OracleRequest{
-				RequestType:    "test",
-				BridgePubKey:   solana.PublicKey{},
-				RequestId:      solana.PublicKey{},
-				Selector:       []byte("testselector"),
-				ReceiveSide:    common.Address{},
-				OppositeBridge: common.Address{},
-				ChainId:        uint64(3),
-			},
-			Signature: solana.Signature{},
-			Slot:      uint64(3),
-		},
-	}
-
-	sink := common.NewZeroCopySink(nil)
-	bEvt.Serialization(sink)
-	t.Log(bEvt)
-	var bridgeEvent2 payload.SolanaToEVMEvent
-	err := bridgeEvent2.Deserialization(common.NewZeroCopySource(sink.Bytes()))
-	assert.NoError(t, err)
-	assert.Equal(t, bEvt, bridgeEvent2)
-	blk, err := lg.CreateBlockFromSolanaToEvmEvent(bEvt.OriginData, 1)
-	assert.NoError(t, err)
-	err = lg.ExecAndSaveBlock(blk)
-	assert.NoError(t, err)
 }

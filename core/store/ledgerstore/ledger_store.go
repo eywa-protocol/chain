@@ -712,7 +712,7 @@ func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cach
 			log.Debugf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), err)
 		}
 		return notify, crossHashes, nil
-	} else if tx.TxType == types.BridgeEvent || tx.TxType == types.BridgeEventSolana || tx.TxType == types.SolanaToEVMEvent {
+	} else if tx.TxType == types.BridgeEvent || tx.TxType == types.BridgeEventSolana || tx.TxType == types.SolanaToEVMEvent || tx.TxType == types.ReceiveRequestEvent {
 		crossHashes, err := this.stateStore.HandleBridgeTransaction(this, overlay, cache, tx, block, notify)
 		if overlay.Error() != nil {
 			return nil, nil, fmt.Errorf("HandleBridgeTransaction tx %s error %s", txHash.ToHexString(), overlay.Error())
