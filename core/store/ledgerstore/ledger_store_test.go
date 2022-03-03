@@ -7,12 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/eywa-protocol/bls-crypto/bls"
-	"github.com/eywa-protocol/chain/account"
-	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/common/log"
 	"github.com/eywa-protocol/chain/core/genesis"
-	"github.com/eywa-protocol/chain/core/types"
 )
 
 var testBlockStore *BlockStore
@@ -67,20 +63,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestInitLedgerStoreWithGenesisBlock(t *testing.T) {
-	acc1 := account.NewAccount(1)
-	acc2 := account.NewAccount(2)
-	acc3 := account.NewAccount(3)
-	acc4 := account.NewAccount(4)
-	acc5 := account.NewAccount(5)
-	acc6 := account.NewAccount(6)
-	acc7 := account.NewAccount(7)
-
-	bookkeepers := []bls.PublicKey{acc1.PublicKey, acc2.PublicKey, acc3.PublicKey, acc4.PublicKey, acc5.PublicKey, acc6.PublicKey, acc7.PublicKey}
-	bookkeeper, err := types.AddressFromPubLeySlice(bookkeepers)
-	require.NoError(t, err)
-	require.NotEqual(t, bookkeeper, common.Address{})
-
-	block, err := genesis.BuildGenesisBlock(bookkeepers)
+	block, err := genesis.BuildGenesisBlock()
 	require.NoError(t, err)
 	//header := &types.Header{
 	//	Version:          0,

@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/eywa-protocol/chain/core/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,9 +32,7 @@ func TestNewAccount(t *testing.T) {
 		assert.NotNil(t, accounts[k])
 		assert.NotNil(t, accounts[k].PrivateKey)
 		assert.NotNil(t, accounts[k].PublicKey)
-		assert.NotNil(t, accounts[k].Address)
 		assert.NotNil(t, accounts[k].PrivKey())
 		assert.NotNil(t, accounts[k].PubKey())
-		assert.Equal(t, accounts[k].Address, types.AddressFromPubKey(accounts[k].PublicKey))
 	}
 }
