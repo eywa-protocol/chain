@@ -111,7 +111,7 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 		tx.Payload = pl
 
 	case BridgeEvent:
-		pl := new(payload.InvokeCode)
+		pl := new(payload.BridgeEvent)
 		err := pl.Deserialization(source)
 		if err != nil {
 			return err
@@ -135,7 +135,7 @@ func (tx *Transaction) DeserializationUnsigned(source *common.ZeroCopySource) er
 		tx.Payload = pl
 
 	case BridgeEventSolana:
-		pl := new(payload.InvokeCode)
+		pl := new(payload.BridgeSolanaEvent)
 		err := pl.Deserialization(source)
 		if err != nil {
 			return err
