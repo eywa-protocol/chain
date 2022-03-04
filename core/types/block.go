@@ -54,8 +54,9 @@ func (self *Block) Deserialization(source *common.ZeroCopySource) error {
 		return io.ErrUnexpectedEOF
 	}
 
-	var hashes []common.Uint256
+	hashes := make([]common.Uint256, 0, length)
 	mask := make(map[common.Uint256]bool)
+	self.Transactions = make([]*Transaction, 0, length)
 	for i := uint32(0); i < length; i++ {
 		transaction := new(Transaction)
 		// note currently all transaction in the block shared the same source

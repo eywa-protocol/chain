@@ -2,24 +2,13 @@ package types
 
 import (
 	"crypto/sha256"
-	"encoding/json"
 	"errors"
 	"io"
-	"math/big"
 
 	"github.com/eywa-protocol/bls-crypto/bls"
 
 	"github.com/eywa-protocol/chain/common"
 )
-
-// CryptoProof is a BLS multisignature proof that anyone may provide to
-// convince the verifier that the listed nodes has signed the message
-// TODO: move this and session.CryproProof to bls repo.
-type CryptoProof struct {
-	PartSignature bls.Signature // Aggregated partial signature collected by this node
-	PartPublicKey bls.PublicKey // Aggregated partial public key collected by this node
-	SigMask       big.Int       // Bitmask of nodes that the correct signature is received from
-}
 
 type Header struct {
 	ChainID          uint64
@@ -28,7 +17,7 @@ type Header struct {
 	TransactionsRoot common.Uint256
 	SourceHeight     uint64
 	Height           uint64
-	Signature        CryptoProof
+	Signature        bls.Multisig
 	hash             *common.Uint256
 }
 
@@ -38,7 +27,7 @@ func (bd *Header) Serialization(sink *common.ZeroCopySink) error {
 	bd.serializationUnsigned(sink)
 	sink.WriteVarBytes(bd.Signature.PartSignature.Marshal())
 	sink.WriteVarBytes(bd.Signature.PartPublicKey.Marshal())
-	sink.WriteString(bd.Signature.SigMask.Text(16))
+	sink.WriteVarBytes(bls.MarshalBitmask(bd.Signature.PartMask))
 	return nil
 }
 
@@ -93,14 +82,11 @@ func (bd *Header) Deserialization(source *common.ZeroCopySource) error {
 		return errors.New("[Header] unmarshal partPub error")
 	}
 
-	sigMask, eof := source.NextString()
+	sigMask, eof := source.NextVarBytes()
 	if eof {
 		return errors.New("[Header] deserialize sigMask error")
 	}
-	err = json.Unmarshal([]byte(sigMask), &bd.Signature.SigMask)
-	if err != nil {
-		return errors.New("[Header] unmarshal sigMask error")
-	}
+	bd.Signature.PartMask = bls.UnmarshalBitmask(sigMask)
 
 	return nil
 }

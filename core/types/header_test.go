@@ -1,9 +1,9 @@
 package types
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/common"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,16 +16,17 @@ func TestHeader_Serialize(t *testing.T) {
 		TransactionsRoot: common.UINT256_EMPTY,
 		SourceHeight:     123,
 		Height:           123,
+		Signature:        bls.NewZeroMultisig(),
 	}
 
 	sink := common.NewZeroCopySink(nil)
-	header.Serialization(sink)
+	err := header.Serialization(sink)
+	assert.NoError(t, err)
 	bs := sink.Bytes()
 
 	var h2 Header
 	source := common.NewZeroCopySource(bs)
-	err := h2.Deserialization(source)
-	assert.Equal(t, fmt.Sprint(header), fmt.Sprint(h2))
-
-	assert.Nil(t, err)
+	err = h2.Deserialization(source)
+	assert.Equal(t, header, h2)
+	assert.NoError(t, err)
 }

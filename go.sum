@@ -232,6 +232,8 @@ github.com/ethereum/go-ethereum v1.10.13 h1:DEYFP9zk+Gruf3ae1JOJVhNmxK28ee+sMELP
 github.com/ethereum/go-ethereum v1.10.13/go.mod h1:W3yfrFyL9C1pHcwY5hmRHVDaorTiQxhYBkKyu5mEDHw=
 github.com/eywa-protocol/bls-crypto v0.1.2 h1:XmK8mDubg4mVYKm1G8SKRovMmLLC69z1q88zfGGdDk8=
 github.com/eywa-protocol/bls-crypto v0.1.2/go.mod h1:7zniOGuZnyY4Ew2QW+BhDpzV8EtlNg2RoN1Vm3DTOv0=
+github.com/eywa-protocol/bls-crypto v0.1.3 h1:bj5Q7ZpjhrZMrh2eQv156pGExe5gVRVILG6biPLusDI=
+github.com/eywa-protocol/bls-crypto v0.1.3/go.mod h1:7zniOGuZnyY4Ew2QW+BhDpzV8EtlNg2RoN1Vm3DTOv0=
 github.com/eywa-protocol/wrappers v0.2.9 h1:lxEtnPkoJR+wk8D2lUwouhR+mKW9Tn3SXI6K+jAS/Ic=
 github.com/eywa-protocol/wrappers v0.2.9/go.mod h1:5XmxG0CeEqKLuRf0hqaFtT5ET/c8LKCoF+M+Axocmho=
 github.com/facebookgo/atomicfile v0.0.0-20151019160806-2de1f203e7d5/go.mod h1:JpoxHjuQauoxiFMl1ie8Xc/7TfLuMZ5eOCONd1sUBHg=

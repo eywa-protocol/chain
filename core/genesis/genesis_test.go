@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
-	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/account"
 	"github.com/eywa-protocol/chain/cmd/utils"
 	"github.com/eywa-protocol/chain/common"
@@ -28,8 +27,6 @@ var (
 	acc                         *account.Account
 	dbDir1, dbDir2, genesisFile string
 	genesisBlock                *types.Block
-	bookKeepers                 []bls.PublicKey
-	bookKeepersBytes            []byte
 )
 
 func TestMain(m *testing.M) {
@@ -40,8 +37,7 @@ func TestMain(m *testing.M) {
 	lg2, _ = ledger.NewLedger(dbDir2)
 	acc = account.NewAccount(0)
 
-	bookKeepers = []bls.PublicKey{acc.PublicKey}
-	genesisBlock, err = BuildGenesisBlock(bookKeepers)
+	genesisBlock, err = BuildGenesisBlock()
 	if err != nil {
 		fmt.Printf("BuildGenesisBlock error:%s\n", err)
 	}
@@ -92,7 +88,6 @@ func TestLedgerInited(t *testing.T) {
 	block, err := lg.GetBlockByHash(genesisBlockFromBytes.Hash())
 	require.Equal(t, genesisBlockFromBytes, block)
 	require.Equal(t, genesisBlock, block)
-
 }
 
 func Test_BlockFromRawBytes(t *testing.T) {
@@ -122,13 +117,11 @@ func Test_GetGenesisFromFileAndInitNewLedger(t *testing.T) {
 }
 
 func TestGenesisBlockInit(t *testing.T) {
-	_, pub := bls.GenerateRandomKey()
-	block, err := BuildGenesisBlock([]bls.PublicKey{pub})
+	block, err := BuildGenesisBlock()
 	assert.Nil(t, err)
 	assert.NotNil(t, block)
-	assert.NotEqual(t, block.Header.TransactionsRoot, common.UINT256_EMPTY)
-	assert.NotZero(t, len(block.Transactions))
-	assert.NotNil(t, block.Transactions[0].Payload)
+	assert.Equal(t, block.Header.TransactionsRoot, common.UINT256_EMPTY)
+	assert.Zero(t, len(block.Transactions))
 }
 
 func TestSaveBridgeEventAsBlock(t *testing.T) {

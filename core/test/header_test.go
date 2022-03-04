@@ -1,7 +1,6 @@
 package test
 
 import (
-	"math/big"
 	"testing"
 
 	"github.com/eywa-protocol/bls-crypto/bls"
@@ -11,11 +10,7 @@ import (
 )
 
 func TestTransaction(t *testing.T) {
-	proof := types.CryptoProof{
-		PartSignature: bls.ZeroSignature(),
-		PartPublicKey: bls.ZeroPublicKey(),
-		SigMask:       *big.NewInt(0),
-	}
+	proof := bls.NewZeroMultisig()
 	header := types.Header{
 		ChainID:          0,
 		PrevBlockHash:    common.UINT256_EMPTY,
@@ -39,11 +34,7 @@ func TestTransaction(t *testing.T) {
 }
 
 func BenchmarkT1(b *testing.B) {
-	proof := types.CryptoProof{
-		PartSignature: bls.ZeroSignature(),
-		PartPublicKey: bls.ZeroPublicKey(),
-		SigMask:       *big.NewInt(0),
-	}
+	proof := bls.NewZeroMultisig()
 	header := types.Header{
 		ChainID:          0,
 		PrevBlockHash:    common.UINT256_EMPTY,
@@ -64,11 +55,7 @@ func BenchmarkT1(b *testing.B) {
 }
 
 func BenchmarkT3(b *testing.B) {
-	proof := types.CryptoProof{
-		PartSignature: bls.ZeroSignature(),
-		PartPublicKey: bls.ZeroPublicKey(),
-		SigMask:       *big.NewInt(0),
-	}
+	proof := bls.NewZeroMultisig()
 	header := types.Header{
 		ChainID:          0,
 		PrevBlockHash:    common.UINT256_EMPTY,
