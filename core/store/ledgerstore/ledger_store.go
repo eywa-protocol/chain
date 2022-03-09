@@ -124,6 +124,7 @@ func (this *LedgerStoreImp) InitLedgerStoreWithGenesisBlock(genesisBlock *types.
 		}
 		genHash := genesisBlock.Hash()
 		log.Infof("GenesisBlock init success. GenesisBlock hash:%s\n", genHash.ToHexString())
+		this.currBlockHash = genesisBlock.Hash()
 	} else {
 		genesisHash := genesisBlock.Hash()
 		exist, err := this.blockStore.ContainBlock(genesisHash)
@@ -138,7 +139,7 @@ func (this *LedgerStoreImp) InitLedgerStoreWithGenesisBlock(genesisBlock *types.
 			return fmt.Errorf("init error %s", err)
 		}
 	}
-	this.currBlockHash = genesisBlock.Hash()
+
 	return err
 }
 
