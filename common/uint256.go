@@ -19,10 +19,7 @@ var UINT256_EMPTY = Uint256{}
 
 func (u *Uint256) ToArray() []byte {
 	x := make([]byte, UINT256_SIZE)
-	for i := 0; i < 32; i++ {
-		x[i] = byte(u[i])
-	}
-
+	copy(x[:], u[:])
 	return x
 }
 

@@ -2,6 +2,7 @@ package types
 
 import (
 	"crypto/sha256"
+	"encoding/binary"
 	"errors"
 	"io"
 
@@ -120,23 +121,28 @@ func (bd *Header) deserializationUnsigned(source *common.ZeroCopySource) error {
 	return nil
 }
 
+func rawUint64(val uint64) []byte {
+	raw := make([]byte, 8)
+	binary.BigEndian.PutUint64(raw, val)
+	return raw
+}
+
 func (bd *Header) Hash() common.Uint256 {
 	if bd.hash != nil {
 		return *bd.hash
 	}
-	sink := common.NewZeroCopySink(nil)
-	bd.serializationUnsigned(sink)
-	temp := sha256.Sum256(sink.Bytes())
-	hash := common.Uint256(sha256.Sum256(temp[:]))
+
+	var data []byte
+	data = append(data, rawUint64(bd.ChainID)...)
+	data = append(data, bd.PrevBlockHash.ToArray()...)
+	data = append(data, bd.EpochBlockHash.ToArray()...)
+	data = append(data, bd.TransactionsRoot.ToArray()...)
+	data = append(data, rawUint64(bd.SourceHeight)...)
+	data = append(data, rawUint64(bd.Height)...)
+	hash := common.Uint256(sha256.Sum256(data))
 
 	bd.hash = &hash
 	return hash
-}
-
-func (bd *Header) GetMessage() []byte {
-	sink := common.NewZeroCopySink(nil)
-	bd.serializationUnsigned(sink)
-	return sink.Bytes()
 }
 
 func (bd *Header) ToArray() []byte {
