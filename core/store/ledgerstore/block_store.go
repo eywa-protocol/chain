@@ -8,6 +8,7 @@ import (
 
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/common/serialization"
+	"github.com/eywa-protocol/chain/core/payload"
 	scom "github.com/eywa-protocol/chain/core/store/common"
 	"github.com/eywa-protocol/chain/core/store/leveldbstore"
 	"github.com/eywa-protocol/chain/core/types"
@@ -62,7 +63,7 @@ func (this *BlockStore) SaveBlock(block *types.Block) error {
 		return fmt.Errorf("SaveHeader error %s", err)
 	}
 	for _, tx := range block.Transactions {
-		err = this.SaveTransaction(tx, blockHeight)
+		err = this.SaveTransaction(tx.Payload, blockHeight)
 		if err != nil {
 			txHash := tx.Hash()
 			return fmt.Errorf("SaveTransaction block height %d tx %s err %s", blockHeight, txHash.ToHexString(), err)
@@ -102,7 +103,7 @@ func (this *BlockStore) GetBlock(blockHash common.Uint256) (*types.Block, error)
 	if err != nil {
 		return nil, err
 	}
-	txList := make([]*types.Transaction, 0, len(txHashes))
+	txList := make(types.Transactions, 0, len(txHashes))
 	for _, txHash := range txHashes {
 
 		tx, _, err := this.GetTransaction(txHash)
@@ -112,7 +113,7 @@ func (this *BlockStore) GetBlock(blockHash common.Uint256) (*types.Block, error)
 		if tx == nil {
 			return nil, fmt.Errorf("cannot get transaction %s", txHash.ToHexString())
 		}
-		txList = append(txList, tx)
+		txList = append(txList, types.ToTransaction(tx))
 	}
 	block = &types.Block{
 		Header:       header,
@@ -285,14 +286,14 @@ func (this *BlockStore) SaveBlockHash(height uint64, blockHash common.Uint256) {
 }
 
 //SaveTransaction persist transaction to store
-func (this *BlockStore) SaveTransaction(tx *types.Transaction, height uint64) error {
+func (this *BlockStore) SaveTransaction(tx payload.Payload, height uint64) error {
 	if this.enableCache {
 		this.cache.AddTransaction(tx, height)
 	}
 	return this.putTransaction(tx, height)
 }
 
-func (this *BlockStore) putTransaction(tx *types.Transaction, height uint64) error {
+func (this *BlockStore) putTransaction(tx payload.Payload, height uint64) error {
 	txHash := tx.Hash()
 
 	key := this.getTransactionKey(txHash)
@@ -303,7 +304,7 @@ func (this *BlockStore) putTransaction(tx *types.Transaction, height uint64) err
 		return err
 	}
 
-	if err := serialization.WriteBytes(value, tx.ToArray()); err != nil {
+	if err := serialization.WriteBytes(value, types.ToTransaction(tx).ToArray()); err != nil {
 		return err
 	}
 
@@ -312,7 +313,7 @@ func (this *BlockStore) putTransaction(tx *types.Transaction, height uint64) err
 }
 
 //GetTransaction return transaction by transaction hash
-func (this *BlockStore) GetTransaction(txHash common.Uint256) (*types.Transaction, uint64, error) {
+func (this *BlockStore) GetTransaction(txHash common.Uint256) (payload.Payload, uint64, error) {
 	if this.enableCache {
 		tx, height := this.cache.GetTransaction(txHash)
 		if tx != nil {
@@ -322,13 +323,12 @@ func (this *BlockStore) GetTransaction(txHash common.Uint256) (*types.Transactio
 	return this.loadTransaction(txHash)
 }
 
-func (this *BlockStore) loadTransaction(txHash common.Uint256) (*types.Transaction, uint64, error) {
+func (this *BlockStore) loadTransaction(txHash common.Uint256) (payload.Payload, uint64, error) {
 	key := this.getTransactionKey(txHash)
 
-	var tx *types.Transaction
 	var height uint64
 	if this.enableCache {
-		tx, height = this.cache.GetTransaction(txHash)
+		tx, height := this.cache.GetTransaction(txHash)
 		if tx != nil {
 			return tx, height, nil
 		}
@@ -343,12 +343,11 @@ func (this *BlockStore) loadTransaction(txHash common.Uint256) (*types.Transacti
 	if eof {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	tx = new(types.Transaction)
-	err = tx.Deserialization(source)
+	tx, err := types.TransactionDeserialization(source)
 	if err != nil {
 		return nil, 0, fmt.Errorf("transaction deserialize error %s", err)
 	}
-	return tx, height, nil
+	return tx.Payload, height, nil
 }
 
 //IsContainTransaction return whether the transaction is in store

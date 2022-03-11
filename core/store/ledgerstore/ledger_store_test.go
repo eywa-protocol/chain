@@ -63,7 +63,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestInitLedgerStoreWithGenesisBlock(t *testing.T) {
-	block, err := genesis.BuildGenesisBlock()
+	block, err := genesis.BuildGenesisBlock(0)
 	require.NoError(t, err)
 	//header := &types.Header{
 	//	Version:          0,

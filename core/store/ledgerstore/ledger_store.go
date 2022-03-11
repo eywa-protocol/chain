@@ -512,7 +512,7 @@ func (this *LedgerStoreImp) executeBlock(block *types.Block) (result store.Execu
 	cache := storage.NewCacheDB(overlay)
 	for _, tx := range block.Transactions {
 		cache.Reset()
-		notify, crossHashes, e := this.handleTransaction(overlay, cache, block, tx)
+		notify, crossHashes, e := this.handleTransaction(overlay, cache, block, tx.Payload)
 		if e != nil {
 			err = e
 			return
@@ -693,10 +693,10 @@ func (this *LedgerStoreImp) saveBlock(block *types.Block, stateMerkleRoot common
 	return this.submitBlock(block, result)
 }
 
-func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cache *storage.CacheDB, block *types.Block, tx *types.Transaction) (*event.ExecuteNotify, []common.Uint256, error) {
+func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cache *storage.CacheDB, block *types.Block, tx payload.Payload) (*event.ExecuteNotify, []common.Uint256, error) {
 	txHash := tx.Hash()
 	notify := &event.ExecuteNotify{TxHash: txHash, State: event.CONTRACT_STATE_FAIL}
-	if tx.TxType == types.Invoke {
+	if tx.TxType() == payload.InvokeType {
 		crossHashes, err := this.stateStore.HandleInvokeTransaction(this, overlay, cache, tx, block, notify)
 		if overlay.Error() != nil {
 			return nil, nil, fmt.Errorf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), overlay.Error())
@@ -705,7 +705,7 @@ func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cach
 			log.Debugf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), err)
 		}
 		return notify, crossHashes, nil
-	} else if tx.TxType == types.Epoch {
+	} else if tx.TxType() == payload.EpochType {
 		crossHashes, err := this.stateStore.HandleEpochTransaction(this, overlay, cache, tx, block, notify)
 		if overlay.Error() != nil {
 			return nil, nil, fmt.Errorf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), overlay.Error())
@@ -714,7 +714,8 @@ func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cach
 			log.Debugf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), err)
 		}
 		return notify, crossHashes, nil
-	} else if tx.TxType == types.BridgeEvent || tx.TxType == types.BridgeEventSolana || tx.TxType == types.SolanaToEVMEvent || tx.TxType == types.ReceiveRequestEvent {
+	} else if tx.TxType() == payload.BridgeEventType || tx.TxType() == payload.BridgeEventSolanaType ||
+		tx.TxType() == payload.SolanaToEVMEventType || tx.TxType() == payload.ReceiveRequestEventType {
 		crossHashes, err := this.stateStore.HandleBridgeTransaction(this, overlay, cache, tx, block, notify)
 		if overlay.Error() != nil {
 			return nil, nil, fmt.Errorf("HandleBridgeTransaction tx %s error %s", txHash.ToHexString(), overlay.Error())
@@ -724,7 +725,7 @@ func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cach
 		}
 		return notify, crossHashes, nil
 	} else {
-		return nil, nil, fmt.Errorf("Unsupported transaction type! type=%v payload=%v", tx.TxType, tx.Payload)
+		return nil, nil, fmt.Errorf("Unsupported transaction type! type=%v payload=%v", tx.TxType(), tx)
 	}
 }
 
@@ -755,9 +756,9 @@ func (this *LedgerStoreImp) saveHeaderIndexList() error {
 	return nil
 }
 
-func (this *LedgerStoreImp) PreExecuteContract(tx *types.Transaction) (*cstates.PreExecResult, error) {
+func (this *LedgerStoreImp) PreExecuteContract(tx payload.Payload) (*cstates.PreExecResult, error) {
 	result := &sstate.PreExecResult{State: event.CONTRACT_STATE_FAIL, Result: nil}
-	if _, ok := tx.Payload.(*payload.InvokeCode); !ok {
+	if _, ok := tx.(*payload.InvokeCode); !ok {
 		return result, fmt.Errorf("transaction payload type error")
 	}
 	hash := this.GetCurrentBlockHash()
@@ -769,7 +770,7 @@ func (this *LedgerStoreImp) PreExecuteContract(tx *types.Transaction) (*cstates.
 	cache := storage.NewCacheDB(overlay)
 
 	service, err := native.NewNativeService(cache, tx, block.Header.Height,
-		hash, block.Header.ChainID, tx.Payload.(*payload.InvokeCode).Code, true)
+		hash, block.Header.ChainID, tx.(*payload.InvokeCode).Code, true)
 	if err != nil {
 		return result, fmt.Errorf("PreExecuteContract Error: %+v\n", err)
 	}
@@ -830,7 +831,7 @@ func (this *LedgerStoreImp) GetHeaderByHeight(height uint64) (*types.Header, err
 }
 
 // GetTransaction return transaction by transaction hash. Wrap function of BlockStore.GetTransaction
-func (this *LedgerStoreImp) GetTransaction(txHash common.Uint256) (*types.Transaction, uint64, error) {
+func (this *LedgerStoreImp) GetTransaction(txHash common.Uint256) (payload.Payload, uint64, error) {
 	return this.blockStore.GetTransaction(txHash)
 }
 

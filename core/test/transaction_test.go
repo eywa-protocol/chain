@@ -10,16 +10,10 @@ import (
 )
 
 func TestTransaction_Serialize(t *testing.T) {
-	tx := &types.Transaction{
-		TxType:  types.TransactionType(types.Invoke),
-		Payload: &payload.InvokeCode{Code: []byte("Chain Id")},
-	}
+	tx := types.ToTransaction(&payload.InvokeCode{Code: []byte("Chain Id")})
 
 	sink := common.NewZeroCopySink(nil)
-	err := tx.SerializeUnsigned(sink)
-	assert.NoError(t, err)
-
-	err = tx.SerializeUnsigned(sink)
+	err := tx.Serialization(sink)
 	assert.NoError(t, err)
 
 	sink.Reset()
@@ -27,22 +21,19 @@ func TestTransaction_Serialize(t *testing.T) {
 	err = tx.Serialization(sink)
 	assert.NoError(t, err)
 
-	tx = new(types.Transaction)
-	err = tx.Deserialization(common.NewZeroCopySource(sink.Bytes()))
+	tx1, err := types.TransactionDeserialization(common.NewZeroCopySource(sink.Bytes()))
 	assert.NoError(t, err)
+	assert.Equal(t, tx, tx1)
 }
 
 func TestEpochTransaction_Serialize(t *testing.T) {
-	tx := &types.Transaction{
-		TxType:  types.Epoch,
-		Payload: &payload.Epoch{Data: []byte("Chain Id")},
-	}
+	tx := types.ToTransaction(&payload.Epoch{Data: []byte("Chain Id")})
 
 	sink := common.NewZeroCopySink(nil)
-	err := tx.SerializeUnsigned(sink)
+	err := tx.Serialization(sink)
 	assert.NoError(t, err)
 
-	err = tx.SerializeUnsigned(sink)
+	err = tx.Serialization(sink)
 	assert.NoError(t, err)
 
 	sink.Reset()
@@ -50,8 +41,8 @@ func TestEpochTransaction_Serialize(t *testing.T) {
 	err = tx.Serialization(sink)
 	assert.NoError(t, err)
 
-	tx = new(types.Transaction)
-	err = tx.Deserialization(common.NewZeroCopySource(sink.Bytes()))
+	tx1, err := types.TransactionDeserialization(common.NewZeroCopySource(sink.Bytes()))
 	assert.NoError(t, err)
-	t.Log(tx.TxType)
+	assert.Equal(t, tx, tx1)
+	// t.Log(tx.TxType())
 }

@@ -3,7 +3,9 @@ package payload
 import (
 	"bufio"
 	"bytes"
+	"crypto/sha256"
 	"fmt"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/wrappers"
 	"github.com/near/borsh-go"
@@ -11,6 +13,10 @@ import (
 
 type ReceiveRequestEvent struct {
 	OriginData wrappers.BridgeReceiveRequest
+}
+
+func (self *ReceiveRequestEvent) TxType() TransactionType {
+	return ReceiveRequestEventType
 }
 
 func (self *ReceiveRequestEvent) Deserialization(source *common.ZeroCopySource) error {
@@ -25,9 +31,13 @@ func (self *ReceiveRequestEvent) Deserialization(source *common.ZeroCopySource) 
 	return nil
 }
 
-func (self *ReceiveRequestEvent) Serialization(sink *common.ZeroCopySink) {
-	oracleRequestBytes, _ := marshalBinaryRecievRequest(&self.OriginData)
+func (self *ReceiveRequestEvent) Serialization(sink *common.ZeroCopySink) error {
+	oracleRequestBytes, err := marshalBinaryRecievRequest(&self.OriginData)
+	if err != nil {
+		return err
+	}
 	sink.WriteVarBytes(oracleRequestBytes)
+	return nil
 }
 
 func marshalBinaryRecievRequest(be *wrappers.BridgeReceiveRequest) (data []byte, err error) {
@@ -42,4 +52,10 @@ func marshalBinaryRecievRequest(be *wrappers.BridgeReceiveRequest) (data []byte,
 
 	w.Flush()
 	return b.Bytes(), nil
+}
+
+func (self *ReceiveRequestEvent) Hash() common.Uint256 {
+	var data []byte
+	data = append(data, self.OriginData.ReqId[:]...)
+	return sha256.Sum256(data)
 }

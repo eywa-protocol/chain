@@ -11,9 +11,9 @@ const (
 )
 
 // BuildGenesisBlock returns the genesis block with default consensus bookkeeper list
-func BuildGenesisBlock() (*types.Block, error) {
+func BuildGenesisBlock(chainId uint64) (*types.Block, error) {
 	genesisHeader := &types.Header{
-		ChainID:          0,
+		ChainID:          chainId,
 		PrevBlockHash:    common.Uint256{},
 		EpochBlockHash:   common.Uint256{},
 		TransactionsRoot: common.Uint256{},
@@ -23,8 +23,7 @@ func BuildGenesisBlock() (*types.Block, error) {
 	}
 
 	genesisBlock := &types.Block{
-		Header:       genesisHeader,
-		Transactions: []*types.Transaction{},
+		Header: genesisHeader,
 	}
 	genesisBlock.RebuildMerkleRoot()
 	return genesisBlock, nil

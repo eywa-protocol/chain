@@ -3,8 +3,10 @@ package payload
 import (
 	"bufio"
 	"bytes"
+	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/gagliardetto/solana-go"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
@@ -14,7 +16,10 @@ type SolanaToEVMEvent struct {
 	OriginData bridge.BridgeEvent
 }
 
-// `ContractInvokeParam.Args` has reference of `source`
+func (self *SolanaToEVMEvent) TxType() TransactionType {
+	return SolanaToEVMEventType
+}
+
 func (self *SolanaToEVMEvent) Deserialization(source *common.ZeroCopySource) error {
 	code, eof := source.NextVarBytes()
 	if eof {
@@ -27,9 +32,13 @@ func (self *SolanaToEVMEvent) Deserialization(source *common.ZeroCopySource) err
 	return nil
 }
 
-func (self *SolanaToEVMEvent) Serialization(sink *common.ZeroCopySink) {
-	oracleRequestBytes, _ := MarshalBinarySolanaToEVMEvent(&self.OriginData)
+func (self *SolanaToEVMEvent) Serialization(sink *common.ZeroCopySink) error {
+	oracleRequestBytes, err := MarshalBinarySolanaToEVMEvent(&self.OriginData)
+	if err != nil {
+		return err
+	}
 	sink.WriteVarBytes(oracleRequestBytes)
+	return nil
 }
 
 func unmarshalBinarySolanaToEVMEvent(data []byte, st *bridge.BridgeEvent) error {
@@ -68,4 +77,13 @@ func MarshalBinarySolanaToEVMEvent(be *bridge.BridgeEvent) (data []byte, err err
 
 	w.Flush()
 	return b.Bytes(), nil
+}
+
+func (self *SolanaToEVMEvent) Hash() common.Uint256 {
+	var data []byte
+	data = append(data, self.OriginData.RequestId[:]...)
+	data = append(data, self.OriginData.Selector...)
+	data = append(data, self.OriginData.ReceiveSide[:]...)
+	data = append(data, self.OriginData.BridgePubKey[:]...)
+	return sha256.Sum256(data)
 }
