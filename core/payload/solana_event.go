@@ -3,10 +3,12 @@ package payload
 import (
 	"bufio"
 	"bytes"
+	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/wrappers"
@@ -16,7 +18,10 @@ type BridgeSolanaEvent struct {
 	OriginData wrappers.BridgeOracleRequestSolana
 }
 
-// `ContractInvokeParam.Args` has reference of `source`
+func (tx *BridgeSolanaEvent) TxType() TransactionType {
+	return BridgeEventSolanaType
+}
+
 func (self *BridgeSolanaEvent) Deserialization(source *common.ZeroCopySource) error {
 	code, eof := source.NextVarBytes()
 	if eof {
@@ -29,9 +34,13 @@ func (self *BridgeSolanaEvent) Deserialization(source *common.ZeroCopySource) er
 	return nil
 }
 
-func (self *BridgeSolanaEvent) Serialization(sink *common.ZeroCopySink) {
-	oracleRequestBytes, _ := MarshalSolBinary(&self.OriginData)
+func (self *BridgeSolanaEvent) Serialization(sink *common.ZeroCopySink) error {
+	oracleRequestBytes, err := MarshalSolBinary(&self.OriginData)
+	if err != nil {
+		return err
+	}
 	sink.WriteVarBytes(oracleRequestBytes)
+	return nil
 }
 
 func unmarshalBinarySolana(data []byte, st *wrappers.BridgeOracleRequestSolana) error {
@@ -87,4 +96,13 @@ func MarshalSolBinary(be *wrappers.BridgeOracleRequestSolana) (data []byte, err 
 
 	w.Flush()
 	return b.Bytes(), nil
+}
+
+func (self *BridgeSolanaEvent) Hash() common.Uint256 {
+	var data []byte
+	data = append(data, self.OriginData.Bridge[12:]...) // TODO [:]
+	data = append(data, self.OriginData.RequestId[:]...)
+	data = append(data, self.OriginData.Selector...)
+	data = append(data, self.OriginData.OppositeBridge[:]...)
+	return sha256.Sum256(data)
 }

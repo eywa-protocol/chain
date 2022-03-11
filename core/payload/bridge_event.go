@@ -3,7 +3,9 @@ package payload
 import (
 	"bufio"
 	"bytes"
+	"crypto/sha256"
 	"fmt"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/wrappers"
 	"github.com/near/borsh-go"
@@ -13,7 +15,10 @@ type BridgeEvent struct {
 	OriginData wrappers.BridgeOracleRequest
 }
 
-// `ContractInvokeParam.Args` has reference of `source`
+func (tx *BridgeEvent) TxType() TransactionType {
+	return BridgeEventType
+}
+
 func (self *BridgeEvent) Deserialization(source *common.ZeroCopySource) error {
 	code, eof := source.NextVarBytes()
 	if eof {
@@ -26,9 +31,13 @@ func (self *BridgeEvent) Deserialization(source *common.ZeroCopySource) error {
 	return nil
 }
 
-func (self *BridgeEvent) Serialization(sink *common.ZeroCopySink) {
-	oracleRequestBytes, _ := MarshalBinary(&self.OriginData)
+func (self *BridgeEvent) Serialization(sink *common.ZeroCopySink) error {
+	oracleRequestBytes, err := MarshalBinary(&self.OriginData)
+	if err != nil {
+		return err
+	}
 	sink.WriteVarBytes(oracleRequestBytes)
+	return nil
 }
 
 // MarshalBinary implements encoding.BinaryMarshaler
@@ -44,4 +53,13 @@ func MarshalBinary(be *wrappers.BridgeOracleRequest) (data []byte, err error) {
 
 	w.Flush()
 	return b.Bytes(), nil
+}
+
+func (self *BridgeEvent) Hash() common.Uint256 {
+	var data []byte
+	data = append(data, self.OriginData.Bridge.Bytes()...)
+	data = append(data, self.OriginData.RequestId[:]...)
+	data = append(data, self.OriginData.Selector...)
+	data = append(data, self.OriginData.ReceiveSide.Bytes()...)
+	return sha256.Sum256(data)
 }

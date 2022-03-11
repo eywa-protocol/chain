@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 	lg2, _ = ledger.NewLedger(dbDir2)
 	acc = account.NewAccount(0)
 
-	genesisBlock, err = BuildGenesisBlock()
+	genesisBlock, err = BuildGenesisBlock(0)
 	if err != nil {
 		fmt.Printf("BuildGenesisBlock error:%s\n", err)
 	}
@@ -74,7 +74,6 @@ func saveBlockToFile(block *types.Block, file string) (err error) {
 }
 
 func TestLedgerInited(t *testing.T) {
-
 	genBytes, err := ioutil.ReadFile(genesisFile)
 	require.NoError(t, err)
 
@@ -100,7 +99,6 @@ func Test_BlockFromRawBytes(t *testing.T) {
 
 	assert.Equal(t, genesisBlockFromBytes.Hash(), genesisBlock.Hash())
 	assert.Equal(t, genesisBlockFromBytes, genesisBlock)
-
 }
 
 func Test_GetGenesisFromFileAndInitNewLedger(t *testing.T) {
@@ -113,11 +111,10 @@ func Test_GetGenesisFromFileAndInitNewLedger(t *testing.T) {
 	err = lg2.Init(bFromBytes)
 	require.NoError(t, err)
 	require.Equal(t, lg.GetCurrentBlockHash(), lg2.GetCurrentBlockHash())
-
 }
 
 func TestGenesisBlockInit(t *testing.T) {
-	block, err := BuildGenesisBlock()
+	block, err := BuildGenesisBlock(0)
 	assert.Nil(t, err)
 	assert.NotNil(t, block)
 	assert.Equal(t, block.Header.TransactionsRoot, common.UINT256_EMPTY)
@@ -126,21 +123,21 @@ func TestGenesisBlockInit(t *testing.T) {
 
 func TestSaveBridgeEventAsBlock(t *testing.T) {
 	blockbefore := lg.GetCurrentBlockHash()
-	var event = &payload.BridgeEvent{
+	event := &payload.BridgeEvent{
 		OriginData: wrappers.BridgeOracleRequest{
 			RequestType: "setRequest",
 			Bridge:      ethCommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
 			Chainid:     big.NewInt(94),
 		}}
 
-	solEvent := payload.BridgeSolanaEvent{
+	solEvent := &payload.BridgeSolanaEvent{
 		OriginData: wrappers.BridgeOracleRequestSolana{
 			RequestType: "setRequest",
 			Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
 			Chainid:     big.NewInt(94),
 		}}
 
-	sol2EVMEvent := payload.SolanaToEVMEvent{
+	sol2EVMEvent := &payload.SolanaToEVMEvent{
 		OriginData: bridge.BridgeEvent{
 			OracleRequest: bridge.OracleRequest{
 				RequestType:    "test",
@@ -156,16 +153,15 @@ func TestSaveBridgeEventAsBlock(t *testing.T) {
 		},
 	}
 
-	var be ledger.BlockEvents
-	be.OracleRequests = append(be.OracleRequests, &event.OriginData)
-	be.OracleSolanaRequests = append(be.OracleSolanaRequests, &solEvent.OriginData)
-	be.SolanaBridgeEvents = append(be.SolanaBridgeEvents, &sol2EVMEvent.OriginData)
-	_, err = lg.CreateBlockFromEvents(be, 123)
+	var txs types.Transactions
+	txs = append(txs, types.ToTransaction(event))
+	txs = append(txs, types.ToTransaction(solEvent))
+	txs = append(txs, types.ToTransaction(sol2EVMEvent))
+	_, err = lg.CreateBlockFromEvents(txs, 123)
 
 	require.NoError(t, err)
 	blockAfter := lg.GetCurrentBlockHash()
 	require.Equal(t, blockbefore, blockAfter)
 
 	t.Log("end")
-
 }

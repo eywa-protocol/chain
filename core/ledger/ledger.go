@@ -94,12 +94,12 @@ func (self *Ledger) GetBlockHash(height uint64) common.Uint256 {
 	return self.ldgStore.GetBlockHash(height)
 }
 
-func (self *Ledger) GetTransaction(txHash common.Uint256) (*types.Transaction, error) {
+func (self *Ledger) GetTransaction(txHash common.Uint256) (types.Transaction, error) {
 	tx, _, err := self.ldgStore.GetTransaction(txHash)
 	return tx, err
 }
 
-func (self *Ledger) GetTransactionWithHeight(txHash common.Uint256) (*types.Transaction, uint64, error) {
+func (self *Ledger) GetTransactionWithHeight(txHash common.Uint256) (types.Transaction, uint64, error) {
 	return self.ldgStore.GetTransaction(txHash)
 }
 
@@ -159,7 +159,7 @@ func (self *Ledger) GetCrossStatesProof(height uint64, key []byte) ([]byte, erro
 	return self.ldgStore.GetCrossStatesProof(height, key)
 }
 
-func (self *Ledger) PreExecuteContract(tx *types.Transaction) (*cstate.PreExecResult, error) {
+func (self *Ledger) PreExecuteContract(tx types.Transaction) (*cstate.PreExecResult, error) {
 	return self.ldgStore.PreExecuteContract(tx)
 }
 

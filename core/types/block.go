@@ -3,14 +3,13 @@ package types
 import (
 	"errors"
 	"fmt"
-	"io"
 
 	"github.com/eywa-protocol/chain/common"
 )
 
 type Block struct {
 	Header       *Header
-	Transactions []*Transaction
+	Transactions Transactions
 }
 
 func (b *Block) Serialization(sink *common.ZeroCopySink) error {
@@ -19,14 +18,7 @@ func (b *Block) Serialization(sink *common.ZeroCopySink) error {
 		return err
 	}
 
-	sink.WriteUint32(uint32(len(b.Transactions)))
-	for _, transaction := range b.Transactions {
-		err := transaction.Serialization(sink)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return b.Transactions.Serialization(sink)
 }
 
 // if no error, ownership of param raw is transfered to Transaction
@@ -49,29 +41,22 @@ func (self *Block) Deserialization(source *common.ZeroCopySource) error {
 		return err
 	}
 
-	length, eof := source.NextUint32()
-	if eof {
-		return io.ErrUnexpectedEOF
+	err = self.Transactions.Deserialization(source)
+	if err != nil {
+		return err
 	}
 
-	hashes := make([]common.Uint256, 0, length)
+	hashes := make([]common.Uint256, 0, len(self.Transactions))
 	mask := make(map[common.Uint256]bool)
-	self.Transactions = make([]*Transaction, 0, length)
-	for i := uint32(0); i < length; i++ {
-		transaction := new(Transaction)
-		// note currently all transaction in the block shared the same source
-		err := transaction.Deserialization(source)
-		if err != nil {
-			return err
-		}
-		txhash := transaction.Hash()
+	for _, tx := range self.Transactions {
+		txhash := tx.Hash()
 		if mask[txhash] {
 			return errors.New("duplicated transaction in block")
 		}
 		mask[txhash] = true
 		hashes = append(hashes, txhash)
-		self.Transactions = append(self.Transactions, transaction)
 	}
+
 	root := common.ComputeMerkleRoot(hashes)
 	if self.Header.TransactionsRoot != root {
 		return fmt.Errorf("mismatched transaction root %x and %x", self.Header.TransactionsRoot.ToArray(), root.ToArray())

@@ -37,7 +37,7 @@ type LedgerStore interface {
 	GetHeaderByHeight(height uint64) (*types.Header, error)
 	GetBlockByHash(blockHash common.Uint256) (*types.Block, error)
 	GetBlockByHeight(height uint64) (*types.Block, error)
-	GetTransaction(txHash common.Uint256) (*types.Transaction, uint64, error)
+	GetTransaction(txHash common.Uint256) (types.Transaction, uint64, error)
 	IsContainBlock(blockHash common.Uint256) (bool, error)
 	IsContainTransaction(txHash common.Uint256) (bool, error)
 	GetBlockRootWithPreBlockHashes(startHeight uint64, txRoots []common.Uint256) common.Uint256
@@ -45,7 +45,7 @@ type LedgerStore interface {
 	GetCrossStatesProof(height uint64, key []byte) ([]byte, error)
 	GetEpochState() (*states.EpochState, error)
 	GetStorageItem(key *states.StorageKey) (*states.StorageItem, error)
-	PreExecuteContract(tx *types.Transaction) (*cstates.PreExecResult, error)
+	PreExecuteContract(tx types.Transaction) (*cstates.PreExecResult, error)
 	GetEventNotifyByTx(tx common.Uint256) (*event.ExecuteNotify, error)
 	GetEventNotifyByBlock(height uint64) ([]*event.ExecuteNotify, error)
 }
