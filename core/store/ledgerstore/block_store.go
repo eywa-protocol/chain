@@ -8,6 +8,7 @@ import (
 
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/common/serialization"
+	"github.com/eywa-protocol/chain/core/payload"
 	scom "github.com/eywa-protocol/chain/core/store/common"
 	"github.com/eywa-protocol/chain/core/store/leveldbstore"
 	"github.com/eywa-protocol/chain/core/types"
@@ -285,14 +286,14 @@ func (this *BlockStore) SaveBlockHash(height uint64, blockHash common.Uint256) {
 }
 
 //SaveTransaction persist transaction to store
-func (this *BlockStore) SaveTransaction(tx types.Transaction, height uint64) error {
+func (this *BlockStore) SaveTransaction(tx payload.Payload, height uint64) error {
 	if this.enableCache {
 		this.cache.AddTransaction(tx, height)
 	}
 	return this.putTransaction(tx, height)
 }
 
-func (this *BlockStore) putTransaction(tx types.Transaction, height uint64) error {
+func (this *BlockStore) putTransaction(tx payload.Payload, height uint64) error {
 	txHash := tx.Hash()
 
 	key := this.getTransactionKey(txHash)
@@ -312,7 +313,7 @@ func (this *BlockStore) putTransaction(tx types.Transaction, height uint64) erro
 }
 
 //GetTransaction return transaction by transaction hash
-func (this *BlockStore) GetTransaction(txHash common.Uint256) (types.Transaction, uint64, error) {
+func (this *BlockStore) GetTransaction(txHash common.Uint256) (payload.Payload, uint64, error) {
 	if this.enableCache {
 		tx, height := this.cache.GetTransaction(txHash)
 		if tx != nil {
@@ -322,7 +323,7 @@ func (this *BlockStore) GetTransaction(txHash common.Uint256) (types.Transaction
 	return this.loadTransaction(txHash)
 }
 
-func (this *BlockStore) loadTransaction(txHash common.Uint256) (types.Transaction, uint64, error) {
+func (this *BlockStore) loadTransaction(txHash common.Uint256) (payload.Payload, uint64, error) {
 	key := this.getTransactionKey(txHash)
 
 	var height uint64

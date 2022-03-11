@@ -1,5 +1,7 @@
 package payload
 
+import "github.com/eywa-protocol/chain/common"
+
 type TransactionType byte
 
 const (
@@ -30,4 +32,11 @@ func (tt TransactionType) String() string {
 	default:
 		return "unknown"
 	}
+}
+
+type Payload interface {
+	TxType() TransactionType
+	Serialization(*common.ZeroCopySink) error
+	Deserialization(*common.ZeroCopySource) error
+	Hash() common.Uint256
 }

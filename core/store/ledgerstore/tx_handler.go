@@ -20,7 +20,7 @@ import (
 
 //HandleAnyTransaction deal with smart contract
 func (self *StateStore) HandleBridgeTransaction(store store.LedgerStore, overlay *overlaydb.OverlayDB, cache *storage.CacheDB,
-	tx types.Transaction, block *types.Block, notify *event.ExecuteNotify) ([]common.Uint256, error) {
+	tx payload.Payload, block *types.Block, notify *event.ExecuteNotify) ([]common.Uint256, error) {
 	beBytes := types.ToTransaction(tx).ToArray()
 	service, err := native.NewNativeService(cache, tx, block.Header.Height,
 		block.Hash(), block.Header.ChainID, beBytes, false)
@@ -33,7 +33,7 @@ func (self *StateStore) HandleBridgeTransaction(store store.LedgerStore, overlay
 
 //HandleInvokeTransaction deal with smart contract invoke transaction
 func (self *StateStore) HandleInvokeTransaction(store store.LedgerStore, overlay *overlaydb.OverlayDB, cache *storage.CacheDB,
-	tx types.Transaction, block *types.Block, notify *event.ExecuteNotify) ([]common.Uint256, error) {
+	tx payload.Payload, block *types.Block, notify *event.ExecuteNotify) ([]common.Uint256, error) {
 	invoke := tx.(*payload.InvokeCode)
 	service, err := native.NewNativeService(cache, tx, block.Header.Height,
 		block.Hash(), block.Header.ChainID, invoke.Code, false)
@@ -50,7 +50,7 @@ func (self *StateStore) HandleInvokeTransaction(store store.LedgerStore, overlay
 }
 
 func (self *StateStore) HandleEpochTransaction(store store.LedgerStore, overlay *overlaydb.OverlayDB, cache *storage.CacheDB,
-	tx types.Transaction, block *types.Block, notify *event.ExecuteNotify) ([]common.Uint256, error) {
+	tx payload.Payload, block *types.Block, notify *event.ExecuteNotify) ([]common.Uint256, error) {
 	var epoch = tx.(*payload.Epoch)
 	service, err := native.NewNativeService(cache, tx, block.Header.Height,
 		block.Hash(), block.Header.ChainID, epoch.Data, false)

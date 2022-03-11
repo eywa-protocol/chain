@@ -693,7 +693,7 @@ func (this *LedgerStoreImp) saveBlock(block *types.Block, stateMerkleRoot common
 	return this.submitBlock(block, result)
 }
 
-func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cache *storage.CacheDB, block *types.Block, tx types.Transaction) (*event.ExecuteNotify, []common.Uint256, error) {
+func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cache *storage.CacheDB, block *types.Block, tx payload.Payload) (*event.ExecuteNotify, []common.Uint256, error) {
 	txHash := tx.Hash()
 	notify := &event.ExecuteNotify{TxHash: txHash, State: event.CONTRACT_STATE_FAIL}
 	if tx.TxType() == payload.InvokeType {
@@ -756,7 +756,7 @@ func (this *LedgerStoreImp) saveHeaderIndexList() error {
 	return nil
 }
 
-func (this *LedgerStoreImp) PreExecuteContract(tx types.Transaction) (*cstates.PreExecResult, error) {
+func (this *LedgerStoreImp) PreExecuteContract(tx payload.Payload) (*cstates.PreExecResult, error) {
 	result := &sstate.PreExecResult{State: event.CONTRACT_STATE_FAIL, Result: nil}
 	if _, ok := tx.(*payload.InvokeCode); !ok {
 		return result, fmt.Errorf("transaction payload type error")
@@ -831,7 +831,7 @@ func (this *LedgerStoreImp) GetHeaderByHeight(height uint64) (*types.Header, err
 }
 
 // GetTransaction return transaction by transaction hash. Wrap function of BlockStore.GetTransaction
-func (this *LedgerStoreImp) GetTransaction(txHash common.Uint256) (types.Transaction, uint64, error) {
+func (this *LedgerStoreImp) GetTransaction(txHash common.Uint256) (payload.Payload, uint64, error) {
 	return this.blockStore.GetTransaction(txHash)
 }
 

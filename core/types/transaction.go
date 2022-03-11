@@ -12,15 +12,8 @@ var (
 	ErrNotSupportedTxType = errors.New("not supported tx type")
 )
 
-type Transaction interface {
-	TxType() payload.TransactionType
-	Serialization(*common.ZeroCopySink) error
-	Deserialization(*common.ZeroCopySource) error
-	Hash() common.Uint256
-}
-
 type transaction struct {
-	Payload Transaction
+	Payload payload.Payload
 }
 
 func (tx transaction) ToArray() []byte {
@@ -106,7 +99,7 @@ func (tx *transaction) Hash() common.Uint256 {
 	return tx.Payload.Hash()
 }
 
-func ToTransaction(payload Transaction) transaction {
+func ToTransaction(payload payload.Payload) transaction {
 	return transaction{Payload: payload}
 }
 

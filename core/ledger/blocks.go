@@ -13,19 +13,19 @@ import (
 	"github.com/eywa-protocol/wrappers"
 )
 
-func newBridgeFromSolanaEventTransaction(evt bridge.BridgeEvent) (types.Transaction, error) {
+func newBridgeFromSolanaEventTransaction(evt bridge.BridgeEvent) (payload.Payload, error) {
 	return &payload.SolanaToEVMEvent{OriginData: evt}, nil
 }
 
-func newBridgeEventTransaction(evt wrappers.BridgeOracleRequest) (types.Transaction, error) {
+func newBridgeEventTransaction(evt wrappers.BridgeOracleRequest) (payload.Payload, error) {
 	return &payload.BridgeEvent{OriginData: evt}, nil
 }
 
-func newReceiveRequestTransaction(evt wrappers.BridgeReceiveRequest) (types.Transaction, error) {
+func newReceiveRequestTransaction(evt wrappers.BridgeReceiveRequest) (payload.Payload, error) {
 	return &payload.ReceiveRequestEvent{OriginData: evt}, nil
 }
 
-func newBridgeSolanaEventTransaction(evt wrappers.BridgeOracleRequestSolana) (types.Transaction, error) {
+func newBridgeSolanaEventTransaction(evt wrappers.BridgeOracleRequestSolana) (payload.Payload, error) {
 	return &payload.BridgeSolanaEvent{OriginData: evt}, nil
 }
 

@@ -5,12 +5,11 @@ import (
 
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/core/payload"
-	"github.com/eywa-protocol/chain/core/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTransaction_Serialize(t *testing.T) {
-	var tx types.Transaction
+	var tx payload.Payload
 	tx = &payload.InvokeCode{Code: []byte("Chain Id")}
 
 	sink := common.NewZeroCopySink(nil)
@@ -29,7 +28,7 @@ func TestTransaction_Serialize(t *testing.T) {
 }
 
 func TestEpochTransaction_Serialize(t *testing.T) {
-	var tx types.Transaction
+	var tx payload.Payload
 	tx = &payload.Epoch{Data: []byte("Chain Id")}
 
 	sink := common.NewZeroCopySink(nil)
