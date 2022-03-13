@@ -302,15 +302,7 @@ func TestHeaderIndexList(t *testing.T) {
 }
 
 func TestSaveHeader(t *testing.T) {
-	header := &types.Header{
-		PrevBlockHash:    common.Uint256{},
-		TransactionsRoot: common.Uint256{},
-		Height:           uint64(1),
-	}
-	block := &types.Block{
-		Header:       header,
-		Transactions: types.Transactions{},
-	}
+	block := types.NewBlock(1111, common.Uint256{}, common.Uint256{}, 1, 1, types.Transactions{})
 	blockHash := block.Hash()
 
 	testBlockStore.NewBatch()
@@ -338,19 +330,13 @@ func TestSaveHeader(t *testing.T) {
 		return
 	}
 
-	if header.Height != h.Height {
-		t.Errorf("TestSaveHeader failed Height %d != %d", h.Height, header.Height)
+	if block.Header.Height != h.Height {
+		t.Errorf("TestSaveHeader failed Height %d != %d", h.Height, block.Header.Height)
 		return
 	}
 }
 
 func TestBlock(t *testing.T) {
-	header := &types.Header{
-		PrevBlockHash:    common.Uint256{},
-		TransactionsRoot: common.Uint256{},
-		Height:           uint64(2),
-	}
-
 	payload := &payload.InvokeCode{}
 
 	sink := common.NewZeroCopySink(nil)
@@ -368,10 +354,7 @@ func TestBlock(t *testing.T) {
 		return
 	}
 
-	block := &types.Block{
-		Header:       header,
-		Transactions: types.Transactions{types.ToTransaction(payload)},
-	}
+	block := types.NewBlock(1111, common.UINT256_EMPTY, common.UINT256_EMPTY, 2, 2, types.Transactions{types.ToTransaction(payload)})
 	blockHash := block.Hash()
 	tx1Hash := payload.Hash()
 

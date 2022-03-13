@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/common"
 )
 
@@ -19,6 +20,23 @@ func (b *Block) Serialization(sink *common.ZeroCopySink) error {
 	}
 
 	return b.Transactions.Serialization(sink)
+}
+
+func NewBlock(chainId uint64, prevHash common.Uint256, epochBlockHash common.Uint256, sourceHeight uint64, height uint64, transactions Transactions) *Block {
+	header := &Header{
+		ChainID:        chainId,
+		PrevBlockHash:  prevHash,
+		EpochBlockHash: epochBlockHash,
+		SourceHeight:   sourceHeight,
+		Height:         height,
+		Signature:      bls.NewZeroMultisig(),
+	}
+	block := &Block{
+		Header:       header,
+		Transactions: transactions,
+	}
+	block.rebuildMerkleRoot()
+	return block
 }
 
 // if no error, ownership of param raw is transfered to Transaction
@@ -41,11 +59,10 @@ func (self *Block) Deserialization(source *common.ZeroCopySource) error {
 		return err
 	}
 
-	err = self.Transactions.Deserialization(source)
-	if err != nil {
-		return err
-	}
+	return self.Transactions.Deserialization(source)
+}
 
+func (self *Block) VerifyIntegrity() error {
 	hashes := make([]common.Uint256, 0, len(self.Transactions))
 	mask := make(map[common.Uint256]bool)
 	for _, tx := range self.Transactions {
@@ -57,7 +74,7 @@ func (self *Block) Deserialization(source *common.ZeroCopySource) error {
 		hashes = append(hashes, txhash)
 	}
 
-	root := common.ComputeMerkleRoot(hashes)
+	root := CalculateMerkleRoot(hashes)
 	if self.Header.TransactionsRoot != root {
 		return fmt.Errorf("mismatched transaction root %x and %x", self.Header.TransactionsRoot.ToArray(), root.ToArray())
 	}
@@ -83,16 +100,12 @@ func (b *Block) HashString() string {
 	return hash.ToHexString()
 }
 
-func (b *Block) Type() common.InventoryType {
-	return common.BLOCK
-}
-
-func (b *Block) RebuildMerkleRoot() {
+func (b *Block) rebuildMerkleRoot() {
 	txs := b.Transactions
 	hashes := make([]common.Uint256, 0, len(txs))
 	for _, tx := range txs {
 		hashes = append(hashes, tx.Hash())
 	}
-	hash := common.ComputeMerkleRoot(hashes)
+	hash := CalculateMerkleRoot(hashes)
 	b.Header.TransactionsRoot = hash
 }

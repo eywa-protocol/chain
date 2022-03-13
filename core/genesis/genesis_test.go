@@ -33,8 +33,8 @@ func TestMain(m *testing.M) {
 	dbDir1 = utils.GetStoreDirPath("test1", "")
 	dbDir2 = utils.GetStoreDirPath("test2", "")
 	genesisFile = "genesis.data"
-	lg, _ = ledger.NewLedger(dbDir1)
-	lg2, _ = ledger.NewLedger(dbDir2)
+	lg, _ = ledger.NewLedger(dbDir1, 1111)
+	lg2, _ = ledger.NewLedger(dbDir2, 1112)
 	acc = account.NewAccount(0)
 
 	genesisBlock, err = BuildGenesisBlock(0)
@@ -157,7 +157,7 @@ func TestSaveBridgeEventAsBlock(t *testing.T) {
 	txs = append(txs, types.ToTransaction(event))
 	txs = append(txs, types.ToTransaction(solEvent))
 	txs = append(txs, types.ToTransaction(sol2EVMEvent))
-	_, err = lg.CreateBlockFromEvents(txs, 123)
+	_, err = lg.CreateBlockFromEvents(txs, 123, common.UINT256_EMPTY)
 
 	require.NoError(t, err)
 	blockAfter := lg.GetCurrentBlockHash()

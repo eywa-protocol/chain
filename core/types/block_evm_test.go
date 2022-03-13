@@ -125,7 +125,7 @@ func Test_EvmTxBridgeEventSolanaHash(t *testing.T) {
 
 	solHash, err := blockTest.OracleRequestTestSolana(
 		&bind.CallOpts{},
-		ethcommon.BytesToAddress(tx.OriginData.Bridge[:]), // TODO fix to just bytes32
+		tx.OriginData.Bridge,
 		tx.OriginData.RequestId,
 		tx.OriginData.Selector,
 		tx.OriginData.OppositeBridge,

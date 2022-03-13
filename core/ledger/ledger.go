@@ -19,20 +19,26 @@ var DefLedger *Ledger
 
 type Ledger struct {
 	ldgStore store.LedgerStore
+	chainId  uint64
 }
 
-func NewLedger(dataDir string) (*Ledger, error) {
+func NewLedger(dataDir string, chainId uint64) (*Ledger, error) {
 	ldgStore, err := ledgerstore.NewLedgerStore(dataDir)
 	if err != nil {
 		return nil, fmt.Errorf("NewLedgerStore error %s", err)
 	}
 	return &Ledger{
 		ldgStore: ldgStore,
+		chainId:  chainId,
 	}, nil
 }
 
 func (self *Ledger) GetStore() store.LedgerStore {
 	return self.ldgStore
+}
+
+func (self *Ledger) GetChainId() uint64 {
+	return self.chainId
 }
 
 func (self *Ledger) Init(genesisBlock *types.Block) error {
