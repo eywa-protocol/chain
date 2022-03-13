@@ -3,7 +3,6 @@ package merkle
 import (
 	"crypto/ecdsa"
 	"math/big"
-	"os"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -53,16 +52,15 @@ func init() {
 
 func TestEvmMerkleProve(t *testing.T) {
 	n := uint64(10)
-	store, _ := NewFileHashStore("merkletree.db", 0)
-	defer func() { os.Remove("merkletree.db") }()
+	store := NewMemHashStore()
 	tree := NewTree(0, nil, store)
 	for i := uint64(0); i < n; i++ {
-		tree.Append([]byte{byte(i + 1)})
+		tree.Append([]byte{byte(i)})
 	}
 	root := tree.Root()
 
 	for i := uint64(0); i < n; i++ {
-		data := []byte{byte(i + 1)}
+		data := []byte{byte(i)}
 		path, err := tree.MerkleInclusionLeafPath(data, i, n)
 		require.NoError(t, err)
 

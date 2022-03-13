@@ -1,10 +1,10 @@
 package common
 
-
 import (
 	"crypto/sha256"
 )
 
+// DEPRECATED in favour of types.ComputeMerkleRoot
 // param hashes will be used as workspace
 func ComputeMerkleRoot(hashes []Uint256) Uint256 {
 	if len(hashes) == 0 {

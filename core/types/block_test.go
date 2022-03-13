@@ -5,11 +5,14 @@ import (
 	"testing"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/core/payload"
 	"github.com/eywa-protocol/wrappers"
+	"github.com/gagliardetto/solana-go"
 	"github.com/stretchr/testify/assert"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
 )
 
 func Test_HeaderMarshal(t *testing.T) {
@@ -90,68 +93,63 @@ func Test_BlockMarshal(t *testing.T) {
 		}
 		txs = append(txs, ToTransaction(tx))
 	}
-	// {
-	// 	tx := NewReceiveRequest(
-	// 		wrappers.BridgeReceiveRequest{
-	// 			ReqId:       [32]byte{1, 2, 3, 4, 5},
-	// 			ReceiveSide: common.Address{6, 7, 8, 9, 10},
-	// 			BridgeFrom:  [32]byte{11, 12, 13, 14, 15},
-	// 			Raw: types.Log{
-	// 				Topics: []common.Hash{},
-	// 				Data:   []uint8{},
-	// 			},
-	// 		},
-	// 	)
-	// 	txs = append(txs, tx)
-	// }
-	// {
-	// 	tx := NewOracleRequestSolana(
-	// 		wrappers.BridgeOracleRequestSolana{
-	// 			RequestType: "setRequest",
-	// 			Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
-	// 			Chainid:     big.NewInt(1111),
-	// 			Raw: types.Log{
-	// 				Topics: []common.Hash{},
-	// 				Data:   []uint8{},
-	// 			},
-	// 		},
-	// 	)
-	// 	txs = append(txs, tx)
-	// }
-	// {
-	// 	tx := NewSolanaToEvmRequest(
-	// 		bridge.BridgeEvent{
-	// 			OracleRequest: bridge.OracleRequest{
-	// 				RequestType:    "test",
-	// 				BridgePubKey:   solana.PublicKey{},
-	// 				RequestId:      solana.PublicKey{1, 2, 3, 4, 5},
-	// 				Selector:       []byte("testselector"),
-	// 				ReceiveSide:    common.Address{},
-	// 				OppositeBridge: common.Address{},
-	// 				ChainId:        uint64(3),
-	// 			},
-	// 			Signature: solana.Signature{},
-	// 			Slot:      uint64(3),
-	// 		},
-	// 	)
-	// 	txs = append(txs, tx)
-	// }
+	{
+		tx := &payload.ReceiveRequestEvent{
+			OriginData: wrappers.BridgeReceiveRequest{
+				ReqId:       [32]byte{1, 2, 3, 4, 5},
+				ReceiveSide: ethcommon.Address{6, 7, 8, 9, 10},
+				BridgeFrom:  [32]byte{11, 12, 13, 14, 15},
+			},
+		}
+		txs = append(txs, ToTransaction(tx))
+	}
+	{
+		tx := &payload.BridgeSolanaEvent{
+			OriginData: wrappers.BridgeOracleRequestSolana{
+				RequestType: "setRequest",
+				Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
+				Chainid:     big.NewInt(1111),
+			},
+		}
+		txs = append(txs, ToTransaction(tx))
+	}
+	{
+		tx := &payload.SolanaToEVMEvent{
+			OriginData: bridge.BridgeEvent{
+				OracleRequest: bridge.OracleRequest{
+					RequestType:    "test",
+					BridgePubKey:   solana.PublicKey{},
+					RequestId:      solana.PublicKey{1, 2, 3, 4, 5},
+					Selector:       []byte("testselector"),
+					ReceiveSide:    common.Address{},
+					OppositeBridge: common.Address{},
+					ChainId:        uint64(3),
+				},
+				Signature: solana.Signature{},
+				Slot:      uint64(3),
+			},
+		}
+		txs = append(txs, ToTransaction(tx))
+	}
 
 	block := Block{
 		Header:       &header,
 		Transactions: txs,
 	}
 	block.RebuildMerkleRoot()
+	block.Hash()
+	t.Logf("Transactions: %d, Block hash: %x", len(block.Transactions), block.Hash())
 
 	sink := common.NewZeroCopySink(nil)
 	err := block.Serialization(sink)
 	assert.NoError(t, err)
-	t.Log(sink.Bytes())
+	// t.Log(sink.Bytes())
 
 	var received Block
 	source := common.NewZeroCopySource(sink.Bytes())
 	err = received.Deserialization(source)
 	assert.NoError(t, err)
+	received.Hash()
 
 	assert.Equal(t, block, received)
 }

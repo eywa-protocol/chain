@@ -46,7 +46,7 @@ func (self *Ledger) makeBlock(transactions types.Transactions, sourceHeight uint
 	for _, tx := range transactions {
 		hashes = append(hashes, tx.Hash())
 	}
-	txRoot := common.ComputeMerkleRoot(hashes)
+	txRoot := types.CalculateMerkleRoot(hashes)
 
 	header := &types.Header{
 		PrevBlockHash:    prevHash,

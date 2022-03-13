@@ -57,7 +57,7 @@ func (self *Block) Deserialization(source *common.ZeroCopySource) error {
 		hashes = append(hashes, txhash)
 	}
 
-	root := common.ComputeMerkleRoot(hashes)
+	root := CalculateMerkleRoot(hashes)
 	if self.Header.TransactionsRoot != root {
 		return fmt.Errorf("mismatched transaction root %x and %x", self.Header.TransactionsRoot.ToArray(), root.ToArray())
 	}
@@ -93,6 +93,6 @@ func (b *Block) RebuildMerkleRoot() {
 	for _, tx := range txs {
 		hashes = append(hashes, tx.Hash())
 	}
-	hash := common.ComputeMerkleRoot(hashes)
+	hash := CalculateMerkleRoot(hashes)
 	b.Header.TransactionsRoot = hash
 }
