@@ -100,7 +100,7 @@ func MarshalSolBinary(be *wrappers.BridgeOracleRequestSolana) (data []byte, err 
 
 func (self *BridgeSolanaEvent) Hash() common.Uint256 {
 	var data []byte
-	data = append(data, self.OriginData.Bridge[12:]...) // TODO [:]
+	data = append(data, self.OriginData.Bridge[:]...)
 	data = append(data, self.OriginData.RequestId[:]...)
 	data = append(data, self.OriginData.Selector...)
 	data = append(data, self.OriginData.OppositeBridge[:]...)

@@ -436,6 +436,11 @@ func (this *LedgerStoreImp) SubmitBlock(block *types.Block, result store.Execute
 		return fmt.Errorf("SubmitBlock verifyHeader error %s", err)
 	}
 
+	err = block.VerifyIntegrity()
+	if err != nil {
+		return fmt.Errorf("SubmitBlock block integrity error %s", err)
+	}
+
 	err = this.submitBlock(block, result)
 	if err != nil {
 		return fmt.Errorf("saveBlock error %s", err)

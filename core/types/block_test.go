@@ -42,21 +42,7 @@ func Test_HeaderMarshal(t *testing.T) {
 
 func Test_EmptyBlockMarshal(t *testing.T) {
 	hash := common.Uint256{0xCA, 0xFE, 0xBA, 0xBE}
-
-	header := Header{
-		ChainID:        1111,
-		PrevBlockHash:  hash,
-		EpochBlockHash: hash,
-		SourceHeight:   100,
-		Height:         10,
-		Signature:      bls.NewZeroMultisig(),
-	}
-
-	block := Block{
-		Header:       &header,
-		Transactions: Transactions{},
-	}
-	block.RebuildMerkleRoot()
+	block := NewBlock(1111, hash, hash, 100, 10, Transactions{})
 
 	sink := common.NewZeroCopySink(nil)
 	err := block.Serialization(sink)
@@ -67,20 +53,11 @@ func Test_EmptyBlockMarshal(t *testing.T) {
 	source := common.NewZeroCopySource(sink.Bytes())
 	err = received.Deserialization(source)
 	assert.NoError(t, err)
-	assert.Equal(t, block, received)
+	assert.Equal(t, *block, received)
 }
 
 func Test_BlockMarshal(t *testing.T) {
 	hash := common.Uint256{0xCA, 0xFE, 0xBA, 0xBE}
-
-	header := Header{
-		ChainID:        1111,
-		PrevBlockHash:  hash,
-		EpochBlockHash: hash,
-		SourceHeight:   100,
-		Height:         10,
-		Signature:      bls.NewZeroMultisig(),
-	}
 
 	txs := make(Transactions, 0)
 	{
@@ -132,11 +109,7 @@ func Test_BlockMarshal(t *testing.T) {
 		txs = append(txs, ToTransaction(tx))
 	}
 
-	block := Block{
-		Header:       &header,
-		Transactions: txs,
-	}
-	block.RebuildMerkleRoot()
+	block := NewBlock(1111, hash, hash, 100, 10, txs)
 	block.Hash()
 	t.Logf("Transactions: %d, Block hash: %x", len(block.Transactions), block.Hash())
 
@@ -151,5 +124,5 @@ func Test_BlockMarshal(t *testing.T) {
 	assert.NoError(t, err)
 	received.Hash()
 
-	assert.Equal(t, block, received)
+	assert.Equal(t, *block, received)
 }
