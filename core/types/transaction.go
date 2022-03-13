@@ -114,7 +114,6 @@ type Transactions []transaction
 func (txs Transactions) Serialization(sink *common.ZeroCopySink) error {
 	sink.WriteUint32(uint32(len(txs)))
 	for _, tx := range txs {
-		sink.WriteByte(byte(tx.Payload.TxType()))
 		if err := tx.Serialization(sink); err != nil {
 			return err
 		}
@@ -122,20 +121,20 @@ func (txs Transactions) Serialization(sink *common.ZeroCopySink) error {
 	return nil
 }
 
-func (txs Transactions) Deserialization(source *common.ZeroCopySource) error {
+func (txs *Transactions) Deserialization(source *common.ZeroCopySource) error {
 	len, eof := source.NextUint32()
 	if eof {
 		return errors.New("read tx length eof")
 	}
 
-	txs = make(Transactions, 0, len)
+	*txs = make(Transactions, 0, len)
 	for i := uint32(0); i < len; i++ {
 		var tx transaction
 		err := tx.Deserialization(source)
 		if err != nil {
 			return err
 		}
-		txs = append(txs, tx)
+		*txs = append(*txs, tx)
 	}
 	return nil
 }

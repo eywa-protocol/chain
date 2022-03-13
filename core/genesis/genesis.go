@@ -23,7 +23,8 @@ func BuildGenesisBlock(chainId uint64) (*types.Block, error) {
 	}
 
 	genesisBlock := &types.Block{
-		Header: genesisHeader,
+		Header:       genesisHeader,
+		Transactions: types.Transactions{},
 	}
 	genesisBlock.RebuildMerkleRoot()
 	return genesisBlock, nil
