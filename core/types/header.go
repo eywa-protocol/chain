@@ -127,11 +127,7 @@ func rawUint64(val uint64) []byte {
 	return raw
 }
 
-func (bd *Header) Hash() common.Uint256 {
-	if bd.hash != nil {
-		return *bd.hash
-	}
-
+func (bd *Header) RawData() []byte {
 	var data []byte
 	data = append(data, rawUint64(bd.ChainID)...)
 	data = append(data, bd.PrevBlockHash.ToArray()...)
@@ -139,7 +135,15 @@ func (bd *Header) Hash() common.Uint256 {
 	data = append(data, bd.TransactionsRoot.ToArray()...)
 	data = append(data, rawUint64(bd.SourceHeight)...)
 	data = append(data, rawUint64(bd.Height)...)
-	hash := common.Uint256(sha256.Sum256(data))
+	return data
+}
+
+func (bd *Header) Hash() common.Uint256 {
+	if bd.hash != nil {
+		return *bd.hash
+	}
+
+	hash := common.Uint256(sha256.Sum256(bd.RawData()))
 
 	bd.hash = &hash
 	return hash

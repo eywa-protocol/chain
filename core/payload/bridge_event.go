@@ -3,7 +3,6 @@ package payload
 import (
 	"bufio"
 	"bytes"
-	"crypto/sha256"
 	"fmt"
 
 	"github.com/eywa-protocol/chain/common"
@@ -55,11 +54,11 @@ func MarshalBinary(be *wrappers.BridgeOracleRequest) (data []byte, err error) {
 	return b.Bytes(), nil
 }
 
-func (self *BridgeEvent) Hash() common.Uint256 {
+func (self *BridgeEvent) RawData() []byte {
 	var data []byte
 	data = append(data, self.OriginData.Bridge.Bytes()...)
 	data = append(data, self.OriginData.RequestId[:]...)
 	data = append(data, self.OriginData.Selector...)
 	data = append(data, self.OriginData.ReceiveSide.Bytes()...)
-	return sha256.Sum256(data)
+	return data
 }

@@ -1,11 +1,12 @@
 package payload
 
 import (
+	"testing"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/gagliardetto/solana-go"
 	"github.com/stretchr/testify/assert"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
-	"testing"
 )
 
 func TestBridgeSolToEvmEvent_Serialize(t *testing.T) {
@@ -27,7 +28,8 @@ func TestBridgeSolToEvmEvent_Serialize(t *testing.T) {
 
 	sink := common.NewZeroCopySink(nil)
 	bEvt.Serialization(sink)
-	t.Log(bEvt)
+	// t.Log(sink.Bytes())
+
 	var bridgeEvent2 SolanaToEVMEvent
 	err := bridgeEvent2.Deserialization(common.NewZeroCopySource(sink.Bytes()))
 	assert.NoError(t, err)

@@ -92,15 +92,16 @@ func Test_EvmTxBridgeEventHash(t *testing.T) {
 			Data:   []uint8{},
 		},
 	}
-	tx := payload.BridgeEvent{OriginData: data}
+	payload := payload.BridgeEvent{OriginData: data}
+	tx := ToTransaction(&payload)
 	txHash := tx.Hash()
 
 	solHash, err := blockTest.OracleRequestTest(
 		&bind.CallOpts{},
-		tx.OriginData.Bridge,
-		tx.OriginData.RequestId,
-		tx.OriginData.Selector,
-		tx.OriginData.ReceiveSide,
+		payload.OriginData.Bridge,
+		payload.OriginData.RequestId,
+		payload.OriginData.Selector,
+		payload.OriginData.ReceiveSide,
 	)
 
 	assert.NoError(t, err)
@@ -120,17 +121,37 @@ func Test_EvmTxBridgeEventSolanaHash(t *testing.T) {
 			Data:   []uint8{},
 		},
 	}
-	tx := payload.BridgeSolanaEvent{OriginData: data}
+	payload := payload.BridgeSolanaEvent{OriginData: data}
+	tx := ToTransaction(&payload)
 	txHash := tx.Hash()
 
 	solHash, err := blockTest.OracleRequestTestSolana(
 		&bind.CallOpts{},
-		tx.OriginData.Bridge,
-		tx.OriginData.RequestId,
-		tx.OriginData.Selector,
-		tx.OriginData.OppositeBridge,
+		payload.OriginData.Bridge,
+		payload.OriginData.RequestId,
+		payload.OriginData.Selector,
+		payload.OriginData.OppositeBridge,
 	)
 
 	assert.NoError(t, err)
 	assert.Equal(t, solHash[:], txHash.ToArray())
+}
+
+func Test_EvmHeaderRawDataHash(t *testing.T) {
+	hash := common.Uint256{0xCA, 0xFE, 0xBA, 0xBE}
+
+	header := Header{
+		ChainID:          1111,
+		PrevBlockHash:    hash,
+		EpochBlockHash:   hash,
+		TransactionsRoot: hash,
+		SourceHeight:     100,
+		Height:           10,
+	}
+	blockHash := header.Hash()
+
+	res, err := blockTest.RawDataTest(&bind.CallOpts{}, header.RawData())
+	assert.NoError(t, err)
+	assert.Equal(t, res.AllBlockHash[:], blockHash.ToArray())
+	assert.Equal(t, res.BlockTxHash[:], header.PrevBlockHash.ToArray())
 }

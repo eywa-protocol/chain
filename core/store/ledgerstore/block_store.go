@@ -293,7 +293,8 @@ func (this *BlockStore) SaveTransaction(tx payload.Payload, height uint64) error
 	return this.putTransaction(tx, height)
 }
 
-func (this *BlockStore) putTransaction(tx payload.Payload, height uint64) error {
+func (this *BlockStore) putTransaction(payload payload.Payload, height uint64) error {
+	tx := types.ToTransaction(payload)
 	txHash := tx.Hash()
 
 	key := this.getTransactionKey(txHash)
@@ -304,7 +305,7 @@ func (this *BlockStore) putTransaction(tx payload.Payload, height uint64) error 
 		return err
 	}
 
-	if err := serialization.WriteBytes(value, types.ToTransaction(tx).ToArray()); err != nil {
+	if err := serialization.WriteBytes(value, tx.ToArray()); err != nil {
 		return err
 	}
 
