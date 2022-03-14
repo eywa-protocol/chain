@@ -55,10 +55,10 @@ func MarshalBinary(be *wrappers.BridgeOracleRequest) (data []byte, err error) {
 }
 
 func (self *BridgeEvent) RawData() []byte {
-	var data []byte
-	data = append(data, self.OriginData.Bridge.Bytes()...)
-	data = append(data, self.OriginData.RequestId[:]...)
-	data = append(data, self.OriginData.Selector...)
-	data = append(data, self.OriginData.ReceiveSide.Bytes()...)
-	return data
+	sink := common.NewZeroCopySink(nil)
+	sink.WriteBytes(self.OriginData.Bridge[:])
+	sink.WriteBytes(self.OriginData.RequestId[:])
+	sink.WriteVarBytes(self.OriginData.Selector)
+	sink.WriteBytes(self.OriginData.ReceiveSide[:])
+	return sink.Bytes()
 }

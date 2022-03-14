@@ -4,7 +4,6 @@ import (
 	"math/big"
 	"testing"
 
-	ethCommon "github.com/ethereum/go-ethereum/common"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/common"
@@ -64,7 +63,7 @@ func Test_BlockMarshal(t *testing.T) {
 		tx := &payload.BridgeEvent{
 			OriginData: wrappers.BridgeOracleRequest{
 				RequestType: "setRequest",
-				Bridge:      ethCommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
+				Bridge:      ethcommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
 				Chainid:     big.NewInt(1111),
 			},
 		}

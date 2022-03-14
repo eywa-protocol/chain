@@ -5,9 +5,10 @@ import (
 	"math/big"
 	"testing"
 
+	ethcommon "github.com/ethereum/go-ethereum/common"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -22,7 +23,7 @@ var (
 	merkleTest                      *wrappers.MerkleTest
 	err                             error
 	ownerKey, signerKey             *ecdsa.PrivateKey
-	ownerAddress, merkleTestAddress common.Address
+	ownerAddress, merkleTestAddress ethcommon.Address
 )
 
 func init() {
@@ -66,11 +67,11 @@ func TestEvmMerkleProve(t *testing.T) {
 
 		// Verify the merkle prove in go
 		val, err := MerkleProve(path, root.ToArray())
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, data, val)
 
 		// Verify the merkle prove in evm smart contract
-		val, err = merkleTest.MerkleProve(&bind.CallOpts{}, path, root)
+		val, err = merkleTest.MerkleProveTest(&bind.CallOpts{}, path, root)
 		require.NoError(t, err)
 		assert.Equal(t, data, val)
 	}
