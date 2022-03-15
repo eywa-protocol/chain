@@ -6,7 +6,7 @@ require (
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/ethereum/go-ethereum v1.10.13
 	github.com/eywa-protocol/bls-crypto v0.1.3
-	github.com/eywa-protocol/wrappers v0.2.13
+	github.com/eywa-protocol/wrappers v0.2.14
 	github.com/gagliardetto/solana-go v1.0.2
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d
 	github.com/itchyny/base58-go v0.1.0
@@ -17,4 +17,3 @@ require (
 	gitlab.digiu.ai/blockchainlaboratory/eywa-solana v1.1.9
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 )
-

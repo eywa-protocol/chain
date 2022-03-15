@@ -148,9 +148,3 @@ func (bd *Header) Hash() common.Uint256 {
 	bd.hash = &hash
 	return hash
 }
-
-func (bd *Header) ToArray() []byte {
-	sink := common.NewZeroCopySink(nil)
-	bd.Serialization(sink)
-	return sink.Bytes()
-}

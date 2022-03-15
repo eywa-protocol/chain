@@ -13,7 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/core/payload"
-	"github.com/eywa-protocol/chain/merkle"
 	"github.com/eywa-protocol/wrappers"
 	"github.com/stretchr/testify/assert"
 )
@@ -144,29 +143,19 @@ func TestEvmBlockMerkleProve(t *testing.T) {
 	txs := Transactions{ToTransaction(&payloads[0]), ToTransaction(&payloads[1]), ToTransaction(&payloads[2])}
 	block := NewBlock(1111, hash, hash, 100, 10, txs)
 
-	store := merkle.NewMemHashStore()
-	tree := merkle.NewTree(0, nil, store)
-	for _, tx := range block.Transactions {
-		tree.Append(tx.Payload.RawData())
-	}
-	root := tree.Root()
-
-	for i := range payloads {
-		data := block.Transactions[i].Payload.RawData()
-		// t.Log(len(data), data)
-
-		path, err := tree.MerkleInclusionLeafPath(data, uint64(i), uint64(len(block.Transactions)))
+	for i := range block.Transactions {
+		path, err := block.MerkleProve(i)
 		assert.NoError(t, err)
 		// t.Log(path)
 
 		// Verify the merkle prove in evm smart contract
-		bridge, reqId, sel, receiveSide, err := merkleTest.BlockMerkleProveTest(&bind.CallOpts{}, path, root)
+		res, err := merkleTest.BlockMerkleProveTest(&bind.CallOpts{}, path, block.Header.TransactionsRoot)
 		assert.NoError(t, err)
-		// t.Log(bridge, reqId, sel, receiveSide)
+		// t.Log(res)
 
-		assert.Equal(t, bridge, payloads[i].OriginData.Bridge)
-		assert.Equal(t, reqId, payloads[i].OriginData.RequestId)
-		assert.Equal(t, sel, payloads[i].OriginData.Selector)
-		assert.Equal(t, receiveSide, payloads[i].OriginData.ReceiveSide)
+		assert.Equal(t, res.BridgeFrom, payloads[i].OriginData.Bridge)
+		assert.Equal(t, res.ReqId, payloads[i].OriginData.RequestId)
+		assert.Equal(t, res.Sel, payloads[i].OriginData.Selector)
+		assert.Equal(t, res.ReceiveSide, payloads[i].OriginData.ReceiveSide)
 	}
 }

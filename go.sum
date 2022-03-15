@@ -236,6 +236,8 @@ github.com/eywa-protocol/wrappers v0.2.12 h1:nHvUSww5mAmRQxD0IEIF4ZybMimdVDTVuGT
 github.com/eywa-protocol/wrappers v0.2.12/go.mod h1:5XmxG0CeEqKLuRf0hqaFtT5ET/c8LKCoF+M+Axocmho=
 github.com/eywa-protocol/wrappers v0.2.13 h1:HIklFoY8kNPufuhasZuYRvU8xg9OBWjyEW/yUOcSgQQ=
 github.com/eywa-protocol/wrappers v0.2.13/go.mod h1:5XmxG0CeEqKLuRf0hqaFtT5ET/c8LKCoF+M+Axocmho=
+github.com/eywa-protocol/wrappers v0.2.14 h1:1DFURz/smsApaUACdiponV7abxz4gJ1g9T+GrnwaitM=
+github.com/eywa-protocol/wrappers v0.2.14/go.mod h1:5XmxG0CeEqKLuRf0hqaFtT5ET/c8LKCoF+M+Axocmho=
 github.com/facebookgo/atomicfile v0.0.0-20151019160806-2de1f203e7d5/go.mod h1:JpoxHjuQauoxiFMl1ie8Xc/7TfLuMZ5eOCONd1sUBHg=
 github.com/fatih/color v1.3.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=

@@ -60,5 +60,6 @@ func (self *BridgeEvent) RawData() []byte {
 	sink.WriteBytes(self.OriginData.RequestId[:])
 	sink.WriteVarBytes(self.OriginData.Selector)
 	sink.WriteBytes(self.OriginData.ReceiveSide[:])
+	sink.WriteUint64(self.OriginData.Chainid.Uint64())
 	return sink.Bytes()
 }
