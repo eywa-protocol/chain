@@ -128,7 +128,7 @@ func TestSaveTransaction(t *testing.T) {
 	}
 
 	t.Log("\n", txHash)
-	tx1, height, err := testBlockStore.GetTransaction(txHash)
+	payload1, height, err := testBlockStore.GetTransaction(txHash)
 	if err != nil {
 		t.Errorf("GetTransaction error %s", err)
 		return
@@ -137,8 +137,9 @@ func TestSaveTransaction(t *testing.T) {
 		t.Errorf("TestSaveTransaction failed BlockHeight %d != %d", height, blockHeight)
 		return
 	}
-	require.Equal(t, tx1.TxType(), tx.TxType(), "TestSaveTransaction failed TxType %d != %d", tx1.TxType, tx.TxType)
+	require.Equal(t, payload1.TxType(), tx.TxType(), "TestSaveTransaction failed TxType %d != %d", payload1.TxType, tx.TxType)
 
+	tx1 := types.ToTransaction(payload1)
 	tx1Hash := tx1.Hash()
 
 	if txHash != tx1Hash {
@@ -188,15 +189,16 @@ func TestSaveBridgeEventTransaction(t *testing.T) {
 	err = testBlockStore.CommitTo()
 	require.NoError(t, err)
 
-	tx1, height, err := testBlockStore.GetTransaction(txHash)
+	payload1, height, err := testBlockStore.GetTransaction(txHash)
 	require.NoError(t, err)
 	require.Equal(t, blockHeight, height)
-	require.Equal(t, tx1.TxType(), tx.TxType())
+	require.Equal(t, payload1.TxType(), tx.TxType())
+	tx1 := types.ToTransaction(payload1)
 	tx1Hash := tx1.Hash()
 	require.Equal(t, txHash, tx1Hash)
 
 	sink2 := common.NewZeroCopySink(nil)
-	tx1.Serialization(sink2)
+	payload1.Serialization(sink2)
 	var bridgeEvent2 payload.BridgeEvent
 	err = bridgeEvent2.Deserialization(common.NewZeroCopySource(sink2.Bytes()))
 	require.NoError(t, err)
@@ -232,15 +234,16 @@ func TestSaveEpochTransaction(t *testing.T) {
 	err = testBlockStore.CommitTo()
 	require.NoError(t, err)
 
-	tx1, height, err := testBlockStore.GetTransaction(txHash)
+	payload1, height, err := testBlockStore.GetTransaction(txHash)
 	require.NoError(t, err)
 	require.Equal(t, blockHeight, height)
-	require.Equal(t, tx1.TxType(), tx.TxType())
+	require.Equal(t, payload1.TxType(), tx.TxType())
+	tx1 := types.ToTransaction(payload1)
 	tx1Hash := tx1.Hash()
 	require.Equal(t, txHash, tx1Hash)
 
 	sink2 := common.NewZeroCopySink(nil)
-	tx1.Serialization(sink2)
+	payload1.Serialization(sink2)
 	var ep2 payload.Epoch
 	err = ep2.Deserialization(common.NewZeroCopySource(sink2.Bytes()))
 	require.NoError(t, err)
@@ -347,16 +350,10 @@ func TestBlock(t *testing.T) {
 	}
 	_ = payload.Deserialization(common.NewZeroCopySource(sink.Bytes()))
 
-	t.Log(payload.Hash())
-
-	if err != nil {
-		t.Errorf("TestBlock transferTx error:%s", err)
-		return
-	}
-
-	block := types.NewBlock(1111, common.UINT256_EMPTY, common.UINT256_EMPTY, 2, 2, types.Transactions{types.ToTransaction(payload)})
+	tx := types.ToTransaction(payload)
+	block := types.NewBlock(1111, common.UINT256_EMPTY, common.UINT256_EMPTY, 2, 2, types.Transactions{tx})
 	blockHash := block.Hash()
-	tx1Hash := payload.Hash()
+	tx1Hash := tx.Hash()
 
 	testBlockStore.NewBatch()
 

@@ -10,7 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/core/payload"
@@ -19,12 +18,13 @@ import (
 )
 
 var (
-	backend                        *backends.SimulatedBackend
-	owner                          *bind.TransactOpts
-	blockTest                      *wrappers.BlockTest
-	err                            error
-	ownerKey, signerKey            *ecdsa.PrivateKey
-	ownerAddress, blockTestAddress ethcommon.Address
+	backend             *backends.SimulatedBackend
+	owner               *bind.TransactOpts
+	blockTest           *wrappers.BlockTest
+	merkleTest          *wrappers.MerkleTest
+	err                 error
+	ownerKey, signerKey *ecdsa.PrivateKey
+	ownerAddress        ethcommon.Address
 )
 
 func init() {
@@ -44,7 +44,12 @@ func init() {
 		panic(err)
 	}
 
-	blockTestAddress, _, blockTest, err = wrappers.DeployBlockTest(owner, backend)
+	_, _, blockTest, err = wrappers.DeployBlockTest(owner, backend)
+	if err != nil {
+		panic(err)
+	}
+
+	_, _, merkleTest, err = wrappers.DeployMerkleTest(owner, backend)
 	if err != nil {
 		panic(err)
 	}
@@ -79,58 +84,78 @@ func Test_EvmHeaderHash(t *testing.T) {
 	assert.Equal(t, solHash[:], blockHash.ToArray())
 }
 
-func Test_EvmTxBridgeEventHash(t *testing.T) {
-	data := wrappers.BridgeOracleRequest{
-		Bridge:      ethcommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
-		RequestType: "setRequest",
-		RequestId:   [32]byte{0xDE, 0xAD, 0xBE, 0xEF},
-		Selector:    []byte{1, 2, 3, 4, 5},
-		ReceiveSide: ethcommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
-		Chainid:     big.NewInt(94),
-		Raw: types.Log{
-			Topics: []ethcommon.Hash{},
-			Data:   []uint8{},
-		},
+func Test_EvmHeaderRawDataHash(t *testing.T) {
+	hash := common.Uint256{0xCA, 0xFE, 0xBA, 0xBE}
+
+	header := Header{
+		ChainID:          1111,
+		PrevBlockHash:    hash,
+		EpochBlockHash:   hash,
+		TransactionsRoot: hash,
+		SourceHeight:     100,
+		Height:           10,
 	}
-	tx := payload.BridgeEvent{OriginData: data}
-	txHash := tx.Hash()
+	blockHash := header.Hash()
 
-	solHash, err := blockTest.OracleRequestTest(
-		&bind.CallOpts{},
-		tx.OriginData.Bridge,
-		tx.OriginData.RequestId,
-		tx.OriginData.Selector,
-		tx.OriginData.ReceiveSide,
-	)
-
+	res, err := blockTest.BlockHeaderRawDataTest(&bind.CallOpts{}, header.RawData())
 	assert.NoError(t, err)
-	assert.Equal(t, solHash[:], txHash.ToArray())
+	// t.Log(res)
+	assert.Equal(t, res.AllBlockHash[:], blockHash.ToArray())
+	assert.Equal(t, res.BlockTxHash[:], header.PrevBlockHash.ToArray())
 }
 
-func Test_EvmTxBridgeEventSolanaHash(t *testing.T) {
-	data := wrappers.BridgeOracleRequestSolana{
-		Bridge:         [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
-		RequestType:    "setRequest",
-		RequestId:      [32]byte{0xDE, 0xAD, 0xBE, 0xEF},
-		Selector:       []byte{1, 2, 3, 4, 5},
-		OppositeBridge: [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
-		Chainid:        big.NewInt(94),
-		Raw: types.Log{
-			Topics: []ethcommon.Hash{},
-			Data:   []uint8{},
+func TestEvmBlockMerkleProve(t *testing.T) {
+	hash := common.Uint256{0xCA, 0xFE, 0xBA, 0xBE}
+
+	payloads := []payload.BridgeEvent{
+		{
+			OriginData: wrappers.BridgeOracleRequest{
+				RequestType: "setRequest",
+				Bridge:      ethcommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
+				RequestId:   [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+				Selector:    []byte{51, 52, 53},
+				ReceiveSide: ethcommon.HexToAddress("0x2122232425262728293031323334353637383940"),
+				Chainid:     big.NewInt(1111),
+			},
+		},
+		{
+			OriginData: wrappers.BridgeOracleRequest{
+				RequestType: "setRequest",
+				Bridge:      ethcommon.HexToAddress("0x0c760E9A85d3E957Dd1E189516b6658CfEcD3985"),
+				RequestId:   [32]byte{1, 3, 3, 4, 5, 6, 7, 8, 9, 10, 1, 3, 3, 4, 5, 6, 7, 8, 9, 10, 1, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13},
+				Selector:    []byte{51, 53, 53, 54, 55},
+				ReceiveSide: ethcommon.HexToAddress("0x3133333435363738393031333334353637383940"),
+				Chainid:     big.NewInt(1111),
+			},
+		},
+		{
+			OriginData: wrappers.BridgeOracleRequest{
+				RequestType: "setRequest",
+				Bridge:      ethcommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD4985"),
+				RequestId:   [32]byte{1, 2, 4, 4, 5, 6, 7, 8, 9, 10, 1, 2, 4, 4, 5, 6, 7, 8, 9, 10, 1, 2, 4, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+				Selector:    []byte{51},
+				ReceiveSide: ethcommon.HexToAddress("0x2122242425262728294041424444454647484940"),
+				Chainid:     big.NewInt(1111),
+			},
 		},
 	}
-	tx := payload.BridgeSolanaEvent{OriginData: data}
-	txHash := tx.Hash()
 
-	solHash, err := blockTest.OracleRequestTestSolana(
-		&bind.CallOpts{},
-		tx.OriginData.Bridge,
-		tx.OriginData.RequestId,
-		tx.OriginData.Selector,
-		tx.OriginData.OppositeBridge,
-	)
+	txs := Transactions{ToTransaction(&payloads[0]), ToTransaction(&payloads[1]), ToTransaction(&payloads[2])}
+	block := NewBlock(1111, hash, hash, 100, 10, txs)
 
-	assert.NoError(t, err)
-	assert.Equal(t, solHash[:], txHash.ToArray())
+	for i := range block.Transactions {
+		path, err := block.MerkleProve(i)
+		assert.NoError(t, err)
+		// t.Log(path)
+
+		// Verify the merkle prove in evm smart contract
+		res, err := merkleTest.BlockMerkleProveTest(&bind.CallOpts{}, path, block.Header.TransactionsRoot)
+		assert.NoError(t, err)
+		// t.Log(res)
+
+		assert.Equal(t, res.BridgeFrom, payloads[i].OriginData.Bridge)
+		assert.Equal(t, res.ReqId, payloads[i].OriginData.RequestId)
+		assert.Equal(t, res.Sel, payloads[i].OriginData.Selector)
+		assert.Equal(t, res.ReceiveSide, payloads[i].OriginData.ReceiveSide)
+	}
 }

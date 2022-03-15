@@ -3,7 +3,6 @@ package payload
 import (
 	"bufio"
 	"bytes"
-	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
 	"math/big"
@@ -98,11 +97,11 @@ func MarshalSolBinary(be *wrappers.BridgeOracleRequestSolana) (data []byte, err 
 	return b.Bytes(), nil
 }
 
-func (self *BridgeSolanaEvent) Hash() common.Uint256 {
+func (self *BridgeSolanaEvent) RawData() []byte {
 	var data []byte
 	data = append(data, self.OriginData.Bridge[:]...)
 	data = append(data, self.OriginData.RequestId[:]...)
 	data = append(data, self.OriginData.Selector...)
 	data = append(data, self.OriginData.OppositeBridge[:]...)
-	return sha256.Sum256(data)
+	return data
 }

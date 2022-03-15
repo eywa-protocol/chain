@@ -3,7 +3,6 @@ package payload
 import (
 	"bufio"
 	"bytes"
-	"crypto/sha256"
 	"fmt"
 
 	"github.com/eywa-protocol/chain/common"
@@ -54,8 +53,8 @@ func marshalBinaryRecievRequest(be *wrappers.BridgeReceiveRequest) (data []byte,
 	return b.Bytes(), nil
 }
 
-func (self *ReceiveRequestEvent) Hash() common.Uint256 {
+func (self *ReceiveRequestEvent) RawData() []byte {
 	var data []byte
 	data = append(data, self.OriginData.ReqId[:]...)
-	return sha256.Sum256(data)
+	return data
 }

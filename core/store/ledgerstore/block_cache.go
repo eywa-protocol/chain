@@ -63,10 +63,11 @@ func (this *BlockCache) ContainBlock(blockHash common.Uint256) bool {
 }
 
 //AddTransaction add transaction to block cache
-func (this *BlockCache) AddTransaction(tx payload.Payload, height uint64) {
+func (this *BlockCache) AddTransaction(payload payload.Payload, height uint64) {
+	tx := types.ToTransaction(payload)
 	txHash := tx.Hash()
 	this.transactionCache.Add(string(txHash.ToArray()), &TransactionCacheaValue{
-		Tx:     tx,
+		Tx:     payload,
 		Height: height,
 	})
 }

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
 
@@ -8,12 +9,10 @@ import (
 	"github.com/eywa-protocol/chain/core/payload"
 )
 
-var (
-	ErrNotSupportedTxType = errors.New("not supported tx type")
-)
-
 type transaction struct {
 	Payload payload.Payload
+
+	hash *common.Uint256
 }
 
 func (tx transaction) ToArray() []byte {
@@ -96,7 +95,14 @@ func (tx *transaction) Deserialization(source *common.ZeroCopySource) error {
 }
 
 func (tx *transaction) Hash() common.Uint256 {
-	return tx.Payload.Hash()
+	if tx.hash != nil {
+		return *tx.hash
+	}
+
+	data := tx.Payload.RawData()
+	hash := common.Uint256(sha256.Sum256(data))
+	tx.hash = &hash
+	return hash
 }
 
 func ToTransaction(payload payload.Payload) transaction {

@@ -38,5 +38,5 @@ type Payload interface {
 	TxType() TransactionType
 	Serialization(*common.ZeroCopySink) error
 	Deserialization(*common.ZeroCopySource) error
-	Hash() common.Uint256
+	RawData() []byte
 }

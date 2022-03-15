@@ -3,7 +3,6 @@ package payload
 import (
 	"bufio"
 	"bytes"
-	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
 
@@ -79,11 +78,11 @@ func MarshalBinarySolanaToEVMEvent(be *bridge.BridgeEvent) (data []byte, err err
 	return b.Bytes(), nil
 }
 
-func (self *SolanaToEVMEvent) Hash() common.Uint256 {
+func (self *SolanaToEVMEvent) RawData() []byte {
 	var data []byte
 	data = append(data, self.OriginData.RequestId[:]...)
 	data = append(data, self.OriginData.Selector...)
 	data = append(data, self.OriginData.ReceiveSide[:]...)
 	data = append(data, self.OriginData.BridgePubKey[:]...)
-	return sha256.Sum256(data)
+	return data
 }

@@ -698,11 +698,12 @@ func (this *LedgerStoreImp) saveBlock(block *types.Block, stateMerkleRoot common
 	return this.submitBlock(block, result)
 }
 
-func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cache *storage.CacheDB, block *types.Block, tx payload.Payload) (*event.ExecuteNotify, []common.Uint256, error) {
+func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cache *storage.CacheDB, block *types.Block, txPayload payload.Payload) (*event.ExecuteNotify, []common.Uint256, error) {
+	tx := types.ToTransaction(txPayload)
 	txHash := tx.Hash()
 	notify := &event.ExecuteNotify{TxHash: txHash, State: event.CONTRACT_STATE_FAIL}
 	if tx.TxType() == payload.InvokeType {
-		crossHashes, err := this.stateStore.HandleInvokeTransaction(this, overlay, cache, tx, block, notify)
+		crossHashes, err := this.stateStore.HandleInvokeTransaction(this, overlay, cache, txPayload, block, notify)
 		if overlay.Error() != nil {
 			return nil, nil, fmt.Errorf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), overlay.Error())
 		}
@@ -711,7 +712,7 @@ func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cach
 		}
 		return notify, crossHashes, nil
 	} else if tx.TxType() == payload.EpochType {
-		crossHashes, err := this.stateStore.HandleEpochTransaction(this, overlay, cache, tx, block, notify)
+		crossHashes, err := this.stateStore.HandleEpochTransaction(this, overlay, cache, txPayload, block, notify)
 		if overlay.Error() != nil {
 			return nil, nil, fmt.Errorf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), overlay.Error())
 		}
@@ -721,7 +722,7 @@ func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cach
 		return notify, crossHashes, nil
 	} else if tx.TxType() == payload.BridgeEventType || tx.TxType() == payload.BridgeEventSolanaType ||
 		tx.TxType() == payload.SolanaToEVMEventType || tx.TxType() == payload.ReceiveRequestEventType {
-		crossHashes, err := this.stateStore.HandleBridgeTransaction(this, overlay, cache, tx, block, notify)
+		crossHashes, err := this.stateStore.HandleBridgeTransaction(this, overlay, cache, txPayload, block, notify)
 		if overlay.Error() != nil {
 			return nil, nil, fmt.Errorf("HandleBridgeTransaction tx %s error %s", txHash.ToHexString(), overlay.Error())
 		}

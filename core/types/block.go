@@ -6,11 +6,14 @@ import (
 
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/common"
+	"github.com/eywa-protocol/chain/merkle"
 )
 
 type Block struct {
 	Header       *Header
 	Transactions Transactions
+
+	merkleTree *merkle.CompactMerkleTree
 }
 
 func (b *Block) Serialization(sink *common.ZeroCopySink) error {
@@ -63,7 +66,6 @@ func (self *Block) Deserialization(source *common.ZeroCopySource) error {
 }
 
 func (self *Block) VerifyIntegrity() error {
-	hashes := make([]common.Uint256, 0, len(self.Transactions))
 	mask := make(map[common.Uint256]bool)
 	for _, tx := range self.Transactions {
 		txhash := tx.Hash()
@@ -71,15 +73,21 @@ func (self *Block) VerifyIntegrity() error {
 			return errors.New("duplicated transaction in block")
 		}
 		mask[txhash] = true
-		hashes = append(hashes, txhash)
 	}
 
-	root := CalculateMerkleRoot(hashes)
+	var root common.Uint256
+	copy(root[:], self.Header.TransactionsRoot[:])
+	self.rebuildMerkleRoot()
 	if self.Header.TransactionsRoot != root {
 		return fmt.Errorf("mismatched transaction root %x and %x", self.Header.TransactionsRoot.ToArray(), root.ToArray())
 	}
 
 	return nil
+}
+
+func (b *Block) MerkleProve(i int) ([]byte, error) {
+	return b.merkleTree.MerkleInclusionLeafPath(b.Transactions[i].Payload.RawData(), uint64(i), uint64(len(b.Transactions)))
+
 }
 
 func (b *Block) ToArray() ([]byte, error) {
@@ -102,10 +110,14 @@ func (b *Block) HashString() string {
 
 func (b *Block) rebuildMerkleRoot() {
 	txs := b.Transactions
-	hashes := make([]common.Uint256, 0, len(txs))
-	for _, tx := range txs {
-		hashes = append(hashes, tx.Hash())
+	if len(txs) == 0 {
+		b.Header.TransactionsRoot = common.Uint256{}
+		return
 	}
-	hash := CalculateMerkleRoot(hashes)
-	b.Header.TransactionsRoot = hash
+	tree := merkle.NewTree(0, nil, merkle.NewMemHashStore())
+	for _, tx := range txs {
+		tree.Append(tx.Payload.RawData())
+	}
+	b.merkleTree = tree
+	b.Header.TransactionsRoot = tree.Root()
 }

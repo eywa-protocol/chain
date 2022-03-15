@@ -1,7 +1,6 @@
 package payload
 
 import (
-	"crypto/sha256"
 	"fmt"
 
 	"github.com/eywa-protocol/chain/common"
@@ -32,6 +31,6 @@ func (self *InvokeCode) Serialization(sink *common.ZeroCopySink) error {
 	return nil
 }
 
-func (self *InvokeCode) Hash() common.Uint256 {
-	return sha256.Sum256(self.Code)
+func (self *InvokeCode) RawData() []byte {
+	return self.Code
 }
