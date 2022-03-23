@@ -51,7 +51,7 @@ func (self *StateStore) HandleInvokeTransaction(store store.LedgerStore, overlay
 
 func (self *StateStore) HandleEpochTransaction(store store.LedgerStore, overlay *overlaydb.OverlayDB, cache *storage.CacheDB,
 	tx payload.Payload, block *types.Block, notify *event.ExecuteNotify) ([]common.Uint256, error) {
-	var epoch = tx.(*payload.Epoch)
+	var epoch = tx.(*payload.EpochEvent)
 	service, err := native.NewNativeService(cache, tx, block.Header.Height,
 		block.Hash(), block.Header.ChainID, epoch.Data, false)
 	if err != nil {

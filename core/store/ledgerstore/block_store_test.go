@@ -210,7 +210,7 @@ func TestSaveBridgeEventTransaction(t *testing.T) {
 }
 
 func TestSaveEpochTransaction(t *testing.T) {
-	epoch := &payload.Epoch{Data: []byte("123456")}
+	epoch := &payload.EpochEvent{Data: []byte("123456")}
 	tx := types.ToTransaction(epoch)
 
 	sink := common.NewZeroCopySink(nil)
@@ -244,7 +244,7 @@ func TestSaveEpochTransaction(t *testing.T) {
 
 	sink2 := common.NewZeroCopySink(nil)
 	payload1.Serialization(sink2)
-	var ep2 payload.Epoch
+	var ep2 payload.EpochEvent
 	err = ep2.Deserialization(common.NewZeroCopySource(sink2.Bytes()))
 	require.NoError(t, err)
 	require.Equal(t, tx.Payload, &ep2)
