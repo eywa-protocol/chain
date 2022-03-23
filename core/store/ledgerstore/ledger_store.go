@@ -512,23 +512,6 @@ func (this *LedgerStoreImp) saveBlockToBlockStore(block *types.Block) error {
 
 func (this *LedgerStoreImp) executeBlock(block *types.Block) (result store.ExecuteResult, err error) {
 	overlay := this.stateStore.NewOverlayDB()
-
-	//cache := storage.NewCacheDB(overlay)
-	//for _, tx := range block.Transactions {
-	//	cache.Reset()
-	//	notify, crossHashes, e := this.handleTransaction(overlay, cache, block, tx.Payload)
-	//	if e != nil {
-	//		err = e
-	//		return
-	//	}
-	//	result.Notify = append(result.Notify, notify)
-	//	result.CrossHashes = append(result.CrossHashes, crossHashes...)
-	//}
-	//if len(result.CrossHashes) != 0 {
-	//	result.CrossStatesRoot = merkle.TreeHasher{}.HashFullTreeWithLeafHash(result.CrossHashes)
-	//} else {
-	//	result.CrossStatesRoot = common.UINT256_EMPTY
-	//}
 	result.Hash = overlay.ChangeHash()
 	result.WriteSet = overlay.GetWriteSet()
 	result.MerkleRoot = this.stateStore.GetStateMerkleRootWithNewHash(result.Hash)
