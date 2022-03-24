@@ -24,16 +24,16 @@ func NewEpochEvent(num uint32, pub bls.PublicKey, tx common.Uint256, keys []bls.
 	}
 }
 
-func (tx *EpochEvent) TxType() TransactionType {
+func (e *EpochEvent) TxType() TransactionType {
 	return EpochType
 }
 
-func (self *EpochEvent) Deserialization(source *common.ZeroCopySource) error {
+func (e *EpochEvent) Deserialization(source *common.ZeroCopySource) error {
 	number, eof := source.NextUint32()
 	if eof {
 		return fmt.Errorf("Epoch.Number deserialize eof")
 	}
-	self.Number = number
+	e.Number = number
 
 	epochPublicKeyRaw, eof := source.NextVarBytes()
 	if eof {
@@ -43,20 +43,20 @@ func (self *EpochEvent) Deserialization(source *common.ZeroCopySource) error {
 	if err != nil {
 		return fmt.Errorf("Epoch.EpochPublicKey deserialize error %v", err)
 	}
-	self.EpochPublicKey = epochPublicKey
+	e.EpochPublicKey = epochPublicKey
 
 	sourceTx, eof := source.NextBytes(common.UINT256_SIZE)
 	if eof {
 		return fmt.Errorf("Epoch.SourceTx deserialize eof")
 	}
-	self.SourceTx, _ = common.Uint256ParseFromBytes(sourceTx)
+	e.SourceTx, _ = common.Uint256ParseFromBytes(sourceTx)
 
 	length, eof := source.NextUint8()
 	if eof {
 		return fmt.Errorf("Epoch.len(PublicKeys) deserialize eof")
 	}
 
-	self.PublicKeys = make([]bls.PublicKey, 0, length)
+	e.PublicKeys = make([]bls.PublicKey, 0, length)
 	for i := uint8(0); i < length; i++ {
 		publicKeyRaw, eof := source.NextVarBytes()
 		if eof {
@@ -66,31 +66,31 @@ func (self *EpochEvent) Deserialization(source *common.ZeroCopySource) error {
 		if err != nil {
 			return fmt.Errorf("Epoch.PublicKey[%d] deserialize error %v", i, err)
 		}
-		self.PublicKeys = append(self.PublicKeys, publicKey)
+		e.PublicKeys = append(e.PublicKeys, publicKey)
 	}
 
 	return nil
 }
 
-func (self *EpochEvent) Serialization(sink *common.ZeroCopySink) error {
-	sink.WriteUint32(self.Number)
-	sink.WriteVarBytes(self.EpochPublicKey.Marshal())
-	sink.WriteBytes(self.SourceTx[:])
-	sink.WriteUint8(uint8(len(self.PublicKeys)))
-	for _, key := range self.PublicKeys {
+func (e *EpochEvent) Serialization(sink *common.ZeroCopySink) error {
+	sink.WriteUint32(e.Number)
+	sink.WriteVarBytes(e.EpochPublicKey.Marshal())
+	sink.WriteBytes(e.SourceTx[:])
+	sink.WriteUint8(uint8(len(e.PublicKeys)))
+	for _, key := range e.PublicKeys {
 		sink.WriteVarBytes(key.Marshal())
 	}
 	return nil
 }
 
-func (self *EpochEvent) RawData() []byte {
+func (e *EpochEvent) RawData() []byte {
 	epochNumRaw := make([]byte, 4)
-	binary.BigEndian.PutUint32(epochNumRaw, self.Number)
+	binary.BigEndian.PutUint32(epochNumRaw, e.Number)
 
 	sink := common.NewZeroCopySink(nil)
 	sink.WriteBytes(epochNumRaw)
-	sink.WriteVarBytes(self.EpochPublicKey.Marshal())
-	sink.WriteBytes(self.SourceTx[:])
-	sink.WriteUint8(uint8(len(self.PublicKeys)))
+	sink.WriteVarBytes(e.EpochPublicKey.Marshal())
+	sink.WriteBytes(e.SourceTx[:])
+	sink.WriteUint8(uint8(len(e.PublicKeys)))
 	return sink.Bytes()
 }
