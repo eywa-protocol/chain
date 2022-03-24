@@ -3,6 +3,7 @@ package payload
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 
 	"github.com/eywa-protocol/chain/common"
@@ -14,24 +15,32 @@ type ReceiveRequestEvent struct {
 	OriginData wrappers.BridgeReceiveRequest
 }
 
-func (self *ReceiveRequestEvent) TxType() TransactionType {
+func (e *ReceiveRequestEvent) TxType() TransactionType {
 	return ReceiveRequestEventType
 }
 
-func (self *ReceiveRequestEvent) Deserialization(source *common.ZeroCopySource) error {
+func (e *ReceiveRequestEvent) ToJson() (json.RawMessage, error) {
+	return json.Marshal(e.OriginData)
+}
+
+func (e *ReceiveRequestEvent) DstChainId() (uint64, bool) {
+	return 0, true
+}
+
+func (e *ReceiveRequestEvent) Deserialization(source *common.ZeroCopySource) error {
 	code, eof := source.NextVarBytes()
 	if eof {
 		return fmt.Errorf("[InvokeCode] deserialize code error")
 	}
-	err := borsh.Deserialize(&self.OriginData, code)
+	err := borsh.Deserialize(&e.OriginData, code)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (self *ReceiveRequestEvent) Serialization(sink *common.ZeroCopySink) error {
-	oracleRequestBytes, err := marshalBinaryRecievRequest(&self.OriginData)
+func (e *ReceiveRequestEvent) Serialization(sink *common.ZeroCopySink) error {
+	oracleRequestBytes, err := marshalBinaryRecievRequest(&e.OriginData)
 	if err != nil {
 		return err
 	}
@@ -49,12 +58,14 @@ func marshalBinaryRecievRequest(be *wrappers.BridgeReceiveRequest) (data []byte,
 		return nil, err
 	}
 
-	w.Flush()
+	if err := w.Flush(); err != nil {
+		return nil, err
+	}
 	return b.Bytes(), nil
 }
 
-func (self *ReceiveRequestEvent) RawData() []byte {
+func (e *ReceiveRequestEvent) RawData() []byte {
 	var data []byte
-	data = append(data, self.OriginData.ReqId[:]...)
+	data = append(data, e.OriginData.ReqId[:]...)
 	return data
 }
