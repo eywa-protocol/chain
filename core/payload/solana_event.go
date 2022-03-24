@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"math/big"
 
@@ -17,24 +18,32 @@ type BridgeSolanaEvent struct {
 	OriginData wrappers.BridgeOracleRequestSolana
 }
 
-func (tx *BridgeSolanaEvent) TxType() TransactionType {
+func (e *BridgeSolanaEvent) TxType() TransactionType {
 	return BridgeEventSolanaType
 }
 
-func (self *BridgeSolanaEvent) Deserialization(source *common.ZeroCopySource) error {
+func (e *BridgeSolanaEvent) ToJson() (json.RawMessage, error) {
+	return json.Marshal(e.OriginData)
+}
+
+func (e *BridgeSolanaEvent) DstChainId() (uint64, bool) {
+	return e.OriginData.Chainid.Uint64(), false
+}
+
+func (e *BridgeSolanaEvent) Deserialization(source *common.ZeroCopySource) error {
 	code, eof := source.NextVarBytes()
 	if eof {
 		return fmt.Errorf("[InvokeCode] deserialize code error")
 	}
-	err := unmarshalBinarySolana(code, &self.OriginData)
+	err := unmarshalBinarySolana(code, &e.OriginData)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (self *BridgeSolanaEvent) Serialization(sink *common.ZeroCopySink) error {
-	oracleRequestBytes, err := MarshalSolBinary(&self.OriginData)
+func (e *BridgeSolanaEvent) Serialization(sink *common.ZeroCopySink) error {
+	oracleRequestBytes, err := MarshalSolBinary(&e.OriginData)
 	if err != nil {
 		return err
 	}
@@ -54,7 +63,9 @@ func unmarshalBinarySolana(data []byte, st *wrappers.BridgeOracleRequestSolana) 
 		Chainid        *big.Int
 		Raw            types.Log
 	}
-	gob.NewDecoder(r).Decode(&dec)
+	if err := gob.NewDecoder(r).Decode(&dec); err != nil {
+		return err
+	}
 	st.RequestType = dec.RequestType
 
 	st.Bridge = dec.Bridge
@@ -67,7 +78,7 @@ func unmarshalBinarySolana(data []byte, st *wrappers.BridgeOracleRequestSolana) 
 	return nil
 }
 
-// MarshalBinary implements encoding.BinaryMarshaler
+// MarshalSolBinary MarshalBinary implements encoding.BinaryMarshaler
 func MarshalSolBinary(be *wrappers.BridgeOracleRequestSolana) (data []byte, err error) {
 	var (
 		b bytes.Buffer
@@ -93,15 +104,17 @@ func MarshalSolBinary(be *wrappers.BridgeOracleRequestSolana) (data []byte, err 
 		return nil, err
 	}
 
-	w.Flush()
+	if err := w.Flush(); err != nil {
+		return nil, err
+	}
 	return b.Bytes(), nil
 }
 
-func (self *BridgeSolanaEvent) RawData() []byte {
+func (e *BridgeSolanaEvent) RawData() []byte {
 	var data []byte
-	data = append(data, self.OriginData.Bridge[:]...)
-	data = append(data, self.OriginData.RequestId[:]...)
-	data = append(data, self.OriginData.Selector...)
-	data = append(data, self.OriginData.OppositeBridge[:]...)
+	data = append(data, e.OriginData.Bridge[:]...)
+	data = append(data, e.OriginData.RequestId[:]...)
+	data = append(data, e.OriginData.Selector...)
+	data = append(data, e.OriginData.OppositeBridge[:]...)
 	return data
 }

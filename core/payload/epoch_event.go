@@ -2,6 +2,7 @@ package payload
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 
 	"github.com/eywa-protocol/bls-crypto/bls"
@@ -26,6 +27,14 @@ func NewEpochEvent(num uint32, pub bls.PublicKey, tx common.Uint256, keys []bls.
 
 func (e *EpochEvent) TxType() TransactionType {
 	return EpochType
+}
+
+func (e *EpochEvent) ToJson() (json.RawMessage, error) {
+	return json.Marshal(e)
+}
+
+func (e *EpochEvent) DstChainId() (uint64, bool) {
+	return 0, true
 }
 
 func (e *EpochEvent) Deserialization(source *common.ZeroCopySource) error {

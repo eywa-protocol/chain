@@ -3,6 +3,7 @@ package payload
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 
 	"github.com/eywa-protocol/chain/common"
@@ -14,24 +15,33 @@ type BridgeEvent struct {
 	OriginData wrappers.BridgeOracleRequest
 }
 
-func (tx *BridgeEvent) TxType() TransactionType {
+func (e *BridgeEvent) TxType() TransactionType {
 	return BridgeEventType
 }
 
-func (self *BridgeEvent) Deserialization(source *common.ZeroCopySource) error {
+func (e *BridgeEvent) ToJson() (json.RawMessage, error) {
+	return json.Marshal(e.OriginData)
+}
+
+func (e *BridgeEvent) DstChainId() (uint64, bool) {
+
+	return e.OriginData.Chainid.Uint64(), false
+}
+
+func (e *BridgeEvent) Deserialization(source *common.ZeroCopySource) error {
 	code, eof := source.NextVarBytes()
 	if eof {
 		return fmt.Errorf("[InvokeCode] deserialize code error")
 	}
-	err := borsh.Deserialize(&self.OriginData, code)
+	err := borsh.Deserialize(&e.OriginData, code)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (self *BridgeEvent) Serialization(sink *common.ZeroCopySink) error {
-	oracleRequestBytes, err := MarshalBinary(&self.OriginData)
+func (e *BridgeEvent) Serialization(sink *common.ZeroCopySink) error {
+	oracleRequestBytes, err := MarshalBinary(&e.OriginData)
 	if err != nil {
 		return err
 	}
@@ -50,16 +60,18 @@ func MarshalBinary(be *wrappers.BridgeOracleRequest) (data []byte, err error) {
 		return nil, err
 	}
 
-	w.Flush()
+	if err := w.Flush(); err != nil {
+		return nil, err
+	}
 	return b.Bytes(), nil
 }
 
-func (self *BridgeEvent) RawData() []byte {
+func (e *BridgeEvent) RawData() []byte {
 	sink := common.NewZeroCopySink(nil)
-	sink.WriteBytes(self.OriginData.Bridge[:])
-	sink.WriteBytes(self.OriginData.RequestId[:])
-	sink.WriteVarBytes(self.OriginData.Selector)
-	sink.WriteBytes(self.OriginData.ReceiveSide[:])
-	sink.WriteUint64(self.OriginData.Chainid.Uint64())
+	sink.WriteBytes(e.OriginData.Bridge[:])
+	sink.WriteBytes(e.OriginData.RequestId[:])
+	sink.WriteVarBytes(e.OriginData.Selector)
+	sink.WriteBytes(e.OriginData.ReceiveSide[:])
+	sink.WriteUint64(e.OriginData.Chainid.Uint64())
 	return sink.Bytes()
 }

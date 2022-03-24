@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 
 	"github.com/eywa-protocol/chain/common"
@@ -15,24 +16,32 @@ type SolanaToEVMEvent struct {
 	OriginData bridge.BridgeEvent
 }
 
-func (self *SolanaToEVMEvent) TxType() TransactionType {
+func (e *SolanaToEVMEvent) TxType() TransactionType {
 	return SolanaToEVMEventType
 }
 
-func (self *SolanaToEVMEvent) Deserialization(source *common.ZeroCopySource) error {
+func (e *SolanaToEVMEvent) ToJson() (json.RawMessage, error) {
+	return json.Marshal(e.OriginData)
+}
+
+func (e *SolanaToEVMEvent) DstChainId() (uint64, bool) {
+	return e.OriginData.ChainId, false
+}
+
+func (e *SolanaToEVMEvent) Deserialization(source *common.ZeroCopySource) error {
 	code, eof := source.NextVarBytes()
 	if eof {
 		return fmt.Errorf("[InvokeCode] deserialize code error")
 	}
-	err := unmarshalBinarySolanaToEVMEvent(code, &self.OriginData)
+	err := unmarshalBinarySolanaToEVMEvent(code, &e.OriginData)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (self *SolanaToEVMEvent) Serialization(sink *common.ZeroCopySink) error {
-	oracleRequestBytes, err := MarshalBinarySolanaToEVMEvent(&self.OriginData)
+func (e *SolanaToEVMEvent) Serialization(sink *common.ZeroCopySink) error {
+	oracleRequestBytes, err := MarshalBinarySolanaToEVMEvent(&e.OriginData)
 	if err != nil {
 		return err
 	}
@@ -47,7 +56,9 @@ func unmarshalBinarySolanaToEVMEvent(data []byte, st *bridge.BridgeEvent) error 
 		Signature:     solana.Signature{},
 		Slot:          0,
 	}
-	gob.NewDecoder(r).Decode(&dec)
+	if err := gob.NewDecoder(r).Decode(&dec); err != nil {
+		return err
+	}
 	st.ChainId = dec.ChainId
 	st.BridgePubKey = dec.BridgePubKey
 	st.Slot = dec.Slot
@@ -61,7 +72,7 @@ func unmarshalBinarySolanaToEVMEvent(data []byte, st *bridge.BridgeEvent) error 
 	return nil
 }
 
-// MarshalBinary implements encoding.BinaryMarshaler
+// MarshalBinarySolanaToEVMEvent MarshalBinary implements encoding.BinaryMarshaler
 func MarshalBinarySolanaToEVMEvent(be *bridge.BridgeEvent) (data []byte, err error) {
 
 	var (
@@ -74,15 +85,17 @@ func MarshalBinarySolanaToEVMEvent(be *bridge.BridgeEvent) (data []byte, err err
 		return nil, err
 	}
 
-	w.Flush()
+	if err := w.Flush(); err != nil {
+		return nil, err
+	}
 	return b.Bytes(), nil
 }
 
-func (self *SolanaToEVMEvent) RawData() []byte {
+func (e *SolanaToEVMEvent) RawData() []byte {
 	var data []byte
-	data = append(data, self.OriginData.RequestId[:]...)
-	data = append(data, self.OriginData.Selector...)
-	data = append(data, self.OriginData.ReceiveSide[:]...)
-	data = append(data, self.OriginData.BridgePubKey[:]...)
+	data = append(data, e.OriginData.RequestId[:]...)
+	data = append(data, e.OriginData.Selector...)
+	data = append(data, e.OriginData.ReceiveSide[:]...)
+	data = append(data, e.OriginData.BridgePubKey[:]...)
 	return data
 }

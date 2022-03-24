@@ -1,36 +1,47 @@
 package payload
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/eywa-protocol/chain/common"
 )
 
-// InvokeCode is an implementation of transaction payload for invoke smartcontract
+// InvokeCode DEPRECATED not used by EYWA bridge and will be removed in future
+// todo: remove with dependencies
 type InvokeCode struct {
 	Code []byte
 }
 
-func (tx *InvokeCode) TxType() TransactionType {
+func (e *InvokeCode) TxType() TransactionType {
 	return InvokeType
 }
 
-//note: InvokeCode.Code has data reference of param source
-func (self *InvokeCode) Deserialization(source *common.ZeroCopySource) error {
+func (e *InvokeCode) ToJson() (json.RawMessage, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (e *InvokeCode) DstChainId() (uint64, bool) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (e *InvokeCode) Deserialization(source *common.ZeroCopySource) error {
 	code, eof := source.NextVarBytes()
 	if eof {
 		return fmt.Errorf("[InvokeCode] deserialize code error")
 	}
 
-	self.Code = code
+	e.Code = code
 	return nil
 }
 
-func (self *InvokeCode) Serialization(sink *common.ZeroCopySink) error {
-	sink.WriteVarBytes(self.Code)
+func (e *InvokeCode) Serialization(sink *common.ZeroCopySink) error {
+	sink.WriteVarBytes(e.Code)
 	return nil
 }
 
-func (self *InvokeCode) RawData() []byte {
-	return self.Code
+func (e *InvokeCode) RawData() []byte {
+	return e.Code
 }

@@ -1,6 +1,10 @@
 package payload
 
-import "github.com/eywa-protocol/chain/common"
+import (
+	"encoding/json"
+
+	"github.com/eywa-protocol/chain/common"
+)
 
 type TransactionType byte
 
@@ -36,6 +40,8 @@ func (tt TransactionType) String() string {
 
 type Payload interface {
 	TxType() TransactionType
+	ToJson() (json.RawMessage, error)
+	DstChainId() (uint64, bool)
 	Serialization(*common.ZeroCopySink) error
 	Deserialization(*common.ZeroCopySource) error
 	RawData() []byte
