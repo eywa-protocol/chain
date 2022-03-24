@@ -3,6 +3,7 @@ package ledgerstore
 import (
 	"crypto/sha256"
 	"fmt"
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"math/big"
 	"testing"
 
@@ -210,7 +211,12 @@ func TestSaveBridgeEventTransaction(t *testing.T) {
 }
 
 func TestSaveEpochTransaction(t *testing.T) {
-	epoch := &payload.Epoch{Data: []byte("123456")}
+	epoch := &payload.EpochEvent{
+		Number:         0,
+		EpochPublicKey: bls.PublicKey{},
+		SourceTx:       common.Uint256{},
+		PublicKeys:     nil,
+	}
 	tx := types.ToTransaction(epoch)
 
 	sink := common.NewZeroCopySink(nil)
@@ -244,7 +250,7 @@ func TestSaveEpochTransaction(t *testing.T) {
 
 	sink2 := common.NewZeroCopySink(nil)
 	payload1.Serialization(sink2)
-	var ep2 payload.Epoch
+	var ep2 payload.EpochEvent
 	err = ep2.Deserialization(common.NewZeroCopySource(sink2.Bytes()))
 	require.NoError(t, err)
 	require.Equal(t, tx.Payload, &ep2)

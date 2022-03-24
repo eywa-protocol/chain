@@ -1,12 +1,13 @@
 package payload
 
 import (
+	"math/big"
+	"testing"
+
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/wrappers"
 	"github.com/stretchr/testify/assert"
-	"math/big"
-	"testing"
 )
 
 func TestBridgeEvent_Serialize(t *testing.T) {
@@ -23,7 +24,6 @@ func TestBridgeEvent_Serialize(t *testing.T) {
 	err := bridgeEvent2.Deserialization(common.NewZeroCopySource(sink.Bytes()))
 	assert.NoError(t, err)
 	assert.Equal(t, bridgeEvent, bridgeEvent2)
-
 }
 
 func TestBridgeEvent_SerializeBorsh(t *testing.T) {
@@ -40,5 +40,4 @@ func TestBridgeEvent_SerializeBorsh(t *testing.T) {
 	err := bridgeEvent2.Deserialization(common.NewZeroCopySource(sink.Bytes()))
 	assert.NoError(t, err)
 	assert.Equal(t, bridgeEvent, bridgeEvent2)
-
 }

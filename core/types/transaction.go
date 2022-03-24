@@ -49,7 +49,7 @@ func (tx *transaction) Deserialization(source *common.ZeroCopySource) error {
 		tx.Payload = &parsed
 
 	case payload.EpochType:
-		var parsed payload.Epoch
+		var parsed payload.EpochEvent
 		err := parsed.Deserialization(source)
 		if err != nil {
 			return err

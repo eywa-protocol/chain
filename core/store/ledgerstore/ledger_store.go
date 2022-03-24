@@ -14,7 +14,6 @@ import (
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/common/log"
 	"github.com/eywa-protocol/chain/core/store"
-	"github.com/eywa-protocol/chain/core/store/overlaydb"
 	"github.com/eywa-protocol/chain/core/types"
 	"github.com/eywa-protocol/chain/merkle"
 	"github.com/eywa-protocol/chain/native/event"
@@ -513,23 +512,6 @@ func (this *LedgerStoreImp) saveBlockToBlockStore(block *types.Block) error {
 
 func (this *LedgerStoreImp) executeBlock(block *types.Block) (result store.ExecuteResult, err error) {
 	overlay := this.stateStore.NewOverlayDB()
-
-	cache := storage.NewCacheDB(overlay)
-	for _, tx := range block.Transactions {
-		cache.Reset()
-		notify, crossHashes, e := this.handleTransaction(overlay, cache, block, tx.Payload)
-		if e != nil {
-			err = e
-			return
-		}
-		result.Notify = append(result.Notify, notify)
-		result.CrossHashes = append(result.CrossHashes, crossHashes...)
-	}
-	if len(result.CrossHashes) != 0 {
-		result.CrossStatesRoot = merkle.TreeHasher{}.HashFullTreeWithLeafHash(result.CrossHashes)
-	} else {
-		result.CrossStatesRoot = common.UINT256_EMPTY
-	}
 	result.Hash = overlay.ChangeHash()
 	result.WriteSet = overlay.GetWriteSet()
 	result.MerkleRoot = this.stateStore.GetStateMerkleRootWithNewHash(result.Hash)
@@ -539,13 +521,6 @@ func (this *LedgerStoreImp) executeBlock(block *types.Block) (result store.Execu
 func (this *LedgerStoreImp) saveBlockToStateStore(block *types.Block, result store.ExecuteResult) error {
 	blockHash := block.Hash()
 	blockHeight := block.Header.Height
-
-	for _, notify := range result.Notify {
-		err := SaveNotify(this.eventStore, notify.TxHash, notify)
-		if err != nil {
-			return fmt.Errorf("SaveNotify error %s", err)
-		}
-	}
 
 	err := this.stateStore.AddStateMerkleTreeRoot(blockHeight, result.Hash)
 	if err != nil {
@@ -696,43 +671,6 @@ func (this *LedgerStoreImp) saveBlock(block *types.Block, stateMerkleRoot common
 	}
 
 	return this.submitBlock(block, result)
-}
-
-func (this *LedgerStoreImp) handleTransaction(overlay *overlaydb.OverlayDB, cache *storage.CacheDB, block *types.Block, txPayload payload.Payload) (*event.ExecuteNotify, []common.Uint256, error) {
-	tx := types.ToTransaction(txPayload)
-	txHash := tx.Hash()
-	notify := &event.ExecuteNotify{TxHash: txHash, State: event.CONTRACT_STATE_FAIL}
-	if tx.TxType() == payload.InvokeType {
-		crossHashes, err := this.stateStore.HandleInvokeTransaction(this, overlay, cache, txPayload, block, notify)
-		if overlay.Error() != nil {
-			return nil, nil, fmt.Errorf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), overlay.Error())
-		}
-		if err != nil {
-			log.Debugf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), err)
-		}
-		return notify, crossHashes, nil
-	} else if tx.TxType() == payload.EpochType {
-		crossHashes, err := this.stateStore.HandleEpochTransaction(this, overlay, cache, txPayload, block, notify)
-		if overlay.Error() != nil {
-			return nil, nil, fmt.Errorf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), overlay.Error())
-		}
-		if err != nil {
-			log.Debugf("HandleInvokeTransaction tx %s error %s", txHash.ToHexString(), err)
-		}
-		return notify, crossHashes, nil
-	} else if tx.TxType() == payload.BridgeEventType || tx.TxType() == payload.BridgeEventSolanaType ||
-		tx.TxType() == payload.SolanaToEVMEventType || tx.TxType() == payload.ReceiveRequestEventType {
-		crossHashes, err := this.stateStore.HandleBridgeTransaction(this, overlay, cache, txPayload, block, notify)
-		if overlay.Error() != nil {
-			return nil, nil, fmt.Errorf("HandleBridgeTransaction tx %s error %s", txHash.ToHexString(), overlay.Error())
-		}
-		if err != nil {
-			return nil, nil, fmt.Errorf("HandleBridgeTransaction tx %s error %s", txHash.ToHexString(), err)
-		}
-		return notify, crossHashes, nil
-	} else {
-		return nil, nil, fmt.Errorf("Unsupported transaction type! type=%v payload=%v", tx.TxType(), tx)
-	}
 }
 
 func (this *LedgerStoreImp) saveHeaderIndexList() error {
