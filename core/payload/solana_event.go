@@ -111,10 +111,11 @@ func MarshalSolBinary(be *wrappers.BridgeOracleRequestSolana) (data []byte, err 
 }
 
 func (e *BridgeSolanaEvent) RawData() []byte {
-	var data []byte
-	data = append(data, e.OriginData.Bridge[:]...)
-	data = append(data, e.OriginData.RequestId[:]...)
-	data = append(data, e.OriginData.Selector...)
-	data = append(data, e.OriginData.OppositeBridge[:]...)
-	return data
+	sink := common.NewZeroCopySink(nil)
+	sink.WriteBytes(e.OriginData.RequestId[:])      // 32 bytes
+	sink.WriteBytes(e.OriginData.Bridge[:])         // 32 bytes
+	sink.WriteBytes(e.OriginData.OppositeBridge[:]) // 32 bytes
+	sink.WriteVarBytes(e.OriginData.Selector)
+	sink.WriteUint64(e.OriginData.Chainid.Uint64())
+	return sink.Bytes()
 }

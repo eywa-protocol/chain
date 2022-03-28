@@ -36,5 +36,4 @@ func TestBridgeSolanaEvent_Serialize(t *testing.T) {
 	uChainId, fromHead := bridgeEvent2.DstChainId()
 	assert.Equal(t, false, fromHead)
 	assert.Equal(t, uint64(94), uChainId)
-
 }

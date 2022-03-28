@@ -1,7 +1,6 @@
 package payload
 
 import (
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 
@@ -93,13 +92,10 @@ func (e *EpochEvent) Serialization(sink *common.ZeroCopySink) error {
 }
 
 func (e *EpochEvent) RawData() []byte {
-	epochNumRaw := make([]byte, 4)
-	binary.BigEndian.PutUint32(epochNumRaw, e.Number)
-
 	sink := common.NewZeroCopySink(nil)
-	sink.WriteBytes(epochNumRaw)
+	sink.WriteUint32(e.Number)                // 4 bytes
+	sink.WriteUint8(uint8(len(e.PublicKeys))) // 1 byte
 	sink.WriteVarBytes(e.EpochPublicKey.Marshal())
 	sink.WriteBytes(e.SourceTx[:])
-	sink.WriteUint8(uint8(len(e.PublicKeys)))
 	return sink.Bytes()
 }

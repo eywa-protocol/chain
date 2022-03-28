@@ -74,7 +74,6 @@ func unmarshalBinarySolanaToEVMEvent(data []byte, st *bridge.BridgeEvent) error 
 
 // MarshalBinarySolanaToEVMEvent MarshalBinary implements encoding.BinaryMarshaler
 func MarshalBinarySolanaToEVMEvent(be *bridge.BridgeEvent) (data []byte, err error) {
-
 	var (
 		b bytes.Buffer
 		w = bufio.NewWriter(&b)
@@ -92,10 +91,11 @@ func MarshalBinarySolanaToEVMEvent(be *bridge.BridgeEvent) (data []byte, err err
 }
 
 func (e *SolanaToEVMEvent) RawData() []byte {
-	var data []byte
-	data = append(data, e.OriginData.RequestId[:]...)
-	data = append(data, e.OriginData.Selector...)
-	data = append(data, e.OriginData.ReceiveSide[:]...)
-	data = append(data, e.OriginData.BridgePubKey[:]...)
-	return data
+	sink := common.NewZeroCopySink(nil)
+	sink.WriteBytes(e.OriginData.RequestId[:])    // 32 bytes
+	sink.WriteBytes(e.OriginData.BridgePubKey[:]) // 32 bytes
+	sink.WriteBytes(e.OriginData.ReceiveSide[:])  // 20 bytes
+	sink.WriteVarBytes(e.OriginData.Selector)
+	sink.WriteUint64(e.OriginData.ChainId)
+	return sink.Bytes()
 }

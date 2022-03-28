@@ -19,3 +19,4 @@ require (
 )
 
 //replace gitlab.digiu.ai/blockchainlaboratory/eywa-solana => ../solana/
+replace github.com/eywa-protocol/wrappers => ../wrappers
