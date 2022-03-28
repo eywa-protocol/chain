@@ -91,6 +91,7 @@ func MarshalBinarySolanaToEVMEvent(be *bridge.BridgeEvent) (data []byte, err err
 }
 
 func (e *SolanaToEVMEvent) RawData() []byte {
+	// Must be binary compartible with BridgeEvent
 	sink := common.NewZeroCopySink(nil)
 	sink.WriteBytes(e.OriginData.RequestId[:])    // 32 bytes
 	sink.WriteBytes(e.OriginData.BridgePubKey[:]) // 32 bytes

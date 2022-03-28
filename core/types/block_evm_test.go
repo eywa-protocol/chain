@@ -15,7 +15,9 @@ import (
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/core/payload"
 	"github.com/eywa-protocol/wrappers"
+	"github.com/gagliardetto/solana-go"
 	"github.com/stretchr/testify/assert"
+	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
 )
 
 var (
@@ -122,7 +124,7 @@ func Test_EvmOracleRequestTxRawData(t *testing.T) {
 	hash := tx.Hash()
 	assert.Equal(t, res.TxHash[:], hash.ToArray())
 	assert.Equal(t, res.ReqId, event.OriginData.RequestId)
-	assert.Equal(t, res.BridgeFrom, event.OriginData.Bridge)
+	assert.Equal(t, res.BridgeFrom[:20], event.OriginData.Bridge[:])
 	assert.Equal(t, res.ReceiveSide, event.OriginData.ReceiveSide)
 	assert.Equal(t, res.Sel, event.OriginData.Selector)
 }
@@ -146,6 +148,36 @@ func Test_EvmSolanaRequestTxRawData(t *testing.T) {
 	assert.Equal(t, res.ReqId, event.OriginData.RequestId)
 	assert.Equal(t, res.BridgeFrom, event.OriginData.Bridge)
 	assert.Equal(t, res.OppositeBridge, event.OriginData.OppositeBridge)
+	assert.Equal(t, res.Sel, event.OriginData.Selector)
+}
+
+func Test_EvmSolanaToEvmRequestTxRawData(t *testing.T) {
+	event := &payload.SolanaToEVMEvent{
+		OriginData: bridge.BridgeEvent{
+			OracleRequest: bridge.OracleRequest{
+				RequestType:    "test",
+				BridgePubKey:   solana.PublicKey{1, 2, 3},
+				RequestId:      solana.PublicKey{10, 11, 12},
+				Selector:       []byte("my selector"),
+				ReceiveSide:    common.Address{20, 21, 22},
+				OppositeBridge: common.Address{30, 31, 32},
+				ChainId:        uint64(3),
+			},
+			Signature: solana.Signature{},
+			Slot:      uint64(3),
+		},
+	}
+
+	// BridgeEvent and SolanaToEvmEvent RawData must be binary compartible
+	res, err := blockTest.OracleRequestTxRawDataTest(&bind.CallOpts{}, event.RawData())
+	assert.NoError(t, err)
+
+	tx := ToTransaction(event)
+	hash := tx.Hash()
+	assert.Equal(t, res.TxHash[:], hash.ToArray())
+	assert.Equal(t, res.ReqId[:], event.OriginData.RequestId[:])
+	assert.Equal(t, res.BridgeFrom[:], event.OriginData.BridgePubKey[:])
+	assert.Equal(t, res.ReceiveSide[:], event.OriginData.ReceiveSide[:])
 	assert.Equal(t, res.Sel, event.OriginData.Selector)
 }
 
@@ -214,7 +246,7 @@ func TestEvmBlockMerkleProve(t *testing.T) {
 		assert.NoError(t, err)
 		// t.Log(res)
 
-		assert.Equal(t, res.BridgeFrom, payloads[i].OriginData.Bridge)
+		assert.Equal(t, res.BridgeFrom[:20], payloads[i].OriginData.Bridge[:])
 		assert.Equal(t, res.ReqId, payloads[i].OriginData.RequestId)
 		assert.Equal(t, res.Sel, payloads[i].OriginData.Selector)
 		assert.Equal(t, res.ReceiveSide, payloads[i].OriginData.ReceiveSide)

@@ -67,9 +67,13 @@ func MarshalBinary(be *wrappers.BridgeOracleRequest) (data []byte, err error) {
 }
 
 func (e *BridgeEvent) RawData() []byte {
+	// Must be binary compartible with SolanaToEVMEvent
+	var bridgeFrom [32]byte
+	copy(bridgeFrom[:], e.OriginData.Bridge[:])
+
 	sink := common.NewZeroCopySink(nil)
 	sink.WriteBytes(e.OriginData.RequestId[:])   // 32 bytes
-	sink.WriteBytes(e.OriginData.Bridge[:])      // 20 bytes
+	sink.WriteBytes(bridgeFrom[:])               // 32 bytes as in SolanaToEvmEvent
 	sink.WriteBytes(e.OriginData.ReceiveSide[:]) // 20 bytes
 	sink.WriteVarBytes(e.OriginData.Selector)
 	sink.WriteUint64(e.OriginData.Chainid.Uint64())
