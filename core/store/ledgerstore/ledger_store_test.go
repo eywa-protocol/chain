@@ -7,16 +7,16 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/eywa-protocol/chain/common/log"
 	"github.com/eywa-protocol/chain/core/genesis"
 )
+
+// TODO: fix unhandled errors
 
 var testBlockStore *BlockStore
 var testStateStore *StateStore
 var testLedgerStore *LedgerStoreImp
 
 func TestMain(m *testing.M) {
-	log.InitLog(0)
 
 	var err error
 	testLedgerStore, err = NewLedgerStore("test/ledger")
@@ -63,9 +63,9 @@ func TestMain(m *testing.M) {
 }
 
 func TestInitLedgerStoreWithGenesisBlock(t *testing.T) {
-	block, err := genesis.BuildGenesisBlock(0)
+	block, err := genesis.BuildGenesisBlock(0, 0)
 	require.NoError(t, err)
-	//header := &types.Header{
+	// header := &types.Header{
 	//	Version:          0,
 	//	PrevBlockHash:    common.Uint256{},
 	//	TransactionsRoot: common.Uint256{},
@@ -73,12 +73,12 @@ func TestInitLedgerStoreWithGenesisBlock(t *testing.T) {
 	//	Height:           uint32(0),
 	//	ConsensusData:    1234567890,
 	//	NextEpoch:   bookkeeper,
-	//}
-	//block.Header = header
-	//block := &types.Block{
+	// }
+	// block.Header = header
+	// block := &types.Block{
 	//	Header:       header,
 	//	Transactions: []*types.Transaction{},
-	//}
+	// }
 
 	err = testLedgerStore.InitLedgerStoreWithGenesisBlock(block)
 	if err != nil {

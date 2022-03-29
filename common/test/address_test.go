@@ -3,11 +3,14 @@ package test
 import (
 	"bytes"
 	"crypto/rand"
-	"github.com/eywa-protocol/chain/common"
 	"testing"
+
+	"github.com/eywa-protocol/chain/common"
 
 	"github.com/stretchr/testify/assert"
 )
+
+// TODO: fix unhandled errors
 
 func TestAddressFromBase58(t *testing.T) {
 	var addr common.Address

@@ -1,10 +1,13 @@
 package test
 
 import (
+	"testing"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
+
+// TODO: fix unhandled errors
 
 func TestFixed64_Serialize(t *testing.T) {
 	val := common.Fixed64(10)

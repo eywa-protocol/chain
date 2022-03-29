@@ -7,20 +7,20 @@ import (
 	"fmt"
 
 	"github.com/eywa-protocol/chain/common"
-	"github.com/eywa-protocol/chain/common/log"
 	"github.com/eywa-protocol/chain/common/serialization"
 	scom "github.com/eywa-protocol/chain/core/store/common"
 	"github.com/eywa-protocol/chain/core/store/leveldbstore"
 	"github.com/eywa-protocol/chain/native/event"
+	"github.com/sirupsen/logrus"
 )
 
-//Saving event notifies gen by smart contract execution
+// EventStore saving event notifies gen by smart contract execution
 type EventStore struct {
-	dbDir string                     //Store path
-	store *leveldbstore.LevelDBStore //Store handler
+	dbDir string                     // Store path
+	store *leveldbstore.LevelDBStore // Store handler
 }
 
-//NewEventStore return event store instance
+// NewEventStore return event store instance
 func NewEventStore(dbDir string) (*EventStore, error) {
 	store, err := leveldbstore.NewLevelDBStore(dbDir)
 	if err != nil {
@@ -32,25 +32,25 @@ func NewEventStore(dbDir string) (*EventStore, error) {
 	}, nil
 }
 
-//NewBatch start event commit batch
-func (this *EventStore) NewBatch() {
-	this.store.NewBatch()
+// NewBatch start event commit batch
+func (s *EventStore) NewBatch() {
+	s.store.NewBatch()
 }
 
-//SaveEventNotifyByTx persist event notify by transaction hash
-func (this *EventStore) SaveEventNotifyByTx(txHash common.Uint256, notify *event.ExecuteNotify) error {
+// SaveEventNotifyByTx persist event notify by transaction hash
+func (s *EventStore) SaveEventNotifyByTx(txHash common.Uint256, notify *event.ExecuteNotify) error {
 	result, err := json.Marshal(notify)
 	if err != nil {
 		return fmt.Errorf("json.Marshal error %s", err)
 	}
-	key := this.getEventNotifyByTxKey(txHash)
-	this.store.BatchPut(key, result)
+	key := s.getEventNotifyByTxKey(txHash)
+	s.store.BatchPut(key, result)
 	return nil
 }
 
-//SaveEventNotifyByBlock persist transaction hash which have event notify to store
-func (this *EventStore) SaveEventNotifyByBlock(height uint64, txHashs []common.Uint256) error {
-	key, err := this.getEventNotifyByBlockKey(height)
+// SaveEventNotifyByBlock persist transaction hash which have event notify to store
+func (s *EventStore) SaveEventNotifyByBlock(height uint64, txHashs []common.Uint256) error {
+	key, err := s.getEventNotifyByBlockKey(height)
 	if err != nil {
 		return err
 	}
@@ -66,15 +66,15 @@ func (this *EventStore) SaveEventNotifyByBlock(height uint64, txHashs []common.U
 			return err
 		}
 	}
-	this.store.BatchPut(key, values.Bytes())
+	s.store.BatchPut(key, values.Bytes())
 
 	return nil
 }
 
-//GetEventNotifyByTx return event notify by trasanction hash
-func (this *EventStore) GetEventNotifyByTx(txHash common.Uint256) (*event.ExecuteNotify, error) {
-	key := this.getEventNotifyByTxKey(txHash)
-	data, err := this.store.Get(key)
+// GetEventNotifyByTx return event notify by trasanction hash
+func (s *EventStore) GetEventNotifyByTx(txHash common.Uint256) (*event.ExecuteNotify, error) {
+	key := s.getEventNotifyByTxKey(txHash)
+	data, err := s.store.Get(key)
 	if err != nil {
 		return nil, err
 	}
@@ -85,13 +85,13 @@ func (this *EventStore) GetEventNotifyByTx(txHash common.Uint256) (*event.Execut
 	return &notify, nil
 }
 
-//GetEventNotifyByBlock return all event notify of transaction in block
-func (this *EventStore) GetEventNotifyByBlock(height uint64) ([]*event.ExecuteNotify, error) {
-	key, err := this.getEventNotifyByBlockKey(height)
+// GetEventNotifyByBlock return all event notify of transaction in block
+func (s *EventStore) GetEventNotifyByBlock(height uint64) ([]*event.ExecuteNotify, error) {
+	key, err := s.getEventNotifyByBlockKey(height)
 	if err != nil {
 		return nil, err
 	}
-	data, err := this.store.Get(key)
+	data, err := s.store.Get(key)
 	if err != nil {
 		return nil, err
 	}
@@ -107,9 +107,9 @@ func (this *EventStore) GetEventNotifyByBlock(height uint64) ([]*event.ExecuteNo
 		if err != nil {
 			return nil, fmt.Errorf("txHash.Deserialize error %s", err)
 		}
-		evtNotify, err := this.GetEventNotifyByTx(txHash)
+		evtNotify, err := s.GetEventNotifyByTx(txHash)
 		if err != nil {
-			log.Errorf("getEventNotifyByTx Height:%d by txhash:%s error:%s", height, txHash.ToHexString(), err)
+			logrus.Errorf("getEventNotifyByTx Height:%d by txhash:%s error:%s", height, txHash.ToHexString(), err)
 			continue
 		}
 		evtNotifies = append(evtNotifies, evtNotify)
@@ -117,45 +117,49 @@ func (this *EventStore) GetEventNotifyByBlock(height uint64) ([]*event.ExecuteNo
 	return evtNotifies, nil
 }
 
-//CommitTo event store batch to store
-func (this *EventStore) CommitTo() error {
-	return this.store.BatchCommit()
+// CommitTo event store batch to store
+func (s *EventStore) CommitTo() error {
+	return s.store.BatchCommit()
 }
 
-//Close event store
-func (this *EventStore) Close() error {
-	return this.store.Close()
+// Close event store
+func (s *EventStore) Close() error {
+	return s.store.Close()
 }
 
-//ClearAll all data in event store
-func (this *EventStore) ClearAll() error {
-	this.NewBatch()
-	iter := this.store.NewIterator(nil)
+// ClearAll all data in event store
+func (s *EventStore) ClearAll() error {
+	s.NewBatch()
+	iter := s.store.NewIterator(nil)
 	for iter.Next() {
-		this.store.BatchDelete(iter.Key())
+		s.store.BatchDelete(iter.Key())
 	}
 	iter.Release()
 	if err := iter.Error(); err != nil {
 		return err
 	}
-	return this.CommitTo()
+	return s.CommitTo()
 }
 
-//SaveCurrentBlock persist current block height and block hash to event store
-func (this *EventStore) SaveCurrentBlock(height uint64, blockHash common.Uint256) error {
-	key := this.getCurrentBlockKey()
+// SaveCurrentBlock persist current block height and block hash to event store
+func (s *EventStore) SaveCurrentBlock(height uint64, blockHash common.Uint256) error {
+	key := s.getCurrentBlockKey()
 	value := bytes.NewBuffer(nil)
-	blockHash.Serialize(value)
-	serialization.WriteUint64(value, height)
-	this.store.BatchPut(key, value.Bytes())
+	if err := blockHash.Serialize(value); err != nil {
+		return err
+	}
+	if err := serialization.WriteUint64(value, height); err != nil {
+		return err
+	}
+	s.store.BatchPut(key, value.Bytes())
 
 	return nil
 }
 
-//GetCurrentBlock return current block hash, and block height
-func (this *EventStore) GetCurrentBlock() (common.Uint256, uint32, error) {
-	key := this.getCurrentBlockKey()
-	data, err := this.store.Get(key)
+// GetCurrentBlock return current block hash, and block height
+func (s *EventStore) GetCurrentBlock() (common.Uint256, uint32, error) {
+	key := s.getCurrentBlockKey()
+	data, err := s.store.Get(key)
 	if err != nil {
 		return common.Uint256{}, 0, err
 	}
@@ -172,18 +176,18 @@ func (this *EventStore) GetCurrentBlock() (common.Uint256, uint32, error) {
 	return blockHash, height, nil
 }
 
-func (this *EventStore) getCurrentBlockKey() []byte {
+func (s *EventStore) getCurrentBlockKey() []byte {
 	return []byte{byte(scom.SYS_CURRENT_BLOCK)}
 }
 
-func (this *EventStore) getEventNotifyByBlockKey(height uint64) ([]byte, error) {
+func (s *EventStore) getEventNotifyByBlockKey(height uint64) ([]byte, error) {
 	key := make([]byte, 9, 9)
 	key[0] = byte(scom.EVENT_NOTIFY)
 	binary.LittleEndian.PutUint64(key[1:], height)
 	return key, nil
 }
 
-func (this *EventStore) getEventNotifyByTxKey(txHash common.Uint256) []byte {
+func (s *EventStore) getEventNotifyByTxKey(txHash common.Uint256) []byte {
 	data := txHash.ToArray()
 	key := make([]byte, 1+len(data))
 	key[0] = byte(scom.EVENT_NOTIFY)

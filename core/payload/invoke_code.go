@@ -17,6 +17,14 @@ func (e *InvokeCode) TxType() TransactionType {
 	return InvokeType
 }
 
+func (e *InvokeCode) RequestState() ReqState {
+	return ReqStateUnknown
+}
+
+func (e *InvokeCode) RequestId() [32]byte {
+	return [32]byte{}
+}
+
 func (e *InvokeCode) ToJson() (json.RawMessage, error) {
 	// TODO implement me
 	panic("implement me")

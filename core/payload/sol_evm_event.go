@@ -20,6 +20,14 @@ func (e *SolanaToEVMEvent) TxType() TransactionType {
 	return SolanaToEVMEventType
 }
 
+func (e *SolanaToEVMEvent) RequestState() ReqState {
+	return ReqStateReceived
+}
+
+func (e *SolanaToEVMEvent) RequestId() [32]byte {
+	return e.OriginData.RequestId
+}
+
 func (e *SolanaToEVMEvent) ToJson() (json.RawMessage, error) {
 	return json.Marshal(e.OriginData)
 }

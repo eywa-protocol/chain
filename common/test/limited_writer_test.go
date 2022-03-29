@@ -2,9 +2,10 @@ package test
 
 import (
 	"bytes"
+	"testing"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestLimitedWriter_Write(t *testing.T) {

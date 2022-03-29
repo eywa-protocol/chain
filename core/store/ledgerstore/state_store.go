@@ -7,31 +7,31 @@ import (
 	"io"
 
 	"github.com/eywa-protocol/chain/common"
-	"github.com/eywa-protocol/chain/common/log"
 	"github.com/eywa-protocol/chain/common/serialization"
 	"github.com/eywa-protocol/chain/core/states"
 	scom "github.com/eywa-protocol/chain/core/store/common"
 	"github.com/eywa-protocol/chain/core/store/leveldbstore"
 	"github.com/eywa-protocol/chain/core/store/overlaydb"
 	"github.com/eywa-protocol/chain/merkle"
+	"github.com/sirupsen/logrus"
 )
 
 var (
-	BOOKKEEPER = []byte("Epoch") //Epoch store key
+	BOOKKEEPER = []byte("Epoch") // Epoch store key
 )
 
-//StateStore saving the data of ledger states. Like balance of account, and the execution result of smart contract
+// StateStore saving the data of ledger states. Like balance of account, and the execution result of smart contract
 type StateStore struct {
-	dbDir                string                    //Store file path
-	store                scom.PersistStore         //Store handler
-	merklePath           string                    //Merkle tree store path
-	merkleTree           *merkle.CompactMerkleTree //Merkle tree of block root
-	deltaMerkleTree      *merkle.CompactMerkleTree //Merkle tree of delta state root
+	dbDir                string                    // Store file path
+	store                scom.PersistStore         // Store handler
+	merklePath           string                    // Merkle tree store path
+	merkleTree           *merkle.CompactMerkleTree // Merkle tree of block root
+	deltaMerkleTree      *merkle.CompactMerkleTree // Merkle tree of delta state root
 	merkleHashStore      merkle.HashStore
 	stateHashCheckHeight uint64
 }
 
-//NewStateStore return state store instance
+// NewStateStore return state store instance
 func NewStateStore(dbDir, merklePath string) (*StateStore, error) {
 	var err error
 	store, err := leveldbstore.NewLevelDBStore(dbDir)
@@ -54,7 +54,7 @@ func NewStateStore(dbDir, merklePath string) (*StateStore, error) {
 	return stateStore, nil
 }
 
-// for test
+// NewMemStateStore for test
 func NewMemStateStore(stateHashHeight uint64) *StateStore {
 	store, _ := leveldbstore.NewMemLevelDBStore()
 	stateStore := &StateStore{
@@ -67,59 +67,59 @@ func NewMemStateStore(stateHashHeight uint64) *StateStore {
 	return stateStore
 }
 
-//NewBatch start new commit batch
-func (self *StateStore) NewBatch() {
-	self.store.NewBatch()
+// NewBatch start new commit batch
+func (s *StateStore) NewBatch() {
+	s.store.NewBatch()
 }
 
-func (self *StateStore) BatchPutRawKeyVal(key, val []byte) {
-	self.store.BatchPut(key, val)
+func (s *StateStore) BatchPutRawKeyVal(key, val []byte) {
+	s.store.BatchPut(key, val)
 }
 
-func (self *StateStore) BatchDeleteRawKey(key []byte) {
-	self.store.BatchDelete(key)
+func (s *StateStore) BatchDeleteRawKey(key []byte) {
+	s.store.BatchDelete(key)
 }
 
-func (self *StateStore) init(currBlockHeight uint64) error {
-	treeSize, hashes, err := self.GetBlockMerkleTree()
+func (s *StateStore) init(currBlockHeight uint64) error {
+	treeSize, hashes, err := s.GetBlockMerkleTree()
 	if err != nil && err != scom.ErrNotFound {
 		return err
 	}
 	if treeSize > 0 && treeSize != currBlockHeight+1 {
 		return fmt.Errorf("merkle tree size is inconsistent with blockheight: %d", currBlockHeight+1)
 	}
-	self.merkleHashStore, err = merkle.NewFileHashStore(self.merklePath, treeSize)
+	s.merkleHashStore, err = merkle.NewFileHashStore(s.merklePath, treeSize)
 	if err != nil {
-		log.Warn("merkle store is inconsistent with ChainStore. persistence will be disabled")
+		logrus.Warn("merkle store is inconsistent with ChainStore. persistence will be disabled")
 	}
-	self.merkleTree = merkle.NewTree(treeSize, hashes, self.merkleHashStore)
+	s.merkleTree = merkle.NewTree(treeSize, hashes, s.merkleHashStore)
 
-	if currBlockHeight >= self.stateHashCheckHeight {
-		treeSize, hashes, err := self.GetStateMerkleTree()
+	if currBlockHeight >= s.stateHashCheckHeight {
+		treeSize, hashes, err := s.GetStateMerkleTree()
 		if err != nil && err != scom.ErrNotFound {
 			return err
 		}
-		if treeSize > 0 && treeSize != currBlockHeight-self.stateHashCheckHeight+1 {
+		if treeSize > 0 && treeSize != currBlockHeight-s.stateHashCheckHeight+1 {
 			return fmt.Errorf("merkle tree size is inconsistent with blockheight: %d", currBlockHeight+1)
 		}
-		self.deltaMerkleTree = merkle.NewTree(treeSize, hashes, nil)
+		s.deltaMerkleTree = merkle.NewTree(treeSize, hashes, nil)
 	}
 	return nil
 }
 
-//GetStateMerkleTree return merkle tree size an tree node
-func (self *StateStore) GetStateMerkleTree() (uint64, []common.Uint256, error) {
-	key := self.genStateMerkleTreeKey()
-	return self.getMerkleTree(key)
+// GetStateMerkleTree return merkle tree size an tree node
+func (s *StateStore) GetStateMerkleTree() (uint64, []common.Uint256, error) {
+	key := s.genStateMerkleTreeKey()
+	return s.getMerkleTree(key)
 }
 
-//GetBlockMerkleTree return merkle tree size an tree node
-func (self *StateStore) GetBlockMerkleTree() (uint64, []common.Uint256, error) {
-	key := self.genBlockMerkleTreeKey()
-	return self.getMerkleTree(key)
+// GetBlockMerkleTree return merkle tree size an tree node
+func (s *StateStore) GetBlockMerkleTree() (uint64, []common.Uint256, error) {
+	key := s.genBlockMerkleTreeKey()
+	return s.getMerkleTree(key)
 }
-func (self *StateStore) getMerkleTree(key []byte) (uint64, []common.Uint256, error) {
-	data, err := self.store.Get(key)
+func (s *StateStore) getMerkleTree(key []byte) (uint64, []common.Uint256, error) {
+	data, err := s.store.Get(key)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -141,13 +141,13 @@ func (self *StateStore) getMerkleTree(key []byte) (uint64, []common.Uint256, err
 	return treeSize, hashes, nil
 }
 
-func (self *StateStore) GetStateMerkleRoot(height uint64) (result common.Uint256, err error) {
-	if height < self.stateHashCheckHeight {
+func (s *StateStore) GetStateMerkleRoot(height uint64) (result common.Uint256, err error) {
+	if height < s.stateHashCheckHeight {
 		return
 	}
-	key := self.genStateMerkleRootKey(height)
+	key := s.genStateMerkleRootKey(height)
 	var value []byte
-	value, err = self.store.Get(key)
+	value, err = s.store.Get(key)
 	if err != nil {
 		return
 	}
@@ -160,34 +160,34 @@ func (self *StateStore) GetStateMerkleRoot(height uint64) (result common.Uint256
 	return
 }
 
-func (self *StateStore) AddStateMerkleTreeRoot(blockHeight uint64, writeSetHash common.Uint256) error {
-	if blockHeight < self.stateHashCheckHeight {
+func (s *StateStore) AddStateMerkleTreeRoot(blockHeight uint64, writeSetHash common.Uint256) error {
+	if blockHeight < s.stateHashCheckHeight {
 		return nil
-	} else if blockHeight == self.stateHashCheckHeight {
-		self.deltaMerkleTree = merkle.NewTree(0, nil, nil)
+	} else if blockHeight == s.stateHashCheckHeight {
+		s.deltaMerkleTree = merkle.NewTree(0, nil, nil)
 	}
-	key := self.genStateMerkleTreeKey()
+	key := s.genStateMerkleTreeKey()
 
-	self.deltaMerkleTree.Append(writeSetHash.ToArray())
-	treeSize := self.deltaMerkleTree.TreeSize()
-	hashes := self.deltaMerkleTree.Hashes()
+	s.deltaMerkleTree.Append(writeSetHash.ToArray())
+	treeSize := s.deltaMerkleTree.TreeSize()
+	hashes := s.deltaMerkleTree.Hashes()
 	value := common.NewZeroCopySink(make([]byte, 0, 8+len(hashes)*common.UINT256_SIZE))
 	value.WriteUint64(treeSize)
 	for _, hash := range hashes {
 		value.WriteHash(hash)
 	}
-	self.store.BatchPut(key, value.Bytes())
+	s.store.BatchPut(key, value.Bytes())
 
-	key = self.genStateMerkleRootKey(blockHeight)
+	key = s.genStateMerkleRootKey(blockHeight)
 	value.Reset()
 	value.WriteHash(writeSetHash)
-	value.WriteHash(self.deltaMerkleTree.Root())
-	self.store.BatchPut(key, value.Bytes())
+	value.WriteHash(s.deltaMerkleTree.Root())
+	s.store.BatchPut(key, value.Bytes())
 
 	return nil
 }
 
-func (self *StateStore) AddCrossStates(height uint64, crossStates []common.Uint256, crossStatesHash common.Uint256) error {
+func (s *StateStore) AddCrossStates(height uint64, crossStates []common.Uint256, crossStatesHash common.Uint256) error {
 	if len(crossStates) == 0 {
 		return nil
 	}
@@ -196,21 +196,21 @@ func (self *StateStore) AddCrossStates(height uint64, crossStates []common.Uint2
 	for _, v := range crossStates {
 		sink.WriteHash(v)
 	}
-	self.store.BatchPut(key, sink.Bytes())
+	s.store.BatchPut(key, sink.Bytes())
 
 	buf := bytes.NewBuffer(nil)
 	err := crossStatesHash.Serialize(buf)
 	if err != nil {
 		return err
 	}
-	self.store.BatchPut(genCrossStatesRootKey(height), buf.Bytes())
+	s.store.BatchPut(genCrossStatesRootKey(height), buf.Bytes())
 	return nil
 }
 
-func (self *StateStore) GetCrossStateRoot(height uint64) (common.Uint256, error) {
+func (s *StateStore) GetCrossStateRoot(height uint64) (common.Uint256, error) {
 	var hash common.Uint256
 	key := genCrossStatesRootKey(height)
-	value, err := self.store.Get(key)
+	value, err := s.store.Get(key)
 	if err != nil && err != scom.ErrNotFound {
 		return common.UINT256_EMPTY, err
 	}
@@ -225,11 +225,11 @@ func (self *StateStore) GetCrossStateRoot(height uint64) (common.Uint256, error)
 	return hash, nil
 }
 
-func (self *StateStore) GetCrossStates(height uint64) (hashes []common.Uint256, err error) {
+func (s *StateStore) GetCrossStates(height uint64) (hashes []common.Uint256, err error) {
 	key := genCrossStatesKey(height)
 
 	var value []byte
-	value, err = self.store.Get(key)
+	value, err = s.store.Get(key)
 	if err != nil {
 		return
 	}
@@ -251,44 +251,44 @@ func (self *StateStore) GetCrossStates(height uint64) (hashes []common.Uint256, 
 	return
 }
 
-//AddBlockMerkleTreeRoot add a new tree root
-func (self *StateStore) AddBlockMerkleTreeRoot(preBlockHash common.Uint256) error {
-	key := self.genBlockMerkleTreeKey()
+// AddBlockMerkleTreeRoot add a new tree root
+func (s *StateStore) AddBlockMerkleTreeRoot(preBlockHash common.Uint256) error {
+	key := s.genBlockMerkleTreeKey()
 
-	self.merkleTree.Append(preBlockHash.ToArray())
-	treeSize := self.merkleTree.TreeSize()
-	hashes := self.merkleTree.Hashes()
+	s.merkleTree.Append(preBlockHash.ToArray())
+	treeSize := s.merkleTree.TreeSize()
+	hashes := s.merkleTree.Hashes()
 	value := common.NewZeroCopySink(make([]byte, 0, 8+len(hashes)*common.UINT256_SIZE))
 	value.WriteUint64(treeSize)
 	for _, hash := range hashes {
 		value.WriteHash(hash)
 	}
-	self.store.BatchPut(key, value.Bytes())
+	s.store.BatchPut(key, value.Bytes())
 	return nil
 }
 
-//GetMerkleProof return merkle proof of block hash
-func (self *StateStore) GetMerkleProof(raw []byte, proofHeight, rootHeight uint64) ([]byte, error) {
-	return self.merkleTree.MerkleInclusionLeafPath(raw, proofHeight, rootHeight+1)
+// GetMerkleProof return merkle proof of block hash
+func (s *StateStore) GetMerkleProof(raw []byte, proofHeight, rootHeight uint64) ([]byte, error) {
+	return s.merkleTree.MerkleInclusionLeafPath(raw, proofHeight, rootHeight+1)
 }
 
-func (self *StateStore) NewOverlayDB() *overlaydb.OverlayDB {
-	return overlaydb.NewOverlayDB(self.store)
+func (s *StateStore) NewOverlayDB() *overlaydb.OverlayDB {
+	return overlaydb.NewOverlayDB(s.store)
 }
 
-//CommitTo commit state batch to state store
-func (self *StateStore) CommitTo() error {
-	return self.store.BatchCommit()
+// CommitTo commit state batch to state store
+func (s *StateStore) CommitTo() error {
+	return s.store.BatchCommit()
 }
 
-//GetEpochState return current book keeper states
-func (self *StateStore) GetEpochState() (*states.EpochState, error) {
-	key, err := self.getEpochKey()
+// GetEpochState return current book keeper states
+func (s *StateStore) GetEpochState() (*states.EpochState, error) {
+	key, err := s.getEpochKey()
 	if err != nil {
 		return nil, err
 	}
 
-	value, err := self.store.Get(key)
+	value, err := s.store.Get(key)
 	if err != nil {
 		return nil, err
 	}
@@ -301,9 +301,9 @@ func (self *StateStore) GetEpochState() (*states.EpochState, error) {
 	return bookkeeperState, nil
 }
 
-//SaveEpochState persist book keeper state to store
-func (self *StateStore) SaveEpochState(bookkeeperState *states.EpochState) error {
-	key, err := self.getEpochKey()
+// SaveEpochState persist book keeper state to store
+func (s *StateStore) SaveEpochState(bookkeeperState *states.EpochState) error {
+	key, err := s.getEpochKey()
 	if err != nil {
 		return err
 	}
@@ -313,17 +313,17 @@ func (self *StateStore) SaveEpochState(bookkeeperState *states.EpochState) error
 		return err
 	}
 
-	return self.store.Put(key, value.Bytes())
+	return s.store.Put(key, value.Bytes())
 }
 
-//GetStorageItem return the storage value of the key in smart contract.
-func (self *StateStore) GetStorageState(key *states.StorageKey) (*states.StorageItem, error) {
-	storeKey, err := self.getStorageKey(key)
+// GetStorageState return the storage value of the key in smart contract.
+func (s *StateStore) GetStorageState(key *states.StorageKey) (*states.StorageItem, error) {
+	storeKey, err := s.getStorageKey(key)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := self.store.Get(storeKey)
+	data, err := s.store.Get(storeKey)
 	if err != nil {
 		return nil, err
 	}
@@ -336,8 +336,8 @@ func (self *StateStore) GetStorageState(key *states.StorageKey) (*states.Storage
 	return storageState, nil
 }
 
-func (self *StateStore) GetStorageValue(key []byte) ([]byte, error) {
-	data, err := self.store.Get(append([]byte{byte(byte(scom.ST_STORAGE))}, key...))
+func (s *StateStore) GetStorageValue(key []byte) ([]byte, error) {
+	data, err := s.store.Get(append([]byte{byte(scom.ST_STORAGE)}, key...))
 	if err != nil {
 		return nil, err
 	}
@@ -350,10 +350,10 @@ func (self *StateStore) GetStorageValue(key []byte) ([]byte, error) {
 	return storageState.Value, nil
 }
 
-//GetCurrentBlock return current block height and current hash in state store
-func (self *StateStore) GetCurrentBlock() (common.Uint256, uint64, error) {
-	key := self.getCurrentBlockKey()
-	data, err := self.store.Get(key)
+// GetCurrentBlock return current block height and current hash in state store
+func (s *StateStore) GetCurrentBlock() (common.Uint256, uint64, error) {
+	key := s.getCurrentBlockKey()
+	data, err := s.store.Get(key)
 	if err != nil {
 		return common.Uint256{}, 0, err
 	}
@@ -370,36 +370,65 @@ func (self *StateStore) GetCurrentBlock() (common.Uint256, uint64, error) {
 	return blockHash, height, nil
 }
 
-//SaveCurrentBlock persist current block to state store
-func (self *StateStore) SaveCurrentBlock(height uint64, blockHash common.Uint256) error {
-	key := self.getCurrentBlockKey()
+// SaveCurrentBlock persist current block to state store
+func (s *StateStore) SaveCurrentBlock(height uint64, blockHash common.Uint256) error {
+	key := s.getCurrentBlockKey()
 	value := bytes.NewBuffer(nil)
-	blockHash.Serialize(value)
-	serialization.WriteUint64(value, height)
-	self.store.BatchPut(key, value.Bytes())
+	if err := blockHash.Serialize(value); err != nil {
+		return err
+	}
+	if err := serialization.WriteUint64(value, height); err != nil {
+		return err
+	}
+	s.store.BatchPut(key, value.Bytes())
 	return nil
 }
 
-func (self *StateStore) getCurrentBlockKey() []byte {
+func (s *StateStore) SaveProcessedHeight(height uint64) error {
+	key := s.getProcessedHeightKey()
+	value := bytes.NewBuffer(nil)
+	if err := serialization.WriteUint64(value, height); err != nil {
+		return err
+	}
+	s.store.BatchPut(key, value.Bytes())
+	return nil
+}
+
+func (s *StateStore) getProcessedHeight() (uint64, error) {
+	key := s.getProcessedHeightKey()
+	if value, err := s.store.Get(key); err != nil {
+		return 0, err
+	} else if height, err := serialization.ReadUint64(bytes.NewReader(value)); err != nil {
+		return 0, err
+	} else {
+		return height, nil
+	}
+}
+
+func (s *StateStore) getCurrentBlockKey() []byte {
 	return []byte{byte(scom.SYS_CURRENT_BLOCK)}
 }
 
-func (self *StateStore) getEpochKey() ([]byte, error) {
+func (s *StateStore) getProcessedHeightKey() []byte {
+	return []byte{byte(scom.SYS_PROCESSED_SRC_HEIGHT)}
+}
+
+func (s *StateStore) getEpochKey() ([]byte, error) {
 	key := make([]byte, 1+len(BOOKKEEPER))
 	key[0] = byte(scom.ST_BOOKKEEPER)
-	copy(key[1:], []byte(BOOKKEEPER))
+	copy(key[1:], BOOKKEEPER)
 	return key, nil
 }
 
-func (self *StateStore) getContractStateKey(contractHash common.Address) ([]byte, error) {
+func (s *StateStore) getContractStateKey(contractHash common.Address) ([]byte, error) {
 	data := contractHash[:]
 	key := make([]byte, 1+len(data))
 	key[0] = byte(scom.ST_CONTRACT)
-	copy(key[1:], []byte(data))
+	copy(key[1:], data)
 	return key, nil
 }
 
-func (self *StateStore) getStorageKey(key *states.StorageKey) ([]byte, error) {
+func (s *StateStore) getStorageKey(key *states.StorageKey) ([]byte, error) {
 	buf := bytes.NewBuffer(nil)
 	buf.WriteByte(byte(scom.ST_STORAGE))
 	buf.Write(key.ContractAddress[:])
@@ -407,19 +436,19 @@ func (self *StateStore) getStorageKey(key *states.StorageKey) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (self *StateStore) GetStateMerkleRootWithNewHash(writeSetHash common.Uint256) common.Uint256 {
-	return self.deltaMerkleTree.GetRootWithNewLeaf(writeSetHash)
+func (s *StateStore) GetStateMerkleRootWithNewHash(writeSetHash common.Uint256) common.Uint256 {
+	return s.deltaMerkleTree.GetRootWithNewLeaf(writeSetHash)
 }
 
-func (self *StateStore) GetBlockRootWithPreBlockHashes(preBlockHashes []common.Uint256) common.Uint256 {
-	return self.merkleTree.GetRootWithNewLeaves(preBlockHashes)
+func (s *StateStore) GetBlockRootWithPreBlockHashes(preBlockHashes []common.Uint256) common.Uint256 {
+	return s.merkleTree.GetRootWithNewLeaves(preBlockHashes)
 }
 
-func (self *StateStore) genBlockMerkleTreeKey() []byte {
+func (s *StateStore) genBlockMerkleTreeKey() []byte {
 	return []byte{byte(scom.SYS_BLOCK_MERKLE_TREE)}
 }
 
-func (self *StateStore) genStateMerkleTreeKey() []byte {
+func (s *StateStore) genStateMerkleTreeKey() []byte {
 	return []byte{byte(scom.SYS_STATE_MERKLE_TREE)}
 }
 
@@ -437,30 +466,30 @@ func genCrossStatesRootKey(height uint64) []byte {
 	return key
 }
 
-func (self *StateStore) genStateMerkleRootKey(height uint64) []byte {
+func (s *StateStore) genStateMerkleRootKey(height uint64) []byte {
 	key := make([]byte, 9, 9)
 	key[0] = byte(scom.DATA_STATE_MERKLE_ROOT)
 	binary.LittleEndian.PutUint64(key[1:], height)
 	return key
 }
 
-//ClearAll clear all data in state store
-func (self *StateStore) ClearAll() error {
-	self.store.NewBatch()
-	iter := self.store.NewIterator(nil)
+// ClearAll clear all data in state store
+func (s *StateStore) ClearAll() error {
+	s.store.NewBatch()
+	iter := s.store.NewIterator(nil)
 	for iter.Next() {
-		self.store.BatchDelete(iter.Key())
+		s.store.BatchDelete(iter.Key())
 	}
 	iter.Release()
 	if err := iter.Error(); err != nil {
-		self.store.NewBatch() // reset the batch
+		s.store.NewBatch() // reset the batch
 		return err
 	}
-	return self.store.BatchCommit()
+	return s.store.BatchCommit()
 }
 
-//Close state store
-func (self *StateStore) Close() error {
-	self.merkleHashStore.Close()
-	return self.store.Close()
+// Close state store
+func (s *StateStore) Close() error {
+	s.merkleHashStore.Close()
+	return s.store.Close()
 }

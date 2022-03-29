@@ -5,10 +5,13 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"testing"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
+
+// TODO: fix unhandled errors
 
 func TestHash(t *testing.T) {
 
@@ -92,7 +95,7 @@ func (t *merkleTreeNode) IsLeaf() bool {
 	return t.Left == nil && t.Right == nil
 }
 
-//use []Uint256 to create a new merkleTree
+// use []Uint256 to create a new merkleTree
 func newMerkleTree(hashes []common.Uint256) (*merkleTree, error) {
 	if len(hashes) == 0 {
 		return nil, errors.New("NewMerkleTree input no item error.")
@@ -113,7 +116,7 @@ func newMerkleTree(hashes []common.Uint256) (*merkleTree, error) {
 
 }
 
-//Generate the leaves nodes
+// Generate the leaves nodes
 func generateLeaves(hashes []common.Uint256) []*merkleTreeNode {
 	var leaves []*merkleTreeNode
 	for _, d := range hashes {
@@ -125,7 +128,7 @@ func generateLeaves(hashes []common.Uint256) []*merkleTreeNode {
 	return leaves
 }
 
-//calc the next level's hash use double sha256
+// calc the next level's hash use double sha256
 func levelUp(nodes []*merkleTreeNode) []*merkleTreeNode {
 	var nextLevel []*merkleTreeNode
 	for i := 0; i < len(nodes)/2; i++ {
@@ -155,7 +158,7 @@ func levelUp(nodes []*merkleTreeNode) []*merkleTreeNode {
 	return nextLevel
 }
 
-//input a []uint256, create a merkleTree & calc the root hash
+// input a []uint256, create a merkleTree & calc the root hash
 func computeMerkleRootOld(hashes []common.Uint256) common.Uint256 {
 	if len(hashes) == 0 {
 		return common.Uint256{}

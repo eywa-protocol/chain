@@ -19,6 +19,14 @@ const (
 	ReceiveRequestEventType TransactionType = 0x23
 )
 
+type ReqState uint8
+
+const (
+	ReqStateUnknown  ReqState = iota // request id not found in ledger
+	ReqStateReceived                 // event received
+	ReqStateSent                     // event sent to destination
+)
+
 func (tt TransactionType) String() string {
 	switch tt {
 	case InvokeType:
@@ -40,6 +48,8 @@ func (tt TransactionType) String() string {
 
 type Payload interface {
 	TxType() TransactionType
+	RequestState() ReqState
+	RequestId() [32]byte
 	ToJson() (json.RawMessage, error)
 	DstChainId() (uint64, bool)
 	Serialization(*common.ZeroCopySink) error
