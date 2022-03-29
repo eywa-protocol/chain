@@ -3,9 +3,10 @@ package ledgerstore
 import (
 	"crypto/sha256"
 	"fmt"
-	"github.com/eywa-protocol/bls-crypto/bls"
 	"math/big"
 	"testing"
+
+	"github.com/eywa-protocol/bls-crypto/bls"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/eywa-protocol/wrappers"
@@ -70,7 +71,7 @@ func TestBlockHash(t *testing.T) {
 	blockHeight := uint64(1)
 	testBlockStore.NewBatch()
 	testBlockStore.SaveBlockHash(blockHeight, blockHash)
-	blockHash = common.Uint256(sha256.Sum256([]byte("234567890")))
+	blockHash = sha256.Sum256([]byte("234567890"))
 	blockHeight = uint64(2)
 	testBlockStore.SaveBlockHash(blockHeight, blockHash)
 	err := testBlockStore.CommitTo()
@@ -199,7 +200,8 @@ func TestSaveBridgeEventTransaction(t *testing.T) {
 	require.Equal(t, txHash, tx1Hash)
 
 	sink2 := common.NewZeroCopySink(nil)
-	payload1.Serialization(sink2)
+	err = payload1.Serialization(sink2)
+	require.NoError(t, err)
 	var bridgeEvent2 payload.BridgeEvent
 	err = bridgeEvent2.Deserialization(common.NewZeroCopySource(sink2.Bytes()))
 	require.NoError(t, err)
@@ -249,7 +251,8 @@ func TestSaveEpochTransaction(t *testing.T) {
 	require.Equal(t, txHash, tx1Hash)
 
 	sink2 := common.NewZeroCopySink(nil)
-	payload1.Serialization(sink2)
+	err = payload1.Serialization(sink2)
+	require.NoError(t, err)
 	var ep2 payload.EpochEvent
 	err = ep2.Deserialization(common.NewZeroCopySource(sink2.Bytes()))
 	require.NoError(t, err)
@@ -346,17 +349,17 @@ func TestSaveHeader(t *testing.T) {
 }
 
 func TestBlock(t *testing.T) {
-	payload := &payload.InvokeCode{}
+	pld := &payload.InvokeCode{}
 
 	sink := common.NewZeroCopySink(nil)
-	err := payload.Serialization(sink)
+	err := pld.Serialization(sink)
 	if err != nil {
 		t.Errorf("TestBlock SerializeUnsigned error:%s", err)
 		return
 	}
-	_ = payload.Deserialization(common.NewZeroCopySource(sink.Bytes()))
+	_ = pld.Deserialization(common.NewZeroCopySource(sink.Bytes()))
 
-	tx := types.ToTransaction(payload)
+	tx := types.ToTransaction(pld)
 	block := types.NewBlock(1111, common.UINT256_EMPTY, common.UINT256_EMPTY, 2, 2, types.Transactions{tx})
 	blockHash := block.Hash()
 	tx1Hash := tx.Hash()
@@ -373,7 +376,7 @@ func TestBlock(t *testing.T) {
 		t.Errorf("CommitTo error %s", err)
 		return
 	}
-	//t.Log(blockHash)
+	// t.Log(blockHash)
 	b, err := testBlockStore.GetBlock(blockHash)
 	if err != nil {
 		t.Errorf("GetBlock error %s", err)

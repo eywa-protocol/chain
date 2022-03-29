@@ -21,6 +21,8 @@ import (
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
 )
 
+// TODO: fix unhandled errors, remove unused acc if not needed
+
 var (
 	lg, lg2                     *ledger.Ledger
 	err                         error
@@ -37,7 +39,7 @@ func TestMain(m *testing.M) {
 	lg2, _ = ledger.NewLedger(dbDir2, 1112)
 	acc = account.NewAccount(0)
 
-	genesisBlock, err = BuildGenesisBlock(0)
+	genesisBlock, err = BuildGenesisBlock(0, 0)
 	if err != nil {
 		fmt.Printf("BuildGenesisBlock error:%s\n", err)
 	}
@@ -114,7 +116,7 @@ func Test_GetGenesisFromFileAndInitNewLedger(t *testing.T) {
 }
 
 func TestGenesisBlockInit(t *testing.T) {
-	block, err := BuildGenesisBlock(0)
+	block, err := BuildGenesisBlock(0, 0)
 	assert.Nil(t, err)
 	assert.NotNil(t, block)
 	assert.Equal(t, block.Header.TransactionsRoot, common.UINT256_EMPTY)

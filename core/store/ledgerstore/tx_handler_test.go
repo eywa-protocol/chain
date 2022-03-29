@@ -29,8 +29,8 @@ func TestSyncMapRange(t *testing.T) {
 
 }
 
-//panic
-//func TestMapRange(t *testing.T) {
+// panic
+// func TestMapRange(t *testing.T) {
 //	m := make(map[string]int)
 //
 //	m["key"] = 10
@@ -39,11 +39,11 @@ func TestSyncMapRange(t *testing.T) {
 //		go add(m, i)
 //	}
 //
-//}
-
-func add(m map[string]int, va int) {
-	m["key"] = va
-}
+// }
+//
+// func add(m map[string]int, va int) {
+// 	m["key"] = va
+// }
 
 func TestSyncMapRW(t *testing.T) {
 	m := &sync.Map{}

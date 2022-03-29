@@ -2,10 +2,13 @@ package test
 
 import (
 	"bytes"
+	"testing"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
+
+// TODO: fix unhandled errors
 
 func TestUint256_Serialize(t *testing.T) {
 	var val common.Uint256

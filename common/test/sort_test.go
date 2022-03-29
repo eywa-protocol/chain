@@ -1,9 +1,10 @@
 package test
 
 import (
+	"testing"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestUint64Slice(t *testing.T) {

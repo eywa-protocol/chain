@@ -11,17 +11,17 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
-//LevelDB store
+// LevelDBStore level DB store
 type LevelDBStore struct {
 	db    *leveldb.DB // LevelDB instance
 	batch *leveldb.Batch
 }
 
-// used to compute the size of bloom filter bits array .
+// BITSPERKEY used to compute the size of bloom filter bits array .
 // too small will lead to high false positive rate.
 const BITSPERKEY = 10
 
-//NewLevelDBStore return LevelDBStore instance
+// NewLevelDBStore return LevelDBStore instance
 func NewLevelDBStore(file string) (*LevelDBStore, error) {
 	openFileCache := opt.DefaultOpenFilesCacheCapacity
 	maxOpenFiles, err := fdlimit.Current()
@@ -74,14 +74,14 @@ func NewMemLevelDBStore() (*LevelDBStore, error) {
 	}, nil
 }
 
-//Put a key-value pair to leveldb
-func (self *LevelDBStore) Put(key []byte, value []byte) error {
-	return self.db.Put(key, value, nil)
+// Put a key-value pair to leveldb
+func (s *LevelDBStore) Put(key []byte, value []byte) error {
+	return s.db.Put(key, value, nil)
 }
 
-//Get the value of a key from leveldb
-func (self *LevelDBStore) Get(key []byte) ([]byte, error) {
-	dat, err := self.db.Get(key, nil)
+// Get the value of a key from leveldb
+func (s *LevelDBStore) Get(key []byte) ([]byte, error) {
+	dat, err := s.db.Get(key, nil)
 	if err != nil {
 		if err == leveldb.ErrNotFound {
 			return nil, common.ErrNotFound
@@ -91,51 +91,51 @@ func (self *LevelDBStore) Get(key []byte) ([]byte, error) {
 	return dat, nil
 }
 
-//Has return whether the key is exist in leveldb
-func (self *LevelDBStore) Has(key []byte) (bool, error) {
-	return self.db.Has(key, nil)
+// Has return whether the key is exist in leveldb
+func (s *LevelDBStore) Has(key []byte) (bool, error) {
+	return s.db.Has(key, nil)
 }
 
-//Delete the the in leveldb
-func (self *LevelDBStore) Delete(key []byte) error {
-	return self.db.Delete(key, nil)
+// Delete the the in leveldb
+func (s *LevelDBStore) Delete(key []byte) error {
+	return s.db.Delete(key, nil)
 }
 
-//NewBatch start commit batch
-func (self *LevelDBStore) NewBatch() {
-	self.batch = new(leveldb.Batch)
+// NewBatch start commit batch
+func (s *LevelDBStore) NewBatch() {
+	s.batch = new(leveldb.Batch)
 }
 
-//BatchPut put a key-value pair to leveldb batch
-func (self *LevelDBStore) BatchPut(key []byte, value []byte) {
-	self.batch.Put(key, value)
+// BatchPut put a key-value pair to leveldb batch
+func (s *LevelDBStore) BatchPut(key []byte, value []byte) {
+	s.batch.Put(key, value)
 }
 
-//BatchDelete delete a key to leveldb batch
-func (self *LevelDBStore) BatchDelete(key []byte) {
-	self.batch.Delete(key)
+// BatchDelete delete a key to leveldb batch
+func (s *LevelDBStore) BatchDelete(key []byte) {
+	s.batch.Delete(key)
 }
 
-//BatchCommit commit batch to leveldb
-func (self *LevelDBStore) BatchCommit() error {
-	err := self.db.Write(self.batch, nil)
+// BatchCommit commit batch to leveldb
+func (s *LevelDBStore) BatchCommit() error {
+	err := s.db.Write(s.batch, nil)
 	if err != nil {
 		return err
 	}
-	self.batch = nil
+	s.batch = nil
 	return nil
 }
 
-//Close leveldb
-func (self *LevelDBStore) Close() error {
-	err := self.db.Close()
+// Close leveldb
+func (s *LevelDBStore) Close() error {
+	err := s.db.Close()
 	return err
 }
 
-//NewIterator return a iterator of leveldb with the key prefix
-func (self *LevelDBStore) NewIterator(prefix []byte) common.StoreIterator {
+// NewIterator return a iterator of leveldb with the key prefix
+func (s *LevelDBStore) NewIterator(prefix []byte) common.StoreIterator {
 
-	iter := self.db.NewIterator(util.BytesPrefix(prefix), nil)
+	iter := s.db.NewIterator(util.BytesPrefix(prefix), nil)
 
 	return iter
 }

@@ -1,6 +1,7 @@
 package ledgerstore
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -12,7 +13,6 @@ import (
 	"github.com/eywa-protocol/chain/native"
 
 	"github.com/eywa-protocol/chain/common"
-	"github.com/eywa-protocol/chain/common/log"
 	"github.com/eywa-protocol/chain/core/store"
 	"github.com/eywa-protocol/chain/core/types"
 	"github.com/eywa-protocol/chain/merkle"
@@ -20,6 +20,7 @@ import (
 	cstates "github.com/eywa-protocol/chain/native/states"
 	sstate "github.com/eywa-protocol/chain/native/states"
 	"github.com/eywa-protocol/chain/native/storage"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -43,6 +44,8 @@ type LedgerStoreImp struct {
 	storedIndexCount     uint64                           // record the count of have saved block index
 	currBlockHeight      uint64                           // Current block height
 	currBlockHash        common.Uint256                   // Current block hash
+	processedHeight      uint64                           // Processed source block height
+	chainId              uint64                           // Ledger chain id
 	headerCache          map[common.Uint256]*types.Header // BlockHash => Header
 	headerIndex          map[uint64]common.Uint256        // Header index, Mapping header height => block hash
 	savingBlockSemaphore chan bool
@@ -81,21 +84,21 @@ func NewLedgerStore(dataDir string) (*LedgerStoreImp, error) {
 }
 
 // InitLedgerStoreWithGenesisBlock init the ledger store with genesis block. It's the first operation after NewLedgerStore.
-func (this *LedgerStoreImp) InitLedgerStoreWithGenesisBlock(genesisBlock *types.Block) error {
-	hasInit, err := this.hasAlreadyInitGenesisBlock()
+func (s *LedgerStoreImp) InitLedgerStoreWithGenesisBlock(genesisBlock *types.Block) error {
+	hasInit, err := s.hasAlreadyInitGenesisBlock()
 	if err != nil {
 		return fmt.Errorf("hasAlreadyInit error %s", err)
 	}
 	if !hasInit {
-		err = this.blockStore.ClearAll()
+		err = s.blockStore.ClearAll()
 		if err != nil {
 			return fmt.Errorf("blockStore.ClearAll error %s", err)
 		}
-		err = this.stateStore.ClearAll()
+		err = s.stateStore.ClearAll()
 		if err != nil {
 			return fmt.Errorf("stateStore.ClearAll error %s", err)
 		}
-		err = this.eventStore.ClearAll()
+		err = s.eventStore.ClearAll()
 		if err != nil {
 			return fmt.Errorf("eventStore.ClearAll error %s", err)
 		}
@@ -109,31 +112,38 @@ func (this *LedgerStoreImp) InitLedgerStoreWithGenesisBlock(genesisBlock *types.
 		// 	return fmt.Errorf("SaveEpochState error %s", err)
 		// }
 
-		result, err := this.executeBlock(genesisBlock)
+		result, err := s.executeBlock(genesisBlock)
 		if err != nil {
 			return err
 		}
-		err = this.submitBlock(genesisBlock, result)
+		err = s.submitBlock(genesisBlock, result)
 		if err != nil {
 			return fmt.Errorf("save genesis block error %s", err)
 		}
-		err = this.initGenesisBlock()
+		err = s.initGenesisBlock()
 		if err != nil {
 			return fmt.Errorf("init error %s", err)
 		}
-		genHash := genesisBlock.Hash()
-		log.Infof("GenesisBlock init success. GenesisBlock hash:%s\n", genHash.ToHexString())
-		this.currBlockHash = genesisBlock.Hash()
+		s.processedHeight = genesisBlock.Header.SourceHeight
+		s.chainId = genesisBlock.Header.ChainID
+		s.currBlockHash = genesisBlock.Hash()
+		logrus.WithFields(logrus.Fields{
+			"chain_id":           s.chainId,
+			"height":             s.currBlockHeight,
+			"source_height":      s.processedHeight,
+			"processed_height":   s.processedHeight,
+			"genesis_block_hash": s.currBlockHash.ToHexString(),
+		}).Infof("Ledger initialized with new genesis block.")
 	} else {
 		genesisHash := genesisBlock.Hash()
-		exist, err := this.blockStore.ContainBlock(genesisHash)
+		exist, err := s.blockStore.ContainBlock(genesisHash)
 		if err != nil {
 			return fmt.Errorf("HashBlockExist error %s", err)
 		}
 		if !exist {
 			return fmt.Errorf("GenesisBlock is not inited correctly")
 		}
-		err = this.init()
+		err = s.init()
 		if err != nil {
 			return fmt.Errorf("init error %s", err)
 		}
@@ -142,121 +152,153 @@ func (this *LedgerStoreImp) InitLedgerStoreWithGenesisBlock(genesisBlock *types.
 	return err
 }
 
-func (this *LedgerStoreImp) hasAlreadyInitGenesisBlock() (bool, error) {
-	version, err := this.blockStore.GetVersion()
+func (s *LedgerStoreImp) hasAlreadyInitGenesisBlock() (bool, error) {
+	version, err := s.blockStore.GetVersion()
 	if err != nil && err != scom.ErrNotFound {
 		return false, fmt.Errorf("GetVersion error %s", err)
 	}
 	return version == SYSTEM_VERSION, nil
 }
 
-func (this *LedgerStoreImp) initGenesisBlock() error {
-	return this.blockStore.SaveVersion(SYSTEM_VERSION)
+func (s *LedgerStoreImp) initGenesisBlock() error {
+	return s.blockStore.SaveVersion(SYSTEM_VERSION)
 }
 
-func (this *LedgerStoreImp) init() error {
-	err := this.loadCurrentBlock()
+func (s *LedgerStoreImp) init() error {
+	err := s.loadCurrentBlock()
 	if err != nil {
-		return fmt.Errorf("loadCurrentBlock error %s", err)
+		return fmt.Errorf("loadCurrentBlock error: %w", err)
 	}
-	err = this.loadHeaderIndexList()
+	err = s.loadHeaderIndexList()
 	if err != nil {
-		return fmt.Errorf("loadHeaderIndexList error %s", err)
+		return fmt.Errorf("loadHeaderIndexList error: %w", err)
 	}
-	err = this.recoverStore()
+	err = s.recoverStore()
 	if err != nil {
-		return fmt.Errorf("recoverStore error %s", err)
+		return fmt.Errorf("recoverStore error: %w", err)
 	}
+	err = s.loadProcessedHeight()
+	if err != nil {
+		return fmt.Errorf("loadProcessedHeight error: %w", err)
+	}
+
 	return nil
 }
 
-func (this *LedgerStoreImp) loadCurrentBlock() error {
-	currentBlockHash, currentBlockHeight, err := this.blockStore.GetCurrentBlock()
+func (s *LedgerStoreImp) loadCurrentBlock() error {
+	currentBlockHash, currentBlockHeight, err := s.blockStore.GetCurrentBlock()
 	if err != nil {
 		return fmt.Errorf("LoadCurrentBlock error %s", err)
 	}
-	log.Infof("InitCurrentBlock currentBlockHash %s currentBlockHeight %d", currentBlockHash.ToHexString(), currentBlockHeight)
-	this.currBlockHash = currentBlockHash
-	this.currBlockHeight = currentBlockHeight
+	s.currBlockHash = currentBlockHash
+	s.currBlockHeight = currentBlockHeight
 	return nil
 }
 
-func (this *LedgerStoreImp) loadHeaderIndexList() error {
-	currBlockHeight := this.GetCurrentBlockHeight()
-	headerIndex, err := this.blockStore.GetHeaderIndexList()
+func (s *LedgerStoreImp) loadHeaderIndexList() error {
+	currBlockHeight := s.GetCurrentBlockHeight()
+	headerIndex, err := s.blockStore.GetHeaderIndexList()
 	if err != nil {
-		return fmt.Errorf("LoadHeaderIndexList error %s", err)
+		return fmt.Errorf("LoadHeaderIndexList error %w", err)
 	}
 	storeIndexCount := uint64(len(headerIndex))
-	this.headerIndex = headerIndex
-	this.storedIndexCount = storeIndexCount
+	s.headerIndex = headerIndex
+	s.storedIndexCount = storeIndexCount
 
 	for i := storeIndexCount; i <= currBlockHeight; i++ {
 		height := i
-		blockHash, err := this.blockStore.GetBlockHash(height)
+		blockHash, err := s.blockStore.GetBlockHash(height)
 		if err != nil {
-			return fmt.Errorf("LoadBlockHash height %d error %s", height, err)
+			return fmt.Errorf("LoadBlockHash height %d error %w", height, err)
 		}
 		if blockHash == common.UINT256_EMPTY {
 			return fmt.Errorf("LoadBlockHash height %d hash nil", height)
 		}
-		this.headerIndex[height] = blockHash
+		s.headerIndex[height] = blockHash
 	}
 	return nil
 }
 
-func (this *LedgerStoreImp) recoverStore() error {
-	blockHeight := this.GetCurrentBlockHeight()
+func (s *LedgerStoreImp) loadProcessedHeight() error {
+	if processedHeight, err := s.stateStore.getProcessedHeight(); err != nil {
+		return fmt.Errorf("stateStore.getProcessedHeight error %w", err)
+	} else if blockHash, _, err := s.blockStore.GetCurrentBlock(); err != nil {
+		return fmt.Errorf("blockStore.GetCurrentBlock error %w", err)
+	} else if head, err := s.blockStore.GetHeader(blockHash); err != nil {
+		return fmt.Errorf("blockStore.GetHeader error %w", err)
+	} else {
+		s.chainId = head.ChainID
+		if processedHeight < head.SourceHeight {
+			s.processedHeight = head.SourceHeight
+		} else if processedHeight > 0 {
+			s.processedHeight = processedHeight
+		} else {
+			return fmt.Errorf("processed height is zerro")
+		}
+		logrus.WithFields(logrus.Fields{
+			"chain_id":         s.chainId,
+			"height":           head.Height,
+			"source_height":    head.SourceHeight,
+			"processed_height": s.processedHeight,
+		}).Infof("Ledger initialized.")
+		return nil
+	}
 
-	_, stateHeight, err := this.stateStore.GetCurrentBlock()
+}
+
+func (s *LedgerStoreImp) recoverStore() error {
+	blockHeight := s.GetCurrentBlockHeight()
+
+	_, stateHeight, err := s.stateStore.GetCurrentBlock()
 	if err != nil {
-		return fmt.Errorf("stateStore.GetCurrentBlock error %s", err)
+		return fmt.Errorf("stateStore.GetCurrentBlock error %w", err)
 	}
 	for i := stateHeight; i < blockHeight; i++ {
-		blockHash, err := this.blockStore.GetBlockHash(i)
+		blockHash, err := s.blockStore.GetBlockHash(i)
 		if err != nil {
-			return fmt.Errorf("blockStore.GetBlockHash height:%d error:%s", i, err)
+			return fmt.Errorf("blockStore.GetBlockHash height:%d error:%w", i, err)
 		}
-		block, err := this.blockStore.GetBlock(blockHash)
+		block, err := s.blockStore.GetBlock(blockHash)
 		if err != nil {
-			return fmt.Errorf("blockStore.GetBlock height:%d error:%s", i, err)
+			return fmt.Errorf("blockStore.GetBlock height:%d error:%w", i, err)
 		}
-		this.eventStore.NewBatch()
-		this.stateStore.NewBatch()
-		result, err := this.executeBlock(block)
+		s.eventStore.NewBatch()
+		s.stateStore.NewBatch()
+		result, err := s.executeBlock(block)
 		if err != nil {
 			return err
 		}
-		err = this.saveBlockToStateStore(block, result)
+		err = s.saveBlockToStateStore(block, result)
 		if err != nil {
 			return fmt.Errorf("save to state store height:%d error:%s", i, err)
 		}
-		err = this.saveBlockToEventStore(block)
+		err = s.saveBlockToEventStore(block)
 		if err != nil {
 			return fmt.Errorf("save to event store height:%d error:%s", i, err)
 		}
-		err = this.eventStore.CommitTo()
+		err = s.eventStore.CommitTo()
 		if err != nil {
 			return fmt.Errorf("eventStore.CommitTo height:%d error %s", i, err)
 		}
-		err = this.stateStore.CommitTo()
+		err = s.stateStore.CommitTo()
 		if err != nil {
 			return fmt.Errorf("stateStore.CommitTo height:%d error %s", i, err)
 		}
 	}
+
 	return nil
 }
 
-func (this *LedgerStoreImp) setHeaderIndex(height uint64, blockHash common.Uint256) {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	this.headerIndex[height] = blockHash
+func (s *LedgerStoreImp) setHeaderIndex(height uint64, blockHash common.Uint256) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.headerIndex[height] = blockHash
 }
 
-func (this *LedgerStoreImp) getHeaderIndex(height uint64) common.Uint256 {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
-	blockHash, ok := this.headerIndex[height]
+func (s *LedgerStoreImp) getHeaderIndex(height uint64) common.Uint256 {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	blockHash, ok := s.headerIndex[height]
 	if !ok {
 		return common.Uint256{}
 	}
@@ -265,10 +307,10 @@ func (this *LedgerStoreImp) getHeaderIndex(height uint64) common.Uint256 {
 
 // GetCurrentHeaderHeight return the current header height.
 // In block sync states, Header height is usually higher than block height that is has already committed to storage
-func (this *LedgerStoreImp) GetCurrentHeaderHeight() uint64 {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
-	size := len(this.headerIndex)
+func (s *LedgerStoreImp) GetCurrentHeaderHeight() uint64 {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	size := len(s.headerIndex)
 	if size == 0 {
 		return 0
 	}
@@ -276,75 +318,75 @@ func (this *LedgerStoreImp) GetCurrentHeaderHeight() uint64 {
 }
 
 // GetCurrentHeaderHash return the current header hash. The current header means the latest header.
-func (this *LedgerStoreImp) GetCurrentHeaderHash() common.Uint256 {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
-	size := len(this.headerIndex)
+func (s *LedgerStoreImp) GetCurrentHeaderHash() common.Uint256 {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	size := len(s.headerIndex)
 	if size == 0 {
 		return common.Uint256{}
 	}
-	return this.headerIndex[uint64(size)-1]
+	return s.headerIndex[uint64(size)-1]
 }
 
-func (this *LedgerStoreImp) setCurrentBlock(height uint64, blockHash common.Uint256) {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	this.currBlockHash = blockHash
-	this.currBlockHeight = height
+func (s *LedgerStoreImp) setCurrentBlock(height uint64, blockHash common.Uint256) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.currBlockHash = blockHash
+	s.currBlockHeight = height
 	return
 }
 
 // GetCurrentBlock return the current block height, and block hash.
 // Current block means the latest block in store.
-func (this *LedgerStoreImp) GetCurrentBlock() (uint64, common.Uint256) {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
-	return this.currBlockHeight, this.currBlockHash
+func (s *LedgerStoreImp) GetCurrentBlock() (uint64, common.Uint256) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	return s.currBlockHeight, s.currBlockHash
 }
 
 // GetCurrentBlockHash return the current block hash
-func (this *LedgerStoreImp) GetCurrentBlockHash() common.Uint256 {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
-	return this.currBlockHash
+func (s *LedgerStoreImp) GetCurrentBlockHash() common.Uint256 {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	return s.currBlockHash
 }
 
 // GetCurrentBlockHeight return the current block height
-func (this *LedgerStoreImp) GetCurrentBlockHeight() uint64 {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
-	return this.currBlockHeight
+func (s *LedgerStoreImp) GetCurrentBlockHeight() uint64 {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	return s.currBlockHeight
 }
 
-func (this *LedgerStoreImp) addHeaderCache(header *types.Header) {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	this.headerCache[header.Hash()] = header
+func (s *LedgerStoreImp) addHeaderCache(header *types.Header) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.headerCache[header.Hash()] = header
 }
 
-func (this *LedgerStoreImp) delHeaderCache(blockHash common.Uint256) {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	delete(this.headerCache, blockHash)
+func (s *LedgerStoreImp) delHeaderCache(blockHash common.Uint256) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	delete(s.headerCache, blockHash)
 }
 
-func (this *LedgerStoreImp) getHeaderCache(blockHash common.Uint256) *types.Header {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
-	header, ok := this.headerCache[blockHash]
+func (s *LedgerStoreImp) getHeaderCache(blockHash common.Uint256) *types.Header {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	header, ok := s.headerCache[blockHash]
 	if !ok {
 		return nil
 	}
 	return header
 }
 
-func (this *LedgerStoreImp) verifyHeader(header *types.Header) error {
+func (s *LedgerStoreImp) verifyHeader(header *types.Header) error {
 	if header.Height == 0 {
 		return nil
 	}
 	var prevHeader *types.Header
 	prevHeaderHash := header.PrevBlockHash
-	prevHeader, err := this.GetHeaderByHash(prevHeaderHash)
+	prevHeader, err := s.GetHeaderByHash(prevHeaderHash)
 	if err != nil && err != scom.ErrNotFound {
 		return fmt.Errorf("get prev header error %s", err)
 	}
@@ -363,28 +405,28 @@ func (this *LedgerStoreImp) verifyHeader(header *types.Header) error {
 }
 
 // AddHeader add header to cache, and add the mapping of block height to block hash. Using in block sync
-func (this *LedgerStoreImp) AddHeader(header *types.Header) error {
-	nextHeaderHeight := this.GetCurrentHeaderHeight() + 1
+func (s *LedgerStoreImp) AddHeader(header *types.Header) error {
+	nextHeaderHeight := s.GetCurrentHeaderHeight() + 1
 	if header.Height != nextHeaderHeight {
 		return fmt.Errorf("header height %d not equal next header height %d", header.Height, nextHeaderHeight)
 	}
-	err := this.verifyHeader(header)
+	err := s.verifyHeader(header)
 	if err != nil {
 		return fmt.Errorf("AddHeader verifyHeader error %s", err)
 	}
-	this.addHeaderCache(header)
-	this.setHeaderIndex(header.Height, header.Hash())
+	s.addHeaderCache(header)
+	s.setHeaderIndex(header.Height, header.Hash())
 	return nil
 }
 
 // AddHeaders bath add header.
-func (this *LedgerStoreImp) AddHeaders(headers []*types.Header) error {
+func (s *LedgerStoreImp) AddHeaders(headers []*types.Header) error {
 	sort.Slice(headers, func(i, j int) bool {
 		return headers[i].Height < headers[j].Height
 	})
 	var err error
 	for _, header := range headers {
-		err = this.AddHeader(header)
+		err = s.AddHeader(header)
 		if err != nil {
 			return err
 		}
@@ -392,21 +434,21 @@ func (this *LedgerStoreImp) AddHeaders(headers []*types.Header) error {
 	return nil
 }
 
-func (this *LedgerStoreImp) GetStateMerkleRoot(height uint64) (common.Uint256, error) {
-	return this.stateStore.GetStateMerkleRoot(height)
+func (s *LedgerStoreImp) GetStateMerkleRoot(height uint64) (common.Uint256, error) {
+	return s.stateStore.GetStateMerkleRoot(height)
 }
 
-func (this *LedgerStoreImp) GetCrossStateRoot(height uint64) (common.Uint256, error) {
-	return this.stateStore.GetCrossStateRoot(height)
+func (s *LedgerStoreImp) GetCrossStateRoot(height uint64) (common.Uint256, error) {
+	return s.stateStore.GetCrossStateRoot(height)
 }
 
-func (this *LedgerStoreImp) ExecuteBlock(block *types.Block) (result store.ExecuteResult, err error) {
-	this.getSavingBlockLock()
-	defer this.releaseSavingBlockLock()
-	currBlockHeight := this.GetCurrentBlockHeight()
+func (s *LedgerStoreImp) ExecuteBlock(block *types.Block) (result store.ExecuteResult, err error) {
+	s.getSavingBlockLock()
+	defer s.releaseSavingBlockLock()
+	currBlockHeight := s.GetCurrentBlockHeight()
 	blockHeight := block.Header.Height
 	if blockHeight <= currBlockHeight {
-		result.MerkleRoot, err = this.GetStateMerkleRoot(blockHeight)
+		result.MerkleRoot, err = s.GetStateMerkleRoot(blockHeight)
 		return
 	}
 	nextBlockHeight := currBlockHeight + 1
@@ -414,14 +456,14 @@ func (this *LedgerStoreImp) ExecuteBlock(block *types.Block) (result store.Execu
 		err = fmt.Errorf("block height %d not equal next block height %d", blockHeight, nextBlockHeight)
 		return
 	}
-	result, err = this.executeBlock(block)
+	result, err = s.executeBlock(block)
 	return
 }
 
-func (this *LedgerStoreImp) SubmitBlock(block *types.Block, result store.ExecuteResult) error {
-	this.getSavingBlockLock()
-	defer this.releaseSavingBlockLock()
-	currBlockHeight := this.GetCurrentBlockHeight()
+func (s *LedgerStoreImp) SubmitBlock(block *types.Block, result store.ExecuteResult) error {
+	s.getSavingBlockLock()
+	defer s.releaseSavingBlockLock()
+	currBlockHeight := s.GetCurrentBlockHeight()
 	blockHeight := block.Header.Height
 	if blockHeight <= currBlockHeight {
 		return nil
@@ -430,7 +472,7 @@ func (this *LedgerStoreImp) SubmitBlock(block *types.Block, result store.Execute
 	if blockHeight != nextBlockHeight {
 		return fmt.Errorf("block height %d not equal next block height %d", blockHeight, nextBlockHeight)
 	}
-	err := this.verifyHeader(block.Header)
+	err := s.verifyHeader(block.Header)
 	if err != nil {
 		return fmt.Errorf("SubmitBlock verifyHeader error %s", err)
 	}
@@ -440,18 +482,18 @@ func (this *LedgerStoreImp) SubmitBlock(block *types.Block, result store.Execute
 		return fmt.Errorf("SubmitBlock block integrity error %s", err)
 	}
 
-	err = this.submitBlock(block, result)
+	err = s.submitBlock(block, result)
 	if err != nil {
 		return fmt.Errorf("saveBlock error %s", err)
 	}
-	this.delHeaderCache(block.Hash())
+	s.delHeaderCache(block.Hash())
 	return nil
 }
 
 // AddBlock add the block to store.
 // When the block is not the next block, it will be cache. until the missing block arrived
-func (this *LedgerStoreImp) AddBlock(block *types.Block, stateMerkleRoot common.Uint256) error {
-	currBlockHeight := this.GetCurrentBlockHeight()
+func (s *LedgerStoreImp) AddBlock(block *types.Block, stateMerkleRoot common.Uint256) error {
+	currBlockHeight := s.GetCurrentBlockHeight()
 	blockHeight := block.Header.Height
 	if blockHeight <= currBlockHeight {
 		return nil
@@ -460,25 +502,25 @@ func (this *LedgerStoreImp) AddBlock(block *types.Block, stateMerkleRoot common.
 	if blockHeight != nextBlockHeight {
 		return fmt.Errorf("block height %d not equal next block height %d", blockHeight, nextBlockHeight)
 	}
-	err := this.verifyHeader(block.Header)
+	err := s.verifyHeader(block.Header)
 	if err != nil {
 		return fmt.Errorf("AddBlock stateMerkleRoot verifyHeader error %s", err)
 	}
 
-	err = this.saveBlock(block, stateMerkleRoot)
+	err = s.saveBlock(block, stateMerkleRoot)
 	if err != nil {
 		return fmt.Errorf("saveBlock error %s", err)
 	}
-	this.delHeaderCache(block.Hash())
+	s.delHeaderCache(block.Hash())
 	return nil
 }
 
-func (this *LedgerStoreImp) GetCrossStatesProof(height uint64, key []byte) ([]byte, error) {
-	hashes, err := this.stateStore.GetCrossStates(height)
+func (s *LedgerStoreImp) GetCrossStatesProof(height uint64, key []byte) ([]byte, error) {
+	hashes, err := s.stateStore.GetCrossStates(height)
 	if err != nil {
 		return nil, fmt.Errorf("GetCrossStates:%s", err)
 	}
-	state, err := this.stateStore.GetStorageValue(key)
+	state, err := s.stateStore.GetStorageValue(key)
 	if err != nil {
 		return nil, fmt.Errorf("GetStorageState key:%x", key)
 	}
@@ -489,73 +531,75 @@ func (this *LedgerStoreImp) GetCrossStatesProof(height uint64, key []byte) ([]by
 	return path, nil
 }
 
-func (this *LedgerStoreImp) saveBlockToBlockStore(block *types.Block) error {
+func (s *LedgerStoreImp) saveBlockToBlockStore(block *types.Block) error {
 	blockHash := block.Hash()
 	blockHeight := block.Header.Height
 
-	this.setHeaderIndex(blockHeight, blockHash)
-	err := this.saveHeaderIndexList()
+	s.setHeaderIndex(blockHeight, blockHash)
+	err := s.saveHeaderIndexList()
 	if err != nil {
 		return fmt.Errorf("saveHeaderIndexList error %s", err)
 	}
-	err = this.blockStore.SaveCurrentBlock(blockHeight, blockHash)
+	err = s.blockStore.SaveCurrentBlock(blockHeight, blockHash)
 	if err != nil {
 		return fmt.Errorf("SaveCurrentBlock error %s", err)
 	}
-	this.blockStore.SaveBlockHash(blockHeight, blockHash)
-	err = this.blockStore.SaveBlock(block)
+	s.blockStore.SaveBlockHash(blockHeight, blockHash)
+	err = s.blockStore.SaveBlock(block)
 	if err != nil {
 		return fmt.Errorf("SaveBlock height %d hash %s error %s", blockHeight, blockHash.ToHexString(), err)
 	}
 	return nil
 }
 
-func (this *LedgerStoreImp) executeBlock(block *types.Block) (result store.ExecuteResult, err error) {
-	overlay := this.stateStore.NewOverlayDB()
+// TODO: remove block param if not needed
+
+func (s *LedgerStoreImp) executeBlock(block *types.Block) (result store.ExecuteResult, err error) {
+	overlay := s.stateStore.NewOverlayDB()
 	result.Hash = overlay.ChangeHash()
 	result.WriteSet = overlay.GetWriteSet()
-	result.MerkleRoot = this.stateStore.GetStateMerkleRootWithNewHash(result.Hash)
+	result.MerkleRoot = s.stateStore.GetStateMerkleRootWithNewHash(result.Hash)
 	return
 }
 
-func (this *LedgerStoreImp) saveBlockToStateStore(block *types.Block, result store.ExecuteResult) error {
+func (s *LedgerStoreImp) saveBlockToStateStore(block *types.Block, result store.ExecuteResult) error {
 	blockHash := block.Hash()
 	blockHeight := block.Header.Height
 
-	err := this.stateStore.AddStateMerkleTreeRoot(blockHeight, result.Hash)
+	err := s.stateStore.AddStateMerkleTreeRoot(blockHeight, result.Hash)
 	if err != nil {
 		return fmt.Errorf("AddBlockMerkleTreeRoot error %s", err)
 	}
 
-	err = this.stateStore.AddBlockMerkleTreeRoot(block.Header.PrevBlockHash)
+	err = s.stateStore.AddBlockMerkleTreeRoot(block.Header.PrevBlockHash)
 	if err != nil {
 		return fmt.Errorf("AddBlockMerkleTreeRoot error %s", err)
 	}
 
-	err = this.stateStore.SaveCurrentBlock(blockHeight, blockHash)
+	err = s.stateStore.SaveCurrentBlock(blockHeight, blockHash)
 	if err != nil {
 		return fmt.Errorf("SaveCurrentBlock error %s", err)
 	}
 
-	err = this.stateStore.AddCrossStates(blockHeight, result.CrossHashes, result.CrossStatesRoot)
+	err = s.stateStore.AddCrossStates(blockHeight, result.CrossHashes, result.CrossStatesRoot)
 	if err != nil {
 		return err
 	}
 
-	log.Debugf("the state transition hash of block %d is:%s", blockHeight, result.Hash.ToHexString())
+	logrus.Debugf("the state transition hash of block %d is:%s", blockHeight, result.Hash.ToHexString())
 
 	result.WriteSet.ForEach(func(key, val []byte) {
 		if len(val) == 0 {
-			this.stateStore.BatchDeleteRawKey(key)
+			s.stateStore.BatchDeleteRawKey(key)
 		} else {
-			this.stateStore.BatchPutRawKeyVal(key, val)
+			s.stateStore.BatchPutRawKeyVal(key, val)
 		}
 	})
 
 	return nil
 }
 
-func (this *LedgerStoreImp) saveBlockToEventStore(block *types.Block) error {
+func (s *LedgerStoreImp) saveBlockToEventStore(block *types.Block) error {
 	blockHash := block.Hash()
 	blockHeight := block.Header.Height
 	txs := make([]common.Uint256, 0)
@@ -564,34 +608,34 @@ func (this *LedgerStoreImp) saveBlockToEventStore(block *types.Block) error {
 		txs = append(txs, txHash)
 	}
 	if len(txs) > 0 {
-		err := this.eventStore.SaveEventNotifyByBlock(block.Header.Height, txs)
+		err := s.eventStore.SaveEventNotifyByBlock(block.Header.Height, txs)
 		if err != nil {
 			return fmt.Errorf("SaveEventNotifyByBlock error %s", err)
 		}
 	}
-	err := this.eventStore.SaveCurrentBlock(blockHeight, blockHash)
+	err := s.eventStore.SaveCurrentBlock(blockHeight, blockHash)
 	if err != nil {
 		return fmt.Errorf("SaveCurrentBlock error %s", err)
 	}
 	return nil
 }
 
-func (this *LedgerStoreImp) tryGetSavingBlockLock() (hasLocked bool) {
+func (s *LedgerStoreImp) tryGetSavingBlockLock() (hasLocked bool) {
 	select {
-	case this.savingBlockSemaphore <- true:
+	case s.savingBlockSemaphore <- true:
 		return false
 	default:
 		return true
 	}
 }
 
-func (this *LedgerStoreImp) getSavingBlockLock() {
-	this.savingBlockSemaphore <- true
+func (s *LedgerStoreImp) getSavingBlockLock() {
+	s.savingBlockSemaphore <- true
 }
 
-func (this *LedgerStoreImp) releaseSavingBlockLock() {
+func (s *LedgerStoreImp) releaseSavingBlockLock() {
 	select {
-	case <-this.savingBlockSemaphore:
+	case <-s.savingBlockSemaphore:
 		return
 	default:
 		panic("can not release in unlocked state")
@@ -599,7 +643,7 @@ func (this *LedgerStoreImp) releaseSavingBlockLock() {
 }
 
 // saveBlock do the job of execution samrt contract and commit block to store.
-func (this *LedgerStoreImp) submitBlock(block *types.Block, result store.ExecuteResult) error {
+func (s *LedgerStoreImp) submitBlock(block *types.Block, result store.ExecuteResult) error {
 	blockHash := block.Hash()
 	blockHeight := block.Header.Height
 
@@ -609,35 +653,35 @@ func (this *LedgerStoreImp) submitBlock(block *types.Block, result store.Execute
 	// 		block.Header.Height, blockRoot.ToHexString(), block.Header.BlockRoot.ToHexString())
 	// }
 
-	this.blockStore.NewBatch()
-	this.stateStore.NewBatch()
-	this.eventStore.NewBatch()
-	err := this.saveBlockToBlockStore(block)
+	s.blockStore.NewBatch()
+	s.stateStore.NewBatch()
+	s.eventStore.NewBatch()
+	err := s.saveBlockToBlockStore(block)
 	if err != nil {
 		return fmt.Errorf("save to block store height:%d error:%s", blockHeight, err)
 	}
-	err = this.saveBlockToStateStore(block, result)
+	err = s.saveBlockToStateStore(block, result)
 	if err != nil {
 		return fmt.Errorf("save to state store height:%d error:%s", blockHeight, err)
 	}
-	err = this.saveBlockToEventStore(block)
+	err = s.saveBlockToEventStore(block)
 	if err != nil {
 		return fmt.Errorf("save to event store height:%d error:%s", blockHeight, err)
 	}
-	err = this.blockStore.CommitTo()
+	err = s.blockStore.CommitTo()
 	if err != nil {
 		return fmt.Errorf("blockStore.CommitTo height:%d error %s", blockHeight, err)
 	}
 	// event store is idempotent to re-save when in recovering process, so save first before stateStore
-	err = this.eventStore.CommitTo()
+	err = s.eventStore.CommitTo()
 	if err != nil {
 		return fmt.Errorf("eventStore.CommitTo height:%d error %s", blockHeight, err)
 	}
-	err = this.stateStore.CommitTo()
+	err = s.stateStore.CommitTo()
 	if err != nil {
 		return fmt.Errorf("stateStore.CommitTo height:%d error %s", blockHeight, err)
 	}
-	this.setCurrentBlock(blockHeight, blockHash)
+	s.setCurrentBlock(blockHeight, blockHash)
 
 	// if events.DefActorPublisher != nil {
 	//	events.DefActorPublisher.Publish(
@@ -650,67 +694,67 @@ func (this *LedgerStoreImp) submitBlock(block *types.Block, result store.Execute
 }
 
 // saveBlock do the job of execution samrt contract and commit block to store.
-func (this *LedgerStoreImp) saveBlock(block *types.Block, stateMerkleRoot common.Uint256) error {
+func (s *LedgerStoreImp) saveBlock(block *types.Block, stateMerkleRoot common.Uint256) error {
 	blockHeight := block.Header.Height
-	if this.tryGetSavingBlockLock() {
+	if s.tryGetSavingBlockLock() {
 		// hash already saved or is saving
 		return nil
 	}
-	defer this.releaseSavingBlockLock()
-	if blockHeight > 0 && blockHeight != (this.GetCurrentBlockHeight()+1) {
+	defer s.releaseSavingBlockLock()
+	if blockHeight > 0 && blockHeight != (s.GetCurrentBlockHeight()+1) {
 		return nil
 	}
 
-	result, err := this.executeBlock(block)
+	result, err := s.executeBlock(block)
 	if err != nil {
 		return err
 	}
 
 	if result.MerkleRoot != stateMerkleRoot {
-		return fmt.Errorf("state merkle root mismatch!")
+		return errors.New("state merkle root mismatch")
 	}
 
-	return this.submitBlock(block, result)
+	return s.submitBlock(block, result)
 }
 
-func (this *LedgerStoreImp) saveHeaderIndexList() error {
-	this.lock.RLock()
-	storeCount := this.storedIndexCount
-	currHeight := this.currBlockHeight
+func (s *LedgerStoreImp) saveHeaderIndexList() error {
+	s.lock.RLock()
+	storeCount := s.storedIndexCount
+	currHeight := s.currBlockHeight
 	if currHeight-storeCount < HEADER_INDEX_BATCH_SIZE {
-		this.lock.RUnlock()
+		s.lock.RUnlock()
 		return nil
 	}
 
 	headerList := make([]common.Uint256, HEADER_INDEX_BATCH_SIZE)
 	for i := uint64(0); i < HEADER_INDEX_BATCH_SIZE; i++ {
 		height := storeCount + i
-		headerList[i] = this.headerIndex[height]
+		headerList[i] = s.headerIndex[height]
 	}
-	this.lock.RUnlock()
+	s.lock.RUnlock()
 
-	err := this.blockStore.SaveHeaderIndexList(storeCount, headerList)
+	err := s.blockStore.SaveHeaderIndexList(storeCount, headerList)
 	if err != nil {
 		return fmt.Errorf("SaveHeaderIndexList start %d error %s", storeCount, err)
 	}
 
-	this.lock.Lock()
-	this.storedIndexCount += HEADER_INDEX_BATCH_SIZE
-	this.lock.Unlock()
+	s.lock.Lock()
+	s.storedIndexCount += HEADER_INDEX_BATCH_SIZE
+	s.lock.Unlock()
 	return nil
 }
 
-func (this *LedgerStoreImp) PreExecuteContract(tx payload.Payload) (*cstates.PreExecResult, error) {
+func (s *LedgerStoreImp) PreExecuteContract(tx payload.Payload) (*cstates.PreExecResult, error) {
 	result := &sstate.PreExecResult{State: event.CONTRACT_STATE_FAIL, Result: nil}
 	if _, ok := tx.(*payload.InvokeCode); !ok {
 		return result, fmt.Errorf("transaction payload type error")
 	}
-	hash := this.GetCurrentBlockHash()
-	block, err := this.GetBlockByHash(hash)
+	hash := s.GetCurrentBlockHash()
+	block, err := s.GetBlockByHash(hash)
 	if err != nil {
 		return result, fmt.Errorf("get current block error")
 	}
-	overlay := this.stateStore.NewOverlayDB()
+	overlay := s.stateStore.NewOverlayDB()
 	cache := storage.NewCacheDB(overlay)
 
 	service, err := native.NewNativeService(cache, tx, block.Header.Height,
@@ -726,110 +770,157 @@ func (this *LedgerStoreImp) PreExecuteContract(tx payload.Payload) (*cstates.Pre
 }
 
 // IsContainBlock return whether the block is in store
-func (this *LedgerStoreImp) IsContainBlock(blockHash common.Uint256) (bool, error) {
-	return this.blockStore.ContainBlock(blockHash)
+func (s *LedgerStoreImp) IsContainBlock(blockHash common.Uint256) (bool, error) {
+	return s.blockStore.ContainBlock(blockHash)
 }
 
 // IsContainTransaction return whether the transaction is in store. Wrap function of BlockStore.ContainTransaction
-func (this *LedgerStoreImp) IsContainTransaction(txHash common.Uint256) (bool, error) {
-	return this.blockStore.ContainTransaction(txHash)
+func (s *LedgerStoreImp) IsContainTransaction(txHash common.Uint256) (bool, error) {
+	return s.blockStore.ContainTransaction(txHash)
 }
 
-func (this *LedgerStoreImp) GetBlockRootWithPreBlockHashes(startHeight uint64, preBlockHashes []common.Uint256) common.Uint256 {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
+func (s *LedgerStoreImp) GetBlockRootWithPreBlockHashes(startHeight uint64, preBlockHashes []common.Uint256) common.Uint256 {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
 
 	// the block height in consensus is far behind ledger, this case should be rare
-	if this.currBlockHeight > startHeight+uint64(len(preBlockHashes))-1 {
+	if s.currBlockHeight > startHeight+uint64(len(preBlockHashes))-1 {
 		// or return error?
-		log.Errorf("this.currBlockHeight= %d, startHeight= %d, len(preBlockHashes)= %d\n", this.currBlockHeight, startHeight, len(preBlockHashes))
+		logrus.Errorf("s.currBlockHeight= %d, startHeight= %d, len(preBlockHashes)= %d\n", s.currBlockHeight, startHeight, len(preBlockHashes))
 		return common.UINT256_EMPTY
 	}
 
-	needs := preBlockHashes[this.currBlockHeight+1-startHeight:]
-	return this.stateStore.GetBlockRootWithPreBlockHashes(needs)
+	needs := preBlockHashes[s.currBlockHeight+1-startHeight:]
+	return s.stateStore.GetBlockRootWithPreBlockHashes(needs)
 }
 
 // GetBlockHash return the block hash by block height
-func (this *LedgerStoreImp) GetBlockHash(height uint64) common.Uint256 {
-	return this.getHeaderIndex(height)
+func (s *LedgerStoreImp) GetBlockHash(height uint64) common.Uint256 {
+	return s.getHeaderIndex(height)
 }
 
 // GetHeaderByHash return the block header by block hash
-func (this *LedgerStoreImp) GetHeaderByHash(blockHash common.Uint256) (*types.Header, error) {
-	header := this.getHeaderCache(blockHash)
+func (s *LedgerStoreImp) GetHeaderByHash(blockHash common.Uint256) (*types.Header, error) {
+	header := s.getHeaderCache(blockHash)
 	if header != nil {
 		return header, nil
 	}
-	return this.blockStore.GetHeader(blockHash)
+	return s.blockStore.GetHeader(blockHash)
 }
 
-// GetHeaderByHash return the block header by block height
-func (this *LedgerStoreImp) GetHeaderByHeight(height uint64) (*types.Header, error) {
-	blockHash := this.GetBlockHash(height)
+// GetHeaderByHeight return the block header by block height
+func (s *LedgerStoreImp) GetHeaderByHeight(height uint64) (*types.Header, error) {
+	blockHash := s.GetBlockHash(height)
 	var empty common.Uint256
 	if blockHash == empty {
 		return nil, nil
 	}
-	return this.GetHeaderByHash(blockHash)
+	return s.GetHeaderByHash(blockHash)
 }
 
 // GetTransaction return transaction by transaction hash. Wrap function of BlockStore.GetTransaction
-func (this *LedgerStoreImp) GetTransaction(txHash common.Uint256) (payload.Payload, uint64, error) {
-	return this.blockStore.GetTransaction(txHash)
+func (s *LedgerStoreImp) GetTransaction(txHash common.Uint256) (payload.Payload, uint64, error) {
+	return s.blockStore.GetTransaction(txHash)
+}
+
+// GetTransactionByReqId return transaction by request id. Wrap function of BlockStore.GetTransactionByReqId
+func (s *LedgerStoreImp) GetTransactionByReqId(reqId [32]byte) (payload.Payload, uint64, error) {
+	return s.blockStore.GetTransactionByReqId(reqId)
+}
+
+// GetRequestState return request state by request id. Wrap function of BlockStore.GetRequestState
+func (s *LedgerStoreImp) GetRequestState(reqId [32]byte) (payload.ReqState, error) {
+	return s.blockStore.GetRequestState(reqId)
 }
 
 // GetBlockByHash return block by block hash. Wrap function of BlockStore.GetBlockByHash
-func (this *LedgerStoreImp) GetBlockByHash(blockHash common.Uint256) (*types.Block, error) {
-	return this.blockStore.GetBlock(blockHash)
+func (s *LedgerStoreImp) GetBlockByHash(blockHash common.Uint256) (*types.Block, error) {
+	return s.blockStore.GetBlock(blockHash)
 }
 
 // GetBlockByHeight return block by height.
-func (this *LedgerStoreImp) GetBlockByHeight(height uint64) (*types.Block, error) {
-	blockHash := this.GetBlockHash(height)
+func (s *LedgerStoreImp) GetBlockByHeight(height uint64) (*types.Block, error) {
+	blockHash := s.GetBlockHash(height)
 	var empty common.Uint256
 	if blockHash == empty {
 		return nil, nil
 	}
-	return this.GetBlockByHash(blockHash)
+	return s.GetBlockByHash(blockHash)
 }
 
 // GetEpochState return the bookkeeper state. Wrap function of StateStore.GetEpochState
-func (this *LedgerStoreImp) GetEpochState() (*states.EpochState, error) {
-	return this.stateStore.GetEpochState()
+func (s *LedgerStoreImp) GetEpochState() (*states.EpochState, error) {
+	return s.stateStore.GetEpochState()
 }
 
 // GetMerkleProof return the block merkle proof. Wrap function of StateStore.GetMerkleProof
-func (this *LedgerStoreImp) GetMerkleProof(raw []byte, proofHeight, rootHeight uint64) ([]byte, error) {
-	return this.stateStore.GetMerkleProof(raw, proofHeight, rootHeight)
+func (s *LedgerStoreImp) GetMerkleProof(raw []byte, proofHeight, rootHeight uint64) ([]byte, error) {
+	return s.stateStore.GetMerkleProof(raw, proofHeight, rootHeight)
 }
 
 // GetStorageItem return the storage value of the key in smart contract. Wrap function of StateStore.GetStorageState
-func (this *LedgerStoreImp) GetStorageItem(key *states.StorageKey) (*states.StorageItem, error) {
-	return this.stateStore.GetStorageState(key)
+func (s *LedgerStoreImp) GetStorageItem(key *states.StorageKey) (*states.StorageItem, error) {
+	return s.stateStore.GetStorageState(key)
 }
 
 // GetEventNotifyByTx return the events notify gen by executing of smart contract.  Wrap function of EventStore.GetEventNotifyByTx
-func (this *LedgerStoreImp) GetEventNotifyByTx(tx common.Uint256) (*event.ExecuteNotify, error) {
-	return this.eventStore.GetEventNotifyByTx(tx)
+func (s *LedgerStoreImp) GetEventNotifyByTx(tx common.Uint256) (*event.ExecuteNotify, error) {
+	return s.eventStore.GetEventNotifyByTx(tx)
 }
 
 // GetEventNotifyByBlock return the transaction hash which have event notice after execution of smart contract. Wrap function of EventStore.GetEventNotifyByBlock
-func (this *LedgerStoreImp) GetEventNotifyByBlock(height uint64) ([]*event.ExecuteNotify, error) {
-	return this.eventStore.GetEventNotifyByBlock(height)
+func (s *LedgerStoreImp) GetEventNotifyByBlock(height uint64) ([]*event.ExecuteNotify, error) {
+	return s.eventStore.GetEventNotifyByBlock(height)
+}
+
+// GetProcessedHeight return source chain processed height
+// Note: processed height is not last stored block types.Header.SourceHeight
+func (s *LedgerStoreImp) GetProcessedHeight() uint64 {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+
+	return s.processedHeight
+}
+
+// SetProcessedHeight set source chain processed height to ledger
+func (s *LedgerStoreImp) SetProcessedHeight(srcBlockHeight uint64) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	if srcBlockHeight > s.processedHeight {
+		s.processedHeight = srcBlockHeight
+	}
+}
+
+// saveProcessedHeight save processed height to ledger state store
+func (s *LedgerStoreImp) saveProcessedHeight() error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.stateStore.NewBatch()
+	if err := s.stateStore.SaveProcessedHeight(s.processedHeight); err != nil {
+		return fmt.Errorf("save processed height [%d] error: %w", s.processedHeight, err)
+	}
+
+	return s.stateStore.CommitTo()
 }
 
 // Close ledger store.
-func (this *LedgerStoreImp) Close() error {
-	err := this.blockStore.Close()
+func (s *LedgerStoreImp) Close() error {
+	if err := s.saveProcessedHeight(); err != nil {
+		logrus.Error(err)
+	}
+
+	s.lock.RLock()
+	logrus.Infof("gracefull shutdown ledger.  processed height: %d", s.processedHeight)
+	s.lock.RUnlock()
+	err := s.blockStore.Close()
 	if err != nil {
 		return fmt.Errorf("blockStore close error %s", err)
 	}
-	err = this.stateStore.Close()
+	err = s.stateStore.Close()
 	if err != nil {
 		return fmt.Errorf("stateStore close error %s", err)
 	}
-	err = this.eventStore.Close()
+	err = s.eventStore.Close()
 	if err != nil {
 		return fmt.Errorf("eventStore close error %s", err)
 	}

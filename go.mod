@@ -12,6 +12,7 @@ require (
 	github.com/itchyny/base58-go v0.1.0
 	github.com/near/borsh-go v0.3.1-0.20210831082424-4377deff6791
 	github.com/ontio/ontology-crypto v1.2.1
+	github.com/sirupsen/logrus v1.2.0
 	github.com/stretchr/testify v1.7.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	gitlab.digiu.ai/blockchainlaboratory/eywa-solana v1.2.2

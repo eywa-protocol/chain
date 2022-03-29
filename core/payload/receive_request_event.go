@@ -19,6 +19,14 @@ func (e *ReceiveRequestEvent) TxType() TransactionType {
 	return ReceiveRequestEventType
 }
 
+func (e *ReceiveRequestEvent) RequestState() ReqState {
+	return ReqStateSent
+}
+
+func (e *ReceiveRequestEvent) RequestId() [32]byte {
+	return e.OriginData.ReqId
+}
+
 func (e *ReceiveRequestEvent) ToJson() (json.RawMessage, error) {
 	return json.Marshal(e.OriginData)
 }

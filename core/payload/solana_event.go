@@ -22,6 +22,14 @@ func (e *BridgeSolanaEvent) TxType() TransactionType {
 	return BridgeEventSolanaType
 }
 
+func (e *BridgeSolanaEvent) RequestState() ReqState {
+	return ReqStateReceived
+}
+
+func (e *BridgeSolanaEvent) RequestId() [32]byte {
+	return e.OriginData.RequestId
+}
+
 func (e *BridgeSolanaEvent) ToJson() (json.RawMessage, error) {
 	return json.Marshal(e.OriginData)
 }

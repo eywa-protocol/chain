@@ -13,6 +13,8 @@ type StateCache struct {
 	stateCache *lru.ARCCache
 }
 
+// TODO: add state cache to state store
+
 func NewStateCache() (*StateCache, error) {
 	stateCache, err := lru.NewARC(STATE_CACHE_SIZE)
 	if err != nil {
@@ -23,18 +25,18 @@ func NewStateCache() (*StateCache, error) {
 	}, nil
 }
 
-func (this *StateCache) GetState(key []byte) states.StateValue {
-	state, ok := this.stateCache.Get(string(key))
+func (c *StateCache) GetState(key []byte) states.StateValue {
+	state, ok := c.stateCache.Get(string(key))
 	if !ok {
 		return nil
 	}
 	return state.(states.StateValue)
 }
 
-func (this *StateCache) AddState(key []byte, state states.StateValue) {
-	this.stateCache.Add(string(key), state)
+func (c *StateCache) AddState(key []byte, state states.StateValue) {
+	c.stateCache.Add(string(key), state)
 }
 
-func (this *StateCache) DeleteState(key []byte) {
-	this.stateCache.Remove(string(key))
+func (c *StateCache) DeleteState(key []byte) {
+	c.stateCache.Remove(string(key))
 }

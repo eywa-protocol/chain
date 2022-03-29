@@ -4,13 +4,16 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"github.com/eywa-protocol/chain/common"
 	"io"
 	"math"
+
+	"github.com/eywa-protocol/chain/common"
 )
 
 var ErrRange = errors.New("value out of range")
 var ErrEof = errors.New("got EOF, can not get the next byte")
+
+// TODO: remove unused not needed and fix unhandled errors
 
 // SerializableData describe the data need be serialized.
 type SerializableData interface {
@@ -234,18 +237,18 @@ func ToArray(data SerializableData) []byte {
 	return buf.Bytes()
 }
 
-//**************************************************************************
-//**    internal func                                                    ***
-//**************************************************************************
-//** 2.byteXReader: read x byte and return []byte.
-//** 3.byteToUint8: change byte -> uint8 and return.
-//**************************************************************************
+// **************************************************************************
+// **    internal func                                                    ***
+// **************************************************************************
+// ** 2.byteXReader: read x byte and return []byte.
+// ** 3.byteToUint8: change byte -> uint8 and return.
+// **************************************************************************
 
 func byteXReader(reader io.Reader, x uint64) ([]byte, error) {
 	if x == 0 {
 		return nil, nil
 	}
-	//fast path to avoid buffer reallocation
+	// fast path to avoid buffer reallocation
 	if x < 2*1024*1024 {
 		p := make([]byte, x)
 		_, err := io.ReadFull(reader, p)

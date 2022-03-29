@@ -28,6 +28,14 @@ func (e *EpochEvent) TxType() TransactionType {
 	return EpochType
 }
 
+func (e *EpochEvent) RequestState() ReqState {
+	return ReqStateUnknown
+}
+
+func (e *EpochEvent) RequestId() [32]byte {
+	return [32]byte{}
+}
+
 func (e *EpochEvent) ToJson() (json.RawMessage, error) {
 	return json.Marshal(e)
 }
