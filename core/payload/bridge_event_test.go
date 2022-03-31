@@ -16,7 +16,7 @@ func TestBridgeEvent_Serialize(t *testing.T) {
 		OriginData: wrappers.BridgeOracleRequest{
 			RequestType: "setRequest",
 			Bridge:      ethCommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
-			Chainid:     chainId,
+			ChainId:     chainId,
 		}}
 
 	sink := common.NewZeroCopySink(nil)
@@ -28,7 +28,7 @@ func TestBridgeEvent_Serialize(t *testing.T) {
 	assert.Equal(t, bridgeEvent, bridgeEvent2)
 
 	// test ToJson
-	jbExpected := `{"RequestType":"setRequest","Bridge":"0x0c760e9a85d2e957dd1e189516b6658cfecd3985","RequestId":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"Selector":null,"ReceiveSide":"0x0000000000000000000000000000000000000000","OppositeBridge":"0x0000000000000000000000000000000000000000","Chainid":94,"Raw":{"address":"0x0000000000000000000000000000000000000000","topics":null,"data":"0x","blockNumber":"0x0","transactionHash":"0x0000000000000000000000000000000000000000000000000000000000000000","transactionIndex":"0x0","blockHash":"0x0000000000000000000000000000000000000000000000000000000000000000","logIndex":"0x0","removed":false}}`
+	jbExpected := `{"RequestType":"setRequest","Bridge":"0x0c760e9a85d2e957dd1e189516b6658cfecd3985","RequestId":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"Selector":null,"ReceiveSide":"0x0000000000000000000000000000000000000000","OppositeBridge":"0x0000000000000000000000000000000000000000","ChainId":94,"Raw":{"address":"0x0000000000000000000000000000000000000000","topics":null,"data":"0x","blockNumber":"0x0","transactionHash":"0x0000000000000000000000000000000000000000000000000000000000000000","transactionIndex":"0x0","blockHash":"0x0000000000000000000000000000000000000000000000000000000000000000","logIndex":"0x0","removed":false}}`
 	jb, err := bridgeEvent2.ToJson()
 	assert.NoError(t, err)
 	assert.Equal(t, jbExpected, string(jb))
@@ -44,7 +44,7 @@ func TestBridgeEvent_SerializeBorsh(t *testing.T) {
 		OriginData: wrappers.BridgeOracleRequest{
 			RequestType: "setRequest",
 			Bridge:      ethCommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
-			Chainid:     big.NewInt(94),
+			ChainId:     big.NewInt(94),
 		}}
 
 	sink := common.NewZeroCopySink(nil)

@@ -33,7 +33,7 @@ func (e *BridgeEvent) ToJson() (json.RawMessage, error) {
 
 func (e *BridgeEvent) DstChainId() (uint64, bool) {
 
-	return e.OriginData.Chainid.Uint64(), false
+	return e.OriginData.ChainId.Uint64(), false
 }
 
 func (e *BridgeEvent) Deserialization(source *common.ZeroCopySource) error {
@@ -84,6 +84,6 @@ func (e *BridgeEvent) RawData() []byte {
 	sink.WriteBytes(bridgeFrom[:])               // 32 bytes as in SolanaToEvmEvent
 	sink.WriteBytes(e.OriginData.ReceiveSide[:]) // 20 bytes
 	sink.WriteVarBytes(e.OriginData.Selector)
-	sink.WriteUint64(e.OriginData.Chainid.Uint64())
+	sink.WriteUint64(e.OriginData.ChainId.Uint64())
 	return sink.Bytes()
 }

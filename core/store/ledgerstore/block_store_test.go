@@ -165,7 +165,7 @@ func TestSaveBridgeEventTransaction(t *testing.T) {
 		OriginData: wrappers.BridgeOracleRequest{
 			RequestType: "setRequest",
 			Bridge:      ethCommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
-			Chainid:     big.NewInt(94),
+			ChainId:     big.NewInt(94),
 		}}
 
 	tx := types.ToTransaction(event)

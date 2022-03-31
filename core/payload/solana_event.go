@@ -35,7 +35,7 @@ func (e *BridgeSolanaEvent) ToJson() (json.RawMessage, error) {
 }
 
 func (e *BridgeSolanaEvent) DstChainId() (uint64, bool) {
-	return e.OriginData.Chainid.Uint64(), false
+	return e.OriginData.ChainId.Uint64(), false
 }
 
 func (e *BridgeSolanaEvent) Deserialization(source *common.ZeroCopySource) error {
@@ -68,7 +68,7 @@ func unmarshalBinarySolana(data []byte, st *wrappers.BridgeOracleRequestSolana) 
 		Selector       []byte
 		ReceiveSide    [32]byte
 		OppositeBridge [32]byte
-		Chainid        *big.Int
+		ChainId        *big.Int
 		Raw            types.Log
 	}
 	if err := gob.NewDecoder(r).Decode(&dec); err != nil {
@@ -80,7 +80,7 @@ func unmarshalBinarySolana(data []byte, st *wrappers.BridgeOracleRequestSolana) 
 	st.RequestId = dec.RequestId
 	st.Selector = dec.Selector
 	st.OppositeBridge = dec.OppositeBridge
-	st.Chainid = dec.Chainid
+	st.ChainId = dec.ChainId
 	st.Raw = dec.Raw
 
 	return nil
@@ -98,7 +98,7 @@ func MarshalSolBinary(be *wrappers.BridgeOracleRequestSolana) (data []byte, err 
 		RequestId      [32]byte
 		Selector       []byte
 		OppositeBridge [32]byte
-		Chainid        *big.Int
+		ChainId        *big.Int
 		Raw            types.Log
 	}{
 		be.RequestType,
@@ -106,7 +106,7 @@ func MarshalSolBinary(be *wrappers.BridgeOracleRequestSolana) (data []byte, err 
 		be.RequestId,
 		be.Selector,
 		be.OppositeBridge,
-		be.Chainid,
+		be.ChainId,
 		be.Raw,
 	}); err != nil {
 		return nil, err
@@ -124,6 +124,6 @@ func (e *BridgeSolanaEvent) RawData() []byte {
 	sink.WriteBytes(e.OriginData.Bridge[:])         // 32 bytes
 	sink.WriteBytes(e.OriginData.OppositeBridge[:]) // 32 bytes
 	sink.WriteVarBytes(e.OriginData.Selector)
-	sink.WriteUint64(e.OriginData.Chainid.Uint64())
+	sink.WriteUint64(e.OriginData.ChainId.Uint64())
 	return sink.Bytes()
 }

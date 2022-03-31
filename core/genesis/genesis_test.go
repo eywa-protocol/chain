@@ -129,14 +129,14 @@ func TestSaveBridgeEventAsBlock(t *testing.T) {
 		OriginData: wrappers.BridgeOracleRequest{
 			RequestType: "setRequest",
 			Bridge:      ethCommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
-			Chainid:     big.NewInt(94),
+			ChainId:     big.NewInt(94),
 		}}
 
 	solEvent := &payload.BridgeSolanaEvent{
 		OriginData: wrappers.BridgeOracleRequestSolana{
 			RequestType: "setRequest",
 			Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
-			Chainid:     big.NewInt(94),
+			ChainId:     big.NewInt(94),
 		}}
 
 	sol2EVMEvent := &payload.SolanaToEVMEvent{

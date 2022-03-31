@@ -64,7 +64,7 @@ func Test_BlockMarshal(t *testing.T) {
 			OriginData: wrappers.BridgeOracleRequest{
 				RequestType: "setRequest",
 				Bridge:      ethcommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
-				Chainid:     big.NewInt(1111),
+				ChainId:     big.NewInt(1111),
 			},
 		}
 		txs = append(txs, ToTransaction(tx))
@@ -84,7 +84,7 @@ func Test_BlockMarshal(t *testing.T) {
 			OriginData: wrappers.BridgeOracleRequestSolana{
 				RequestType: "setRequest",
 				Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
-				Chainid:     big.NewInt(1111),
+				ChainId:     big.NewInt(1111),
 			},
 		}
 		txs = append(txs, ToTransaction(tx))

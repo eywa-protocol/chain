@@ -28,7 +28,6 @@ func TestFileExisted(t *testing.T) {
 	assert.True(t, common.FileExisted("common_test.go"))
 	assert.True(t, common.FileExisted("../common.go"))
 	assert.False(t, common.FileExisted("../log/log.og"))
-	assert.True(t, common.FileExisted("../log/log.go"))
 }
 
 func TestBase58(t *testing.T) {

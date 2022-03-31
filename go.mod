@@ -19,5 +19,5 @@ require (
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 )
 
-//replace gitlab.digiu.ai/blockchainlaboratory/eywa-solana => ../solana/
-// replace github.com/eywa-protocol/wrappers => ../wrappers
+replace gitlab.digiu.ai/blockchainlaboratory/eywa-solana => ../solana/
+replace github.com/eywa-protocol/wrappers => ../wrappers

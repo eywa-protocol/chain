@@ -112,7 +112,7 @@ func Test_EvmOracleRequestTxRawData(t *testing.T) {
 		OriginData: wrappers.BridgeOracleRequest{
 			RequestType: "setRequest",
 			Bridge:      ethcommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
-			Chainid:     big.NewInt(94),
+			ChainId:     big.NewInt(94),
 			Selector:    []byte("my selector"),
 		},
 	}
@@ -134,7 +134,7 @@ func Test_EvmSolanaRequestTxRawData(t *testing.T) {
 		OriginData: wrappers.BridgeOracleRequestSolana{
 			RequestType: "setRequest",
 			Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
-			Chainid:     big.NewInt(94),
+			ChainId:     big.NewInt(94),
 			Selector:    []byte("my selector"),
 		},
 	}
@@ -208,7 +208,7 @@ func TestEvmBlockMerkleProve(t *testing.T) {
 				RequestId:   [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
 				Selector:    []byte{51, 52, 53},
 				ReceiveSide: ethcommon.HexToAddress("0x2122232425262728293031323334353637383940"),
-				Chainid:     big.NewInt(1111),
+				ChainId:     big.NewInt(1111),
 			},
 		},
 		{
@@ -218,7 +218,7 @@ func TestEvmBlockMerkleProve(t *testing.T) {
 				RequestId:   [32]byte{1, 3, 3, 4, 5, 6, 7, 8, 9, 10, 1, 3, 3, 4, 5, 6, 7, 8, 9, 10, 1, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13},
 				Selector:    []byte{51, 53, 53, 54, 55},
 				ReceiveSide: ethcommon.HexToAddress("0x3133333435363738393031333334353637383940"),
-				Chainid:     big.NewInt(1111),
+				ChainId:     big.NewInt(1111),
 			},
 		},
 		{
@@ -228,7 +228,7 @@ func TestEvmBlockMerkleProve(t *testing.T) {
 				RequestId:   [32]byte{1, 2, 4, 4, 5, 6, 7, 8, 9, 10, 1, 2, 4, 4, 5, 6, 7, 8, 9, 10, 1, 2, 4, 4, 5, 6, 7, 8, 9, 10, 11, 12},
 				Selector:    []byte{51},
 				ReceiveSide: ethcommon.HexToAddress("0x2122242425262728294041424444454647484940"),
-				Chainid:     big.NewInt(1111),
+				ChainId:     big.NewInt(1111),
 			},
 		},
 	}
