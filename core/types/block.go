@@ -34,15 +34,19 @@ func NewBlock(chainId uint64, prevHash common.Uint256, epochBlockHash common.Uin
 		Height:         height,
 		Signature:      bls.NewZeroMultisig(),
 	}
+	return NewBlockFromComponents(header, transactions)
+}
+
+func NewBlockFromComponents(header *Header, transactions Transactions) *Block {
 	block := &Block{
 		Header:       header,
 		Transactions: transactions,
 	}
 	block.rebuildMerkleRoot()
+
 	return block
 }
 
-// if no error, ownership of param raw is transfered to Transaction
 func BlockFromRawBytes(raw []byte) (*Block, error) {
 	source := common.NewZeroCopySource(raw)
 	block := &Block{}
@@ -53,33 +57,36 @@ func BlockFromRawBytes(raw []byte) (*Block, error) {
 	return block, nil
 }
 
-func (self *Block) Deserialization(source *common.ZeroCopySource) error {
-	if self.Header == nil {
-		self.Header = new(Header)
+func (b *Block) Deserialization(source *common.ZeroCopySource) error {
+	if b.Header == nil {
+		b.Header = new(Header)
 	}
-	err := self.Header.Deserialization(source)
-	if err != nil {
+	if err := b.Header.Deserialization(source); err != nil {
 		return err
 	}
 
-	return self.Transactions.Deserialization(source)
+	if err := b.Transactions.Deserialization(source); err != nil {
+		return err
+	}
+	b.rebuildMerkleRoot()
+	return nil
 }
 
-func (self *Block) VerifyIntegrity() error {
+func (b *Block) VerifyIntegrity() error {
 	mask := make(map[common.Uint256]bool)
-	for _, tx := range self.Transactions {
-		txhash := tx.Hash()
-		if mask[txhash] {
+	for _, tx := range b.Transactions {
+		txHash := tx.Hash()
+		if mask[txHash] {
 			return errors.New("duplicated transaction in block")
 		}
-		mask[txhash] = true
+		mask[txHash] = true
 	}
 
 	var root common.Uint256
-	copy(root[:], self.Header.TransactionsRoot[:])
-	self.rebuildMerkleRoot()
-	if self.Header.TransactionsRoot != root {
-		return fmt.Errorf("mismatched transaction root %x and %x", self.Header.TransactionsRoot.ToArray(), root.ToArray())
+	copy(root[:], b.Header.TransactionsRoot[:])
+	b.rebuildMerkleRoot()
+	if b.Header.TransactionsRoot != root {
+		return fmt.Errorf("mismatched transaction root %x and %x", b.Header.TransactionsRoot.ToArray(), root.ToArray())
 	}
 
 	return nil
