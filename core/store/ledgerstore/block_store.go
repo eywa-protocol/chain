@@ -116,7 +116,7 @@ func (s *BlockStore) GetBlock(blockHash common.Uint256) (*types.Block, error) {
 		txList = append(txList, types.ToTransaction(tx))
 	}
 
-	return types.NewBlockHTL(header, txList), nil
+	return types.NewBlockFromComponents(header, txList), nil
 }
 
 func (s *BlockStore) loadHeaderWithTx(blockHash common.Uint256) (*types.Header, []common.Uint256, error) {

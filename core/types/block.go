@@ -34,10 +34,10 @@ func NewBlock(chainId uint64, prevHash common.Uint256, epochBlockHash common.Uin
 		Height:         height,
 		Signature:      bls.NewZeroMultisig(),
 	}
-	return NewBlockHTL(header, transactions)
+	return NewBlockFromComponents(header, transactions)
 }
 
-func NewBlockHTL(header *Header, transactions Transactions) *Block {
+func NewBlockFromComponents(header *Header, transactions Transactions) *Block {
 	block := &Block{
 		Header:       header,
 		Transactions: transactions,
@@ -47,7 +47,6 @@ func NewBlockHTL(header *Header, transactions Transactions) *Block {
 	return block
 }
 
-// BlockFromRawBytes if no error, ownership of param raw is transferred to Transaction
 func BlockFromRawBytes(raw []byte) (*Block, error) {
 	source := common.NewZeroCopySource(raw)
 	block := &Block{}
