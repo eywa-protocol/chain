@@ -30,6 +30,11 @@ func (e *InvokeCode) ToJson() (json.RawMessage, error) {
 	panic("implement me")
 }
 
+func (e *InvokeCode) SrcTxHash() []byte {
+	// TODO implement me
+	panic("implement me")
+}
+
 func (e *InvokeCode) DstChainId() (uint64, bool) {
 	// TODO implement me
 	panic("implement me")

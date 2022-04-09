@@ -34,6 +34,10 @@ func (e *BridgeSolanaEvent) ToJson() (json.RawMessage, error) {
 	return json.Marshal(e.OriginData)
 }
 
+func (e *BridgeSolanaEvent) SrcTxHash() []byte {
+	return e.OriginData.Raw.TxHash[:]
+}
+
 func (e *BridgeSolanaEvent) DstChainId() (uint64, bool) {
 	return e.OriginData.ChainId.Uint64(), false
 }

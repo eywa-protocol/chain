@@ -1,12 +1,14 @@
 package types
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/merkle"
+	"github.com/sirupsen/logrus"
 )
 
 type Block struct {
@@ -94,7 +96,6 @@ func (b *Block) VerifyIntegrity() error {
 
 func (b *Block) MerkleProve(i int) ([]byte, error) {
 	return b.merkleTree.MerkleInclusionLeafPath(b.Transactions[i].Payload.RawData(), uint64(i), uint64(len(b.Transactions)))
-
 }
 
 func (b *Block) ToArray() ([]byte, error) {
@@ -113,6 +114,23 @@ func (b *Block) Hash() common.Uint256 {
 func (b *Block) HashString() string {
 	hash := b.Header.Hash()
 	return hash.ToHexString()
+}
+
+func (b *Block) LogFields() logrus.Fields {
+	reqIds := make([]string, 0, len(b.Transactions))
+	txIds := make([]string, 0, len(b.Transactions))
+	for _, tx := range b.Transactions {
+		id := tx.Payload.RequestId()
+		reqIds = append(reqIds, hex.EncodeToString(id[:]))
+		txIds = append(txIds, hex.EncodeToString(tx.Payload.SrcTxHash()))
+	}
+	return logrus.Fields{
+		"chain_id":   b.Header.ChainID,
+		"height":     b.Header.Height,
+		"src_height": b.Header.SourceHeight,
+		"req_ids":    reqIds,
+		"tx_ids":     txIds,
+	}
 }
 
 func (b *Block) rebuildMerkleRoot() {

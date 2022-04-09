@@ -31,6 +31,10 @@ func (e *ReceiveRequestEvent) ToJson() (json.RawMessage, error) {
 	return json.Marshal(e.OriginData)
 }
 
+func (e *ReceiveRequestEvent) SrcTxHash() []byte {
+	return e.OriginData.Raw.TxHash[:]
+}
+
 func (e *ReceiveRequestEvent) DstChainId() (uint64, bool) {
 	return 0, true
 }

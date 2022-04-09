@@ -40,6 +40,10 @@ func (e *EpochEvent) ToJson() (json.RawMessage, error) {
 	return json.Marshal(e)
 }
 
+func (e *EpochEvent) SrcTxHash() []byte {
+	return e.SourceTx.ToArray()
+}
+
 func (e *EpochEvent) DstChainId() (uint64, bool) {
 	return 0, true
 }
