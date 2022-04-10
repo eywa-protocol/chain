@@ -32,6 +32,10 @@ func (e *SolanaToEVMEvent) ToJson() (json.RawMessage, error) {
 	return json.Marshal(e.OriginData)
 }
 
+func (e *SolanaToEVMEvent) SrcTxHash() []byte {
+	return e.OriginData.Signature[:]
+}
+
 func (e *SolanaToEVMEvent) DstChainId() (uint64, bool) {
 	return e.OriginData.ChainId, false
 }

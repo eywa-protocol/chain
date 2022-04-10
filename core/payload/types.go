@@ -51,6 +51,7 @@ type Payload interface {
 	RequestState() ReqState
 	RequestId() [32]byte
 	ToJson() (json.RawMessage, error)
+	SrcTxHash() []byte
 	DstChainId() (uint64, bool)
 	Serialization(*common.ZeroCopySink) error
 	Deserialization(*common.ZeroCopySource) error

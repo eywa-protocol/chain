@@ -31,6 +31,10 @@ func (e *BridgeEvent) ToJson() (json.RawMessage, error) {
 	return json.Marshal(e.OriginData)
 }
 
+func (e *BridgeEvent) SrcTxHash() []byte {
+	return e.OriginData.Raw.TxHash[:]
+}
+
 func (e *BridgeEvent) DstChainId() (uint64, bool) {
 
 	return e.OriginData.ChainId.Uint64(), false

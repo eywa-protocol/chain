@@ -94,7 +94,6 @@ func (b *Block) VerifyIntegrity() error {
 
 func (b *Block) MerkleProve(i int) ([]byte, error) {
 	return b.merkleTree.MerkleInclusionLeafPath(b.Transactions[i].Payload.RawData(), uint64(i), uint64(len(b.Transactions)))
-
 }
 
 func (b *Block) ToArray() ([]byte, error) {
