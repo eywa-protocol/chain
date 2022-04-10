@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -117,19 +116,18 @@ func (b *Block) HashString() string {
 }
 
 func (b *Block) LogFields() logrus.Fields {
-	reqIds := make([]string, 0, len(b.Transactions))
-	txIds := make([]string, 0, len(b.Transactions))
-	for _, tx := range b.Transactions {
-		id := tx.Payload.RequestId()
-		reqIds = append(reqIds, hex.EncodeToString(id[:]))
-		txIds = append(txIds, hex.EncodeToString(tx.Payload.SrcTxHash()))
-	}
 	return logrus.Fields{
+		"block":    b.HashString(),
+		"chain_id": b.Header.ChainID,
+	}
+}
+
+func (b *Block) LogFieldsVerbose() logrus.Fields {
+	return logrus.Fields{
+		"block":      b.HashString(),
 		"chain_id":   b.Header.ChainID,
 		"height":     b.Header.Height,
 		"src_height": b.Header.SourceHeight,
-		"req_ids":    reqIds,
-		"tx_ids":     txIds,
 	}
 }
 

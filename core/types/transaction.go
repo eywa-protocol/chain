@@ -2,11 +2,13 @@ package types
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/core/payload"
+	"github.com/sirupsen/logrus"
 )
 
 type transaction struct {
@@ -143,4 +145,18 @@ func (txs *Transactions) Deserialization(source *common.ZeroCopySource) error {
 		*txs = append(*txs, tx)
 	}
 	return nil
+}
+
+func (txs Transactions) LogFields() logrus.Fields {
+	reqIds := make([]string, 0, len(txs))
+	txIds := make([]string, 0, len(txs))
+	for _, tx := range txs {
+		id := tx.Payload.RequestId()
+		reqIds = append(reqIds, hex.EncodeToString(id[:]))
+		txIds = append(txIds, hex.EncodeToString(tx.Payload.SrcTxHash()))
+	}
+	return logrus.Fields{
+		"req_ids": reqIds,
+		"tx_ids":  txIds,
+	}
 }
