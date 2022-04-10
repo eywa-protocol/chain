@@ -7,7 +7,6 @@ import (
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/merkle"
-	"github.com/sirupsen/logrus"
 )
 
 type Block struct {
@@ -113,22 +112,6 @@ func (b *Block) Hash() common.Uint256 {
 func (b *Block) HashString() string {
 	hash := b.Header.Hash()
 	return hash.ToHexString()
-}
-
-func (b *Block) LogFields() logrus.Fields {
-	return logrus.Fields{
-		"block":    b.HashString(),
-		"chain_id": b.Header.ChainID,
-	}
-}
-
-func (b *Block) LogFieldsVerbose() logrus.Fields {
-	return logrus.Fields{
-		"block":      b.HashString(),
-		"chain_id":   b.Header.ChainID,
-		"height":     b.Header.Height,
-		"src_height": b.Header.SourceHeight,
-	}
 }
 
 func (b *Block) rebuildMerkleRoot() {
