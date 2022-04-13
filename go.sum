@@ -227,13 +227,12 @@ github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7
 github.com/ethereum/go-ethereum v1.9.10/go.mod h1:lXHkVo/MTvsEXfYsmNzelZ8R1e0DTvdk/wMZJIRpaRw=
 github.com/ethereum/go-ethereum v1.9.25/go.mod h1:vMkFiYLHI4tgPw4k2j4MHKoovchFE8plZ0M9VMk4/oM=
 github.com/ethereum/go-ethereum v1.10.8/go.mod h1:pJNuIUYfX5+JKzSD/BTdNsvJSZ1TJqmz0dVyXMAbf6M=
-github.com/ethereum/go-ethereum v1.10.12/go.mod h1:W3yfrFyL9C1pHcwY5hmRHVDaorTiQxhYBkKyu5mEDHw=
 github.com/ethereum/go-ethereum v1.10.13 h1:DEYFP9zk+Gruf3ae1JOJVhNmxK28ee+sMELPLgYTXpA=
 github.com/ethereum/go-ethereum v1.10.13/go.mod h1:W3yfrFyL9C1pHcwY5hmRHVDaorTiQxhYBkKyu5mEDHw=
 github.com/eywa-protocol/bls-crypto v0.1.3 h1:bj5Q7ZpjhrZMrh2eQv156pGExe5gVRVILG6biPLusDI=
 github.com/eywa-protocol/bls-crypto v0.1.3/go.mod h1:7zniOGuZnyY4Ew2QW+BhDpzV8EtlNg2RoN1Vm3DTOv0=
-github.com/eywa-protocol/wrappers v0.2.19 h1:XgoaXQYMT2v3gU+r0OGT4A/Y+gKBHQX+gXI0QOd6bZE=
-github.com/eywa-protocol/wrappers v0.2.19/go.mod h1:5XmxG0CeEqKLuRf0hqaFtT5ET/c8LKCoF+M+Axocmho=
+github.com/eywa-protocol/wrappers v0.2.24 h1:xV2RrLMQvF8WblXTqoEgMPM62RzDity/xyoEKK2LUTc=
+github.com/eywa-protocol/wrappers v0.2.24/go.mod h1:nFqf8DOPNa+80lgxMZ21Tm0jB4DPNrbRQtdxY2SE30s=
 github.com/facebookgo/atomicfile v0.0.0-20151019160806-2de1f203e7d5/go.mod h1:JpoxHjuQauoxiFMl1ie8Xc/7TfLuMZ5eOCONd1sUBHg=
 github.com/fatih/color v1.3.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
