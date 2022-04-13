@@ -220,7 +220,9 @@ func (s *LedgerStoreImp) loadHeaderIndexList() error {
 }
 
 func (s *LedgerStoreImp) loadProcessedHeight() error {
-	if processedHeight, err := s.stateStore.getProcessedHeight(); err != nil {
+	if processedHeight, err := s.stateStore.getProcessedHeight(); errors.Is(err, scom.ErrNotFound) {
+		return nil
+	} else if err != nil {
 		return fmt.Errorf("stateStore.getProcessedHeight error %w", err)
 	} else if blockHash, _, err := s.blockStore.GetCurrentBlock(); err != nil {
 		return fmt.Errorf("blockStore.GetCurrentBlock error %w", err)
