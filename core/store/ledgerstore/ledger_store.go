@@ -220,31 +220,36 @@ func (s *LedgerStoreImp) loadHeaderIndexList() error {
 }
 
 func (s *LedgerStoreImp) loadProcessedHeight() error {
-	if processedHeight, err := s.stateStore.getProcessedHeight(); errors.Is(err, scom.ErrNotFound) {
-		return nil
-	} else if err != nil {
+	processedHeight, err := s.stateStore.getProcessedHeight()
+	if err != nil && !errors.Is(err, scom.ErrNotFound) {
 		return fmt.Errorf("stateStore.getProcessedHeight error %w", err)
-	} else if blockHash, _, err := s.blockStore.GetCurrentBlock(); err != nil {
-		return fmt.Errorf("blockStore.GetCurrentBlock error %w", err)
-	} else if head, err := s.blockStore.GetHeader(blockHash); err != nil {
-		return fmt.Errorf("blockStore.GetHeader error %w", err)
-	} else {
-		s.chainId = head.ChainID
-		if processedHeight < head.SourceHeight {
-			s.processedHeight = head.SourceHeight
-		} else if processedHeight > 0 {
-			s.processedHeight = processedHeight
-		} else {
-			return fmt.Errorf("processed height is zerro")
-		}
-		logrus.WithFields(logrus.Fields{
-			"chain_id":         s.chainId,
-			"height":           head.Height,
-			"source_height":    head.SourceHeight,
-			"processed_height": s.processedHeight,
-		}).Infof("Ledger initialized.")
-		return nil
 	}
+
+	blockHash, _, err := s.blockStore.GetCurrentBlock()
+	if err != nil {
+		return fmt.Errorf("blockStore.GetCurrentBlock error %w", err)
+	}
+
+	head, err := s.blockStore.GetHeader(blockHash)
+	if err != nil {
+		return fmt.Errorf("blockStore.GetHeader error %w", err)
+	}
+
+	s.chainId = head.ChainID
+	if processedHeight < head.SourceHeight {
+		s.processedHeight = head.SourceHeight
+	} else if processedHeight > 0 {
+		s.processedHeight = processedHeight
+	} else {
+		return fmt.Errorf("processed height is zerro")
+	}
+	logrus.WithFields(logrus.Fields{
+		"chain_id":         s.chainId,
+		"height":           head.Height,
+		"source_height":    head.SourceHeight,
+		"processed_height": s.processedHeight,
+	}).Infof("Ledger initialized.")
+	return nil
 
 }
 
