@@ -41,6 +41,10 @@ func (tt TransactionType) String() string {
 		return "bridge_event"
 	case ReceiveRequestEventType:
 		return "receive_request_event"
+	case BridgeEventSolanaType:
+		return "bridge_event_solana"
+	case SolanaToEVMEventType:
+		return "solana_to_evm_event"
 	default:
 		return "unknown"
 	}
