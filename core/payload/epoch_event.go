@@ -97,7 +97,7 @@ func (e *EpochEvent) Deserialization(source *common.ZeroCopySource) error {
 
 	lenHostIds, eof := source.NextUint8()
 	if eof {
-		return fmt.Errorf("Epoch.len(HostIds) deserialize eof")
+		return nil
 	}
 
 	e.HostIds = make([]string, 0, lenHostIds)
