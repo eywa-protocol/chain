@@ -13,14 +13,20 @@ type EpochEvent struct {
 	EpochPublicKey bls.PublicKey   // Aggregated public key of all participants of the current epoch
 	SourceTx       common.Uint256  // Governance blockchain transaction that caused this epoch change
 	PublicKeys     []bls.PublicKey // Public keys of all nodes (informational, not included in hashing)
+	HostIds        []string        // Host IDs of epoch participants
 }
 
-func NewEpochEvent(num uint32, pub bls.PublicKey, tx common.Uint256, keys []bls.PublicKey) *EpochEvent {
+func NewEpochEvent(num uint32, tx common.Uint256, keys []bls.PublicKey, hostIds []string) *EpochEvent {
+	anticoefs := bls.CalculateAntiRogueCoefficients(keys)
+	epochKey := bls.AggregatePublicKeys(keys, anticoefs)
+	epochKey.Marshal() // to avoid data race because Marshal() wants to normalize the key for the first time
+
 	return &EpochEvent{
 		Number:         num,
-		EpochPublicKey: pub,
+		EpochPublicKey: epochKey,
 		SourceTx:       tx,
 		PublicKeys:     keys,
+		HostIds:        hostIds,
 	}
 }
 
@@ -89,6 +95,20 @@ func (e *EpochEvent) Deserialization(source *common.ZeroCopySource) error {
 		e.PublicKeys = append(e.PublicKeys, publicKey)
 	}
 
+	lenHostIds, eof := source.NextUint8()
+	if eof {
+		return fmt.Errorf("Epoch.len(HostIds) deserialize eof")
+	}
+
+	e.HostIds = make([]string, 0, lenHostIds)
+	for i := uint8(0); i < length; i++ {
+		hostId, eof := source.NextString()
+		if eof {
+			return fmt.Errorf("Epoch.HostId deserialize eof")
+		}
+		e.HostIds = append(e.HostIds, hostId)
+	}
+
 	return nil
 }
 
@@ -99,6 +119,10 @@ func (e *EpochEvent) Serialization(sink *common.ZeroCopySink) error {
 	sink.WriteUint8(uint8(len(e.PublicKeys)))
 	for _, key := range e.PublicKeys {
 		sink.WriteVarBytes(key.Marshal())
+	}
+	sink.WriteUint8(uint8(len(e.HostIds)))
+	for _, host := range e.HostIds {
+		sink.WriteString(host)
 	}
 	return nil
 }
