@@ -126,4 +126,7 @@ func Test_BlockMarshal(t *testing.T) {
 	err = received.VerifyIntegrity() // reconstructs block.merkleTree needed to compare
 	assert.NoError(t, err)
 	assert.Equal(t, *block, received)
+
+	// text, _ := json.Marshal(block)
+	// t.Logf(string(text))
 }
