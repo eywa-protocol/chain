@@ -240,7 +240,7 @@ func (s *LedgerStoreImp) loadProcessedHeight() error {
 		s.processedHeight = head.SourceHeight
 	} else if processedHeight > 0 {
 		s.processedHeight = processedHeight
-	} else {
+	} else if s.chainId > 0 { // if not is epoch chains
 		return fmt.Errorf("processed height is zerro")
 	}
 	logrus.WithFields(logrus.Fields{
