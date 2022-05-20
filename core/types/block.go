@@ -43,6 +43,7 @@ func NewBlockFromComponents(header *Header, transactions Transactions) *Block {
 		Transactions: transactions,
 	}
 	block.rebuildMerkleRoot()
+	block.Header.CalculateHash()
 
 	return block
 }
@@ -69,6 +70,7 @@ func (b *Block) Deserialization(source *common.ZeroCopySource) error {
 		return err
 	}
 	b.rebuildMerkleRoot()
+	b.Header.CalculateHash()
 	return nil
 }
 
@@ -106,11 +108,12 @@ func (b *Block) ToArray() ([]byte, error) {
 }
 
 func (b *Block) Hash() common.Uint256 {
-	return b.Header.Hash()
+	hash := b.Header.GetHash()
+	return *hash
 }
 
 func (b *Block) HashString() string {
-	hash := b.Header.Hash()
+	hash := b.Header.GetHash()
 	return hash.ToHexString()
 }
 
