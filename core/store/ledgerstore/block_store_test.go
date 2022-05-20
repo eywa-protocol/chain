@@ -315,37 +315,27 @@ func TestHeaderIndexList(t *testing.T) {
 
 func TestSaveHeader(t *testing.T) {
 	block := types.NewBlock(1111, common.Uint256{}, common.Uint256{}, 1, 1, types.Transactions{})
+	block.Header.CalculateHash()
 	blockHash := block.Hash()
 
 	testBlockStore.NewBatch()
 
 	err := testBlockStore.SaveHeader(block)
-	if err != nil {
-		t.Errorf("SaveHeader error %s", err)
-		return
-	}
+	require.NoError(t, err)
 	err = testBlockStore.CommitTo()
-	if err != nil {
-		t.Errorf("CommitTo error %s", err)
-		return
-	}
+	require.NoError(t, err)
 
 	h, err := testBlockStore.GetHeader(blockHash)
-	if err != nil {
-		t.Errorf("GetHeader error %s", err)
-		return
-	}
+	require.NoError(t, err)
+	require.NotNil(t, h)
+	h.CalculateHash()
 
-	headerHash := h.Hash()
-	if blockHash != headerHash {
-		t.Errorf("TestSaveHeader failed HeaderHash %x != %x", headerHash, blockHash)
-		return
-	}
+	headerHash := h.GetHash()
+	require.NoError(t, err)
+	t.Log(headerHash)
+	require.Equal(t, blockHash, *headerHash )
+	require.Equal(t, block.Header.Height,  h.Height )
 
-	if block.Header.Height != h.Height {
-		t.Errorf("TestSaveHeader failed Height %d != %d", h.Height, block.Header.Height)
-		return
-	}
 }
 
 func TestBlock(t *testing.T) {

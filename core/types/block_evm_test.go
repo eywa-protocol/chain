@@ -60,32 +60,37 @@ func init() {
 	backend.Commit()
 }
 
-func Test_EvmHeaderHash(t *testing.T) {
-	hash := common.Uint256{0xCA, 0xFE, 0xBA, 0xBE}
+	func Test_EvmHeaderHash(t *testing.T) {
+		hash := common.Uint256{0xCA, 0xFE, 0xBA, 0xBE}
 
-	header := Header{
-		ChainID:          1111,
-		PrevBlockHash:    hash,
-		EpochBlockHash:   hash,
-		TransactionsRoot: hash,
-		SourceHeight:     100,
-		Height:           10,
+		header := Header{
+			ChainID:          1111,
+			PrevBlockHash:    hash,
+			EpochBlockHash:   hash,
+			TransactionsRoot: hash,
+			SourceHeight:     100,
+			Height:           10,
+		}
+
+		header.CalculateHash()
+		blockHash := header.GetHash()
+
+		assert.NoError(t, err)
+		solHash, err := blockTest.BlockHash(
+			&bind.CallOpts{},
+			header.ChainID,
+			header.PrevBlockHash,
+			header.EpochBlockHash,
+			header.TransactionsRoot,
+			header.SourceHeight,
+			header.Height,
+		)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, solHash)
+		assert.NotNil(t, blockHash)
+		assert.Equal(t, solHash[:], blockHash.ToArray())
 	}
-	blockHash := header.Hash()
-
-	solHash, err := blockTest.BlockHash(
-		&bind.CallOpts{},
-		header.ChainID,
-		header.PrevBlockHash,
-		header.EpochBlockHash,
-		header.TransactionsRoot,
-		header.SourceHeight,
-		header.Height,
-	)
-
-	assert.NoError(t, err)
-	assert.Equal(t, solHash[:], blockHash.ToArray())
-}
 
 func Test_EvmHeaderRawData(t *testing.T) {
 	hash := common.Uint256{0xCA, 0xFE, 0xBA, 0xBE}
@@ -98,11 +103,13 @@ func Test_EvmHeaderRawData(t *testing.T) {
 		SourceHeight:     100,
 		Height:           10,
 	}
-	blockHash := header.Hash()
 
+	header.CalculateHash()
+	blockHash := header.GetHash()
+	assert.NoError(t, err)
 	res, err := blockTest.BlockHeaderRawDataTest(&bind.CallOpts{}, header.RawData())
 	assert.NoError(t, err)
-	// t.Log(res)
+	//t.Log(res)
 	assert.Equal(t, res.AllBlockHash[:], blockHash.ToArray())
 	assert.Equal(t, res.BlockTxHash[:], header.PrevBlockHash.ToArray())
 }
