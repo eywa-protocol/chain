@@ -138,12 +138,11 @@ func (bd *Header) RawData() []byte {
 	return data
 }
 
-func (bd *Header) GetHash() *common.Uint256 {
+func (bd *Header) Hash() *common.Uint256 {
 	return bd.hash
 }
 
-
 func (bd *Header) CalculateHash() {
-		hash := common.Uint256(sha256.Sum256(bd.RawData()))
-		bd.hash = &hash
+	hash := common.Uint256(sha256.Sum256(bd.RawData()))
+	bd.hash = &hash
 }

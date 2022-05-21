@@ -368,7 +368,7 @@ func (s *LedgerStoreImp) GetCurrentBlockHeight() uint64 {
 func (s *LedgerStoreImp) addHeaderCache(header *types.Header) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	hash := header.GetHash()
+	hash := header.Hash()
 	s.headerCache[*hash] = header
 }
 
@@ -423,7 +423,7 @@ func (s *LedgerStoreImp) AddHeader(header *types.Header) error {
 		return fmt.Errorf("AddHeader verifyHeader error %s", err)
 	}
 	s.addHeaderCache(header)
-	hash := header.GetHash()
+	hash := header.Hash()
 	s.setHeaderIndex(header.Height, *hash)
 	return nil
 }

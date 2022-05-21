@@ -108,12 +108,12 @@ func (b *Block) ToArray() ([]byte, error) {
 }
 
 func (b *Block) Hash() common.Uint256 {
-	hash := b.Header.GetHash()
+	hash := b.Header.Hash()
 	return *hash
 }
 
 func (b *Block) HashString() string {
-	hash := b.Header.GetHash()
+	hash := b.Header.Hash()
 	return hash.ToHexString()
 }
 
