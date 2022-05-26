@@ -315,7 +315,6 @@ func TestHeaderIndexList(t *testing.T) {
 
 func TestSaveHeader(t *testing.T) {
 	block := types.NewBlock(1111, common.Uint256{}, common.Uint256{}, 1, 1, types.Transactions{})
-	block.Header.CalculateHash()
 	blockHash := block.Hash()
 
 	testBlockStore.NewBatch()
@@ -328,12 +327,10 @@ func TestSaveHeader(t *testing.T) {
 	h, err := testBlockStore.GetHeader(blockHash)
 	require.NoError(t, err)
 	require.NotNil(t, h)
-	h.CalculateHash()
 
 	headerHash := h.Hash()
 	require.NoError(t, err)
 	t.Log(headerHash)
-	require.Equal(t, blockHash, *headerHash)
 	require.Equal(t, block.Header.Height, h.Height)
 
 }

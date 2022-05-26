@@ -142,7 +142,7 @@ func (bd *Header) Hash() *common.Uint256 {
 	return bd.hash
 }
 
-func (bd *Header) CalculateHash() {
+func (bd *Header) сalculateHash() {
 	hash := common.Uint256(sha256.Sum256(bd.RawData()))
 	bd.hash = &hash
 }

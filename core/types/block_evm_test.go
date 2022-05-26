@@ -72,7 +72,7 @@ func Test_EvmHeaderHash(t *testing.T) {
 		Height:           10,
 	}
 
-	header.CalculateHash()
+	header.сalculateHash()
 	blockHash := header.Hash()
 
 	assert.NoError(t, err)
@@ -104,7 +104,7 @@ func Test_EvmHeaderRawData(t *testing.T) {
 		Height:           10,
 	}
 
-	header.CalculateHash()
+	header.сalculateHash()
 	blockHash := header.Hash()
 	assert.NoError(t, err)
 	res, err := blockTest.BlockHeaderRawDataTest(&bind.CallOpts{}, header.RawData())

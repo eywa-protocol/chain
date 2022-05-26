@@ -43,7 +43,7 @@ func NewBlockFromComponents(header *Header, transactions Transactions) *Block {
 		Transactions: transactions,
 	}
 	block.rebuildMerkleRoot()
-	block.Header.CalculateHash()
+	block.Header.сalculateHash()
 
 	return block
 }
@@ -70,7 +70,7 @@ func (b *Block) Deserialization(source *common.ZeroCopySource) error {
 		return err
 	}
 	b.rebuildMerkleRoot()
-	b.Header.CalculateHash()
+	b.Header.сalculateHash()
 	return nil
 }
 
