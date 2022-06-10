@@ -3,15 +3,11 @@ package payload
 import (
 	"bufio"
 	"bytes"
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"math/big"
-
-	"github.com/ethereum/go-ethereum/core/types"
-
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/wrappers"
+	"github.com/near/borsh-go"
 )
 
 type BridgeSolanaEvent struct {
@@ -47,7 +43,7 @@ func (e *BridgeSolanaEvent) Deserialization(source *common.ZeroCopySource) error
 	if eof {
 		return fmt.Errorf("[InvokeCode] deserialize code error")
 	}
-	err := unmarshalBinarySolana(code, &e.OriginData)
+	err := borsh.Deserialize(&e.OriginData, code)
 	if err != nil {
 		return err
 	}
@@ -55,7 +51,7 @@ func (e *BridgeSolanaEvent) Deserialization(source *common.ZeroCopySource) error
 }
 
 func (e *BridgeSolanaEvent) Serialization(sink *common.ZeroCopySink) error {
-	oracleRequestBytes, err := MarshalSolBinary(&e.OriginData)
+	oracleRequestBytes, err := marshalSolBinary(&e.OriginData)
 	if err != nil {
 		return err
 	}
@@ -63,59 +59,16 @@ func (e *BridgeSolanaEvent) Serialization(sink *common.ZeroCopySink) error {
 	return nil
 }
 
-func unmarshalBinarySolana(data []byte, st *wrappers.BridgeOracleRequestSolana) error {
-	r := bytes.NewReader(data)
-	var dec struct {
-		RequestType    string
-		Bridge         [32]byte
-		RequestId      [32]byte
-		Selector       []byte
-		ReceiveSide    [32]byte
-		OppositeBridge [32]byte
-		ChainId        *big.Int
-		Raw            types.Log
-	}
-	if err := gob.NewDecoder(r).Decode(&dec); err != nil {
-		return err
-	}
-	st.RequestType = dec.RequestType
-
-	st.Bridge = dec.Bridge
-	st.RequestId = dec.RequestId
-	st.Selector = dec.Selector
-	st.OppositeBridge = dec.OppositeBridge
-	st.ChainId = dec.ChainId
-	st.Raw = dec.Raw
-
-	return nil
-}
-
-// MarshalSolBinary MarshalBinary implements encoding.BinaryMarshaler
-func MarshalSolBinary(be *wrappers.BridgeOracleRequestSolana) (data []byte, err error) {
+// marshalSolBinary MarshalBinary implements encoding.BinaryMarshaler
+func marshalSolBinary(be *wrappers.BridgeOracleRequestSolana) (data []byte, err error) {
 	var (
 		b bytes.Buffer
 		w = bufio.NewWriter(&b)
 	)
-	if err := gob.NewEncoder(w).Encode(struct {
-		RequestType    string
-		Bridge         [32]byte
-		RequestId      [32]byte
-		Selector       []byte
-		OppositeBridge [32]byte
-		ChainId        *big.Int
-		Raw            types.Log
-	}{
-		be.RequestType,
-		be.Bridge,
-		be.RequestId,
-		be.Selector,
-		be.OppositeBridge,
-		be.ChainId,
-		be.Raw,
-	}); err != nil {
+	qwf := *be
+	if err := borsh.NewEncoder(w).Encode(qwf); err != nil {
 		return nil, err
 	}
-
 	if err := w.Flush(); err != nil {
 		return nil, err
 	}

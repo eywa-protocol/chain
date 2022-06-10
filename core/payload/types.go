@@ -9,14 +9,15 @@ import (
 type TransactionType byte
 
 const (
-	InvokeType              TransactionType = 0xd1
-	NodeType                TransactionType = 0xd2
-	EpochType               TransactionType = 0x22
-	UpTimeType              TransactionType = 0xd4
-	BridgeEventType         TransactionType = 0x1f
-	BridgeEventSolanaType   TransactionType = 0x20
-	SolanaToEVMEventType    TransactionType = 0x21
-	ReceiveRequestEventType TransactionType = 0x23
+	InvokeType                 TransactionType = 0xd1
+	NodeType                   TransactionType = 0xd2
+	EpochType                  TransactionType = 0x22
+	UpTimeType                 TransactionType = 0xd4
+	BridgeEventType            TransactionType = 0x1f
+	BridgeEventSolanaType      TransactionType = 0x20
+	SolanaToEVMEventType       TransactionType = 0x21
+	ReceiveRequestEventType    TransactionType = 0x23
+	SolReceiveRequestEventType TransactionType = 0x24
 )
 
 type ReqState uint8
@@ -45,6 +46,8 @@ func (tt TransactionType) String() string {
 		return "bridge_event_solana"
 	case SolanaToEVMEventType:
 		return "solana_to_evm_event"
+	case SolReceiveRequestEventType:
+		return "solana_receive_request_event"
 	default:
 		return "unknown"
 	}

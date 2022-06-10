@@ -3,12 +3,11 @@ package payload
 import (
 	"bufio"
 	"bytes"
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"github.com/near/borsh-go"
 
 	"github.com/eywa-protocol/chain/common"
-	"github.com/gagliardetto/solana-go"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
 )
 
@@ -45,7 +44,7 @@ func (e *SolanaToEVMEvent) Deserialization(source *common.ZeroCopySource) error 
 	if eof {
 		return fmt.Errorf("[InvokeCode] deserialize code error")
 	}
-	err := unmarshalBinarySolanaToEVMEvent(code, &e.OriginData)
+	err := borsh.Deserialize(&e.OriginData, code)
 	if err != nil {
 		return err
 	}
@@ -53,7 +52,7 @@ func (e *SolanaToEVMEvent) Deserialization(source *common.ZeroCopySource) error 
 }
 
 func (e *SolanaToEVMEvent) Serialization(sink *common.ZeroCopySink) error {
-	oracleRequestBytes, err := MarshalBinarySolanaToEVMEvent(&e.OriginData)
+	oracleRequestBytes, err := marshalBinarySolanaToEVMEvent(&e.OriginData)
 	if err != nil {
 		return err
 	}
@@ -61,38 +60,15 @@ func (e *SolanaToEVMEvent) Serialization(sink *common.ZeroCopySink) error {
 	return nil
 }
 
-func unmarshalBinarySolanaToEVMEvent(data []byte, st *bridge.BridgeEvent) error {
-	r := bytes.NewReader(data)
-	var dec = bridge.BridgeEvent{
-		OracleRequest: bridge.OracleRequest{},
-		Signature:     solana.Signature{},
-		Slot:          0,
-	}
-	if err := gob.NewDecoder(r).Decode(&dec); err != nil {
-		return err
-	}
-	st.ChainId = dec.ChainId
-	st.BridgePubKey = dec.BridgePubKey
-	st.Slot = dec.Slot
-	st.OppositeBridge = dec.OppositeBridge
-	st.ReceiveSide = dec.ReceiveSide
-	st.Signature = dec.Signature
-	st.RequestType = dec.RequestType
-	st.Selector = dec.Selector
-	st.RequestId = dec.RequestId
-
-	return nil
-}
-
-// MarshalBinarySolanaToEVMEvent MarshalBinary implements encoding.BinaryMarshaler
-func MarshalBinarySolanaToEVMEvent(be *bridge.BridgeEvent) (data []byte, err error) {
+// marshalBinarySolanaToEVMEvent MarshalBinary implements encoding.BinaryMarshaler
+func marshalBinarySolanaToEVMEvent(be *bridge.BridgeEvent) (data []byte, err error) {
 	var (
 		b bytes.Buffer
 		w = bufio.NewWriter(&b)
 	)
 
-	br := be
-	if err := gob.NewEncoder(w).Encode(br); err != nil {
+	br := *be
+	if err := borsh.NewEncoder(w).Encode(br); err != nil {
 		return nil, err
 	}
 
@@ -100,6 +76,7 @@ func MarshalBinarySolanaToEVMEvent(be *bridge.BridgeEvent) (data []byte, err err
 		return nil, err
 	}
 	return b.Bytes(), nil
+
 }
 
 func (e *SolanaToEVMEvent) RawData() []byte {
