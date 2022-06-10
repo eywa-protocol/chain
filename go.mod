@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.2.0
 	github.com/stretchr/testify v1.7.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
-	gitlab.digiu.ai/blockchainlaboratory/eywa-solana v1.2.2
+	gitlab.digiu.ai/blockchainlaboratory/eywa-solana v1.2.3
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 )
 

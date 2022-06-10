@@ -88,6 +88,14 @@ func (tx *transaction) Deserialization(source *common.ZeroCopySource) error {
 		}
 		tx.Payload = &parsed
 
+	case payload.SolReceiveRequestEventType:
+		var parsed payload.SolReceiveRequestEvent
+		err := parsed.Deserialization(source)
+		if err != nil {
+			return err
+		}
+		tx.Payload = &parsed
+
 	default:
 		return fmt.Errorf("failed to unmarshal unknown tx type %d", txType)
 	}
@@ -128,13 +136,13 @@ func (txs Transactions) Serialization(sink *common.ZeroCopySink) error {
 }
 
 func (txs *Transactions) Deserialization(source *common.ZeroCopySource) error {
-	len, eof := source.NextUint32()
+	l, eof := source.NextUint32()
 	if eof {
 		return errors.New("read tx length eof")
 	}
 
-	*txs = make(Transactions, 0, len)
-	for i := uint32(0); i < len; i++ {
+	*txs = make(Transactions, 0, l)
+	for i := uint32(0); i < l; i++ {
 		var tx transaction
 		err := tx.Deserialization(source)
 		if err != nil {
