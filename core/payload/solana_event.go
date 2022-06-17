@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/wrappers"
 	"github.com/near/borsh-go"
@@ -18,12 +19,12 @@ func (e *BridgeSolanaEvent) TxType() TransactionType {
 	return BridgeEventSolanaType
 }
 
-func (e *BridgeSolanaEvent) RequestState() ReqState {
+func (e *BridgeSolanaEvent) RequestState() RequestState {
 	return ReqStateReceived
 }
 
-func (e *BridgeSolanaEvent) RequestId() [32]byte {
-	return e.OriginData.RequestId
+func (e *BridgeSolanaEvent) RequestId() RequestId {
+	return RequestId(e.OriginData.RequestId)
 }
 
 func (e *BridgeSolanaEvent) ToJson() (json.RawMessage, error) {

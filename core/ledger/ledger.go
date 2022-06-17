@@ -104,12 +104,12 @@ func (l *Ledger) GetTransaction(txHash common.Uint256) (payload.Payload, error) 
 	return tx, err
 }
 
-func (l *Ledger) GetTransactionByReqId(reqId [32]byte) (payload.Payload, error) {
+func (l *Ledger) GetTransactionByReqId(reqId payload.RequestId) (payload.Payload, error) {
 	tx, _, err := l.ldgStore.GetTransactionByReqId(reqId)
 	return tx, err
 }
 
-func (l *Ledger) GetRequestState(reqId [32]byte) (payload.ReqState, error) {
+func (l *Ledger) GetRequestState(reqId payload.RequestId) (payload.RequestState, error) {
 	return l.ldgStore.GetRequestState(reqId)
 }
 

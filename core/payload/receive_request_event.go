@@ -19,11 +19,11 @@ func (e *ReceiveRequestEvent) TxType() TransactionType {
 	return ReceiveRequestEventType
 }
 
-func (e *ReceiveRequestEvent) RequestState() ReqState {
+func (e *ReceiveRequestEvent) RequestState() RequestState {
 	return ReqStateSent
 }
 
-func (e *ReceiveRequestEvent) RequestId() [32]byte {
+func (e *ReceiveRequestEvent) RequestId() RequestId {
 	return e.OriginData.ReqId
 }
 

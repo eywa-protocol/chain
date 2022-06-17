@@ -17,12 +17,12 @@ func (e *InvokeCode) TxType() TransactionType {
 	return InvokeType
 }
 
-func (e *InvokeCode) RequestState() ReqState {
+func (e *InvokeCode) RequestState() RequestState {
 	return ReqStateUnknown
 }
 
-func (e *InvokeCode) RequestId() [32]byte {
-	return [32]byte{}
+func (e *InvokeCode) RequestId() RequestId {
+	return RequestId{}
 }
 
 func (e *InvokeCode) ToJson() (json.RawMessage, error) {

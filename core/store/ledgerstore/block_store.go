@@ -347,7 +347,7 @@ func (s *BlockStore) GetTransaction(txHash common.Uint256) (payload.Payload, uin
 }
 
 // GetTransactionByReqId return transaction by request id
-func (s *BlockStore) GetTransactionByReqId(reqId [32]byte) (payload.Payload, uint64, error) {
+func (s *BlockStore) GetTransactionByReqId(reqId payload.RequestId) (payload.Payload, uint64, error) {
 	if s.enableCache {
 		tx, height := s.cache.GetTransactionByReqId(reqId)
 		if tx != nil {
@@ -357,7 +357,7 @@ func (s *BlockStore) GetTransactionByReqId(reqId [32]byte) (payload.Payload, uin
 	return s.loadTransactionByReqId(reqId)
 }
 
-func (s *BlockStore) GetRequestState(reqId [32]byte) (payload.ReqState, error) {
+func (s *BlockStore) GetRequestState(reqId payload.RequestId) (payload.RequestState, error) {
 	if s.enableCache {
 		tx, _ := s.cache.GetTransactionByReqId(reqId)
 		if tx != nil {
@@ -367,16 +367,16 @@ func (s *BlockStore) GetRequestState(reqId [32]byte) (payload.ReqState, error) {
 	return s.loadReqIdState(reqId)
 }
 
-func (s *BlockStore) loadReqIdState(reqId [32]byte) (payload.ReqState, error) {
+func (s *BlockStore) loadReqIdState(reqId payload.RequestId) (payload.RequestState, error) {
 	key := s.getRequestIdKey(reqId)
 	value, err := s.store.Get(key)
 	if err != nil {
 		return 0, err
 	}
-	return payload.ReqState(value[0]), nil
+	return payload.RequestState(value[0]), nil
 }
 
-func (s *BlockStore) loadTransactionByReqId(reqId [32]byte) (payload.Payload, uint64, error) {
+func (s *BlockStore) loadTransactionByReqId(reqId payload.RequestId) (payload.Payload, uint64, error) {
 	key := s.getRequestIdKey(reqId)
 	value, err := s.store.Get(key)
 	if err != nil {
@@ -490,7 +490,7 @@ func (s *BlockStore) getTransactionKey(txHash common.Uint256) ([]byte, error) {
 }
 
 // getRequestIdKey return request id key
-func (s *BlockStore) getRequestIdKey(requestId [32]byte) []byte {
+func (s *BlockStore) getRequestIdKey(requestId payload.RequestId) []byte {
 	key := make([]byte, 33)
 	key[0] = byte(scom.DATA_REQUEST_ID)
 	copy(key[1:], requestId[:])

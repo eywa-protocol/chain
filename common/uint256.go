@@ -1,6 +1,7 @@
 package common
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -42,7 +43,7 @@ func (u *Uint256) Deserialize(r io.Reader) error {
 }
 
 func (u Uint256) MarshalJSON() ([]byte, error) {
-	return json.Marshal(ToHexString(u[:]))
+	return json.Marshal(hex.EncodeToString(u[:]))
 }
 
 func Uint256ParseFromBytes(f []byte) (Uint256, error) {

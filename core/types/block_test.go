@@ -72,7 +72,7 @@ func Test_BlockMarshal(t *testing.T) {
 	{
 		tx := &payload.ReceiveRequestEvent{
 			OriginData: wrappers.BridgeReceiveRequest{
-				ReqId:       [32]byte{1, 2, 3, 4, 5},
+				ReqId:       payload.RequestId{1, 2, 3, 4, 5},
 				ReceiveSide: ethcommon.Address{6, 7, 8, 9, 10},
 				BridgeFrom:  [32]byte{11, 12, 13, 14, 15},
 			},

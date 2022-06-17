@@ -833,12 +833,12 @@ func (s *LedgerStoreImp) GetTransaction(txHash common.Uint256) (payload.Payload,
 }
 
 // GetTransactionByReqId return transaction by request id. Wrap function of BlockStore.GetTransactionByReqId
-func (s *LedgerStoreImp) GetTransactionByReqId(reqId [32]byte) (payload.Payload, uint64, error) {
+func (s *LedgerStoreImp) GetTransactionByReqId(reqId payload.RequestId) (payload.Payload, uint64, error) {
 	return s.blockStore.GetTransactionByReqId(reqId)
 }
 
 // GetRequestState return request state by request id. Wrap function of BlockStore.GetRequestState
-func (s *LedgerStoreImp) GetRequestState(reqId [32]byte) (payload.ReqState, error) {
+func (s *LedgerStoreImp) GetRequestState(reqId payload.RequestId) (payload.RequestState, error) {
 	return s.blockStore.GetRequestState(reqId)
 }
 

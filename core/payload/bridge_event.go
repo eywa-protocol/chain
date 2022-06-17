@@ -19,12 +19,12 @@ func (e *BridgeEvent) TxType() TransactionType {
 	return BridgeEventType
 }
 
-func (e *BridgeEvent) RequestState() ReqState {
+func (e *BridgeEvent) RequestState() RequestState {
 	return ReqStateReceived
 }
 
-func (e *BridgeEvent) RequestId() [32]byte {
-	return e.OriginData.RequestId
+func (e *BridgeEvent) RequestId() RequestId {
+	return RequestId(e.OriginData.RequestId)
 }
 
 func (e *BridgeEvent) ToJson() (json.RawMessage, error) {
