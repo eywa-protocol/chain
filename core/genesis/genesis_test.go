@@ -126,12 +126,11 @@ func TestGenesisBlockInit(t *testing.T) {
 
 func TestSaveBridgeEventAsBlock(t *testing.T) {
 	blockBefore := lg.GetCurrentBlockHash()
-	event := &payload.BridgeEvent{
-		OriginData: wrappers.BridgeOracleRequest{
-			RequestType: "setRequest",
-			Bridge:      ethCommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
-			ChainId:     big.NewInt(94),
-		}}
+	event := payload.NewBridgeEvent(&wrappers.BridgeOracleRequest{
+		RequestType: "setRequest",
+		Bridge:      ethCommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
+		ChainId:     big.NewInt(94),
+	})
 
 	solEvent := &payload.BridgeSolanaEvent{
 		OriginData: wrappers.BridgeOracleRequestSolana{

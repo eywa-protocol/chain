@@ -67,6 +67,7 @@ type Payload interface {
 	ToJson() (json.RawMessage, error)
 	SrcTxHash() []byte
 	DstChainId() (uint64, bool)
+	Data() interface{}
 	Serialization(*common.ZeroCopySink) error
 	Deserialization(*common.ZeroCopySource) error
 	RawData() []byte

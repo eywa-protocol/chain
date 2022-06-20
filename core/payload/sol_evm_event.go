@@ -40,6 +40,10 @@ func (e *SolanaToEVMEvent) DstChainId() (uint64, bool) {
 	return e.OriginData.ChainId, false
 }
 
+func (e *SolanaToEVMEvent) Data() interface{} {
+	return e.OriginData
+}
+
 func (e *SolanaToEVMEvent) Deserialization(source *common.ZeroCopySource) error {
 	code, eof := source.NextVarBytes()
 	if eof {

@@ -39,6 +39,10 @@ func (e *ReceiveRequestEvent) DstChainId() (uint64, bool) {
 	return 0, true
 }
 
+func (e *ReceiveRequestEvent) Data() interface{} {
+	return e.OriginData
+}
+
 func (e *ReceiveRequestEvent) Deserialization(source *common.ZeroCopySource) error {
 	code, eof := source.NextVarBytes()
 	if eof {

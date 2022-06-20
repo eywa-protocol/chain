@@ -39,6 +39,10 @@ func (e *SolReceiveRequestEvent) DstChainId() (uint64, bool) {
 	return 0, true
 }
 
+func (e *SolReceiveRequestEvent) Data() interface{} {
+	return e.OriginData
+}
+
 func (e *SolReceiveRequestEvent) Deserialization(source *common.ZeroCopySource) error {
 	code, eof := source.NextVarBytes()
 	if eof {

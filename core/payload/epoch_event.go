@@ -54,6 +54,10 @@ func (e *EpochEvent) DstChainId() (uint64, bool) {
 	return 0, true
 }
 
+func (e *EpochEvent) Data() interface{} {
+	return e
+}
+
 func (e *EpochEvent) Deserialization(source *common.ZeroCopySource) error {
 	number, eof := source.NextUint32()
 	if eof {

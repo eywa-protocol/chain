@@ -39,6 +39,10 @@ func (e *BridgeSolanaEvent) DstChainId() (uint64, bool) {
 	return e.OriginData.ChainId.Uint64(), false
 }
 
+func (e *BridgeSolanaEvent) Data() interface{} {
+	return e.OriginData
+}
+
 func (e *BridgeSolanaEvent) Deserialization(source *common.ZeroCopySource) error {
 	code, eof := source.NextVarBytes()
 	if eof {

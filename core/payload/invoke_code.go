@@ -40,6 +40,10 @@ func (e *InvokeCode) DstChainId() (uint64, bool) {
 	panic("implement me")
 }
 
+func (e *InvokeCode) Data() interface{} {
+	return e
+}
+
 func (e *InvokeCode) Deserialization(source *common.ZeroCopySource) error {
 	code, eof := source.NextVarBytes()
 	if eof {
