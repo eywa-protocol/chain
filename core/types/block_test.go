@@ -78,13 +78,11 @@ func Test_BlockMarshal(t *testing.T) {
 		txs = append(txs, ToTransaction(tx))
 	}
 	{
-		tx := &payload.BridgeSolanaEvent{
-			OriginData: wrappers.BridgeOracleRequestSolana{
-				RequestType: "setRequest",
-				Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
-				ChainId:     big.NewInt(1111),
-			},
-		}
+		tx := payload.NewBridgeSolanaEvent(&wrappers.BridgeOracleRequestSolana{
+			RequestType: "setRequest",
+			Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
+			ChainId:     big.NewInt(1111),
+		})
 		txs = append(txs, ToTransaction(tx))
 	}
 	{

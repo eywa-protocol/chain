@@ -13,6 +13,12 @@ func (u RequestId) MarshalJSON() ([]byte, error) {
 	return json.Marshal(hex.EncodeToString(u[:]))
 }
 
+type Bytes32 [32]byte
+
+func (u Bytes32) MarshalJSON() ([]byte, error) {
+	return json.Marshal(hex.EncodeToString(u[:]))
+}
+
 type TransactionType byte
 
 const (

@@ -11,8 +11,32 @@ import (
 	"github.com/near/borsh-go"
 )
 
+type BridgeSolanaEventData struct {
+	RequestType    string
+	Bridge         Bytes32
+	ReqId          RequestId
+	Selector       []byte
+	OppositeBridge Bytes32
+	ChainId        uint64
+}
+
 type BridgeSolanaEvent struct {
-	OriginData wrappers.BridgeOracleRequestSolana
+	data   BridgeSolanaEventData
+	txHash []byte
+}
+
+func NewBridgeSolanaEvent(data *wrappers.BridgeOracleRequestSolana) *BridgeSolanaEvent {
+	return &BridgeSolanaEvent{
+		data: BridgeSolanaEventData{
+			RequestType:    data.RequestType,
+			Bridge:         data.Bridge,
+			ReqId:          RequestId(data.RequestId),
+			Selector:       data.Selector,
+			OppositeBridge: data.OppositeBridge,
+			ChainId:        data.ChainId.Uint64(),
+		},
+		txHash: data.Raw.TxHash[:],
+	}
 }
 
 func (e *BridgeSolanaEvent) TxType() TransactionType {
@@ -24,23 +48,23 @@ func (e *BridgeSolanaEvent) RequestState() RequestState {
 }
 
 func (e *BridgeSolanaEvent) RequestId() RequestId {
-	return RequestId(e.OriginData.RequestId)
+	return e.data.ReqId
 }
 
 func (e *BridgeSolanaEvent) ToJson() (json.RawMessage, error) {
-	return json.Marshal(e.OriginData)
+	return json.Marshal(e.data)
 }
 
 func (e *BridgeSolanaEvent) SrcTxHash() []byte {
-	return e.OriginData.Raw.TxHash[:]
+	return e.txHash[:]
 }
 
 func (e *BridgeSolanaEvent) DstChainId() (uint64, bool) {
-	return e.OriginData.ChainId.Uint64(), false
+	return e.data.ChainId, false
 }
 
 func (e *BridgeSolanaEvent) Data() interface{} {
-	return e.OriginData
+	return e.data
 }
 
 func (e *BridgeSolanaEvent) Deserialization(source *common.ZeroCopySource) error {
@@ -48,7 +72,7 @@ func (e *BridgeSolanaEvent) Deserialization(source *common.ZeroCopySource) error
 	if eof {
 		return fmt.Errorf("[InvokeCode] deserialize code error")
 	}
-	err := borsh.Deserialize(&e.OriginData, code)
+	err := borsh.Deserialize(&e.data, code)
 	if err != nil {
 		return err
 	}
@@ -56,7 +80,7 @@ func (e *BridgeSolanaEvent) Deserialization(source *common.ZeroCopySource) error
 }
 
 func (e *BridgeSolanaEvent) Serialization(sink *common.ZeroCopySink) error {
-	oracleRequestBytes, err := marshalSolBinary(&e.OriginData)
+	oracleRequestBytes, err := marshalSolBinary(&e.data)
 	if err != nil {
 		return err
 	}
@@ -65,7 +89,7 @@ func (e *BridgeSolanaEvent) Serialization(sink *common.ZeroCopySink) error {
 }
 
 // marshalSolBinary MarshalBinary implements encoding.BinaryMarshaler
-func marshalSolBinary(be *wrappers.BridgeOracleRequestSolana) (data []byte, err error) {
+func marshalSolBinary(be *BridgeSolanaEventData) (data []byte, err error) {
 	var (
 		b bytes.Buffer
 		w = bufio.NewWriter(&b)
@@ -82,10 +106,10 @@ func marshalSolBinary(be *wrappers.BridgeOracleRequestSolana) (data []byte, err 
 
 func (e *BridgeSolanaEvent) RawData() []byte {
 	sink := common.NewZeroCopySink(nil)
-	sink.WriteBytes(e.OriginData.RequestId[:])      // 32 bytes
-	sink.WriteBytes(e.OriginData.Bridge[:])         // 32 bytes
-	sink.WriteBytes(e.OriginData.OppositeBridge[:]) // 32 bytes
-	sink.WriteVarBytes(e.OriginData.Selector)
-	sink.WriteUint64(e.OriginData.ChainId.Uint64())
+	sink.WriteBytes(e.data.ReqId[:])          // 32 bytes
+	sink.WriteBytes(e.data.Bridge[:])         // 32 bytes
+	sink.WriteBytes(e.data.OppositeBridge[:]) // 32 bytes
+	sink.WriteVarBytes(e.data.Selector)
+	sink.WriteUint64(e.data.ChainId)
 	return sink.Bytes()
 }

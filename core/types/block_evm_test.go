@@ -136,25 +136,24 @@ func Test_EvmOracleRequestTxRawData(t *testing.T) {
 }
 
 func Test_EvmSolanaRequestTxRawData(t *testing.T) {
-	event := &payload.BridgeSolanaEvent{
-		OriginData: wrappers.BridgeOracleRequestSolana{
-			RequestType: "setRequest",
-			Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
-			ChainId:     big.NewInt(94),
-			Selector:    []byte("my selector"),
-		},
-	}
+	event := payload.NewBridgeSolanaEvent(&wrappers.BridgeOracleRequestSolana{
+		RequestType: "setRequest",
+		Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
+		ChainId:     big.NewInt(94),
+		Selector:    []byte("my selector"),
+	})
 
 	res, err := blockTest.SolanaRequestTxRawDataTest(&bind.CallOpts{}, event.RawData())
 	assert.NoError(t, err)
 
 	tx := ToTransaction(event)
+	sevent := event.Data().(payload.BridgeSolanaEventData)
 	hash := tx.Hash()
 	assert.Equal(t, res.TxHash[:], hash.ToArray())
-	assert.Equal(t, res.ReqId, event.OriginData.RequestId)
-	assert.Equal(t, res.BridgeFrom, event.OriginData.Bridge)
-	assert.Equal(t, res.OppositeBridge, event.OriginData.OppositeBridge)
-	assert.Equal(t, res.Sel, event.OriginData.Selector)
+	assert.Equal(t, res.ReqId[:], sevent.ReqId[:])
+	assert.Equal(t, res.BridgeFrom[:], sevent.Bridge[:])
+	assert.Equal(t, res.OppositeBridge[:], sevent.OppositeBridge[:])
+	assert.Equal(t, res.Sel, sevent.Selector)
 }
 
 func Test_EvmSolanaToEvmRequestTxRawData(t *testing.T) {
