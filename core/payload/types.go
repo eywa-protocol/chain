@@ -1,10 +1,23 @@
 package payload
 
 import (
+	"encoding/hex"
 	"encoding/json"
 
 	"github.com/eywa-protocol/chain/common"
 )
+
+type RequestId [32]byte
+
+func (u RequestId) MarshalJSON() ([]byte, error) {
+	return json.Marshal(hex.EncodeToString(u[:]))
+}
+
+type Bytes32 [32]byte
+
+func (u Bytes32) MarshalJSON() ([]byte, error) {
+	return json.Marshal(hex.EncodeToString(u[:]))
+}
 
 type TransactionType byte
 
@@ -20,12 +33,12 @@ const (
 	SolReceiveRequestEventType TransactionType = 0x24
 )
 
-type ReqState uint8
+type RequestState uint8
 
 const (
-	ReqStateUnknown  ReqState = iota // request id not found in ledger
-	ReqStateReceived                 // event received
-	ReqStateSent                     // event sent to destination
+	ReqStateUnknown  RequestState = iota // request id not found in ledger
+	ReqStateReceived                     // event received
+	ReqStateSent                         // event sent to destination
 )
 
 func (tt TransactionType) String() string {
@@ -55,11 +68,12 @@ func (tt TransactionType) String() string {
 
 type Payload interface {
 	TxType() TransactionType
-	RequestState() ReqState
-	RequestId() [32]byte
+	RequestState() RequestState
+	RequestId() RequestId
 	ToJson() (json.RawMessage, error)
 	SrcTxHash() []byte
 	DstChainId() (uint64, bool)
+	Data() interface{}
 	Serialization(*common.ZeroCopySink) error
 	Deserialization(*common.ZeroCopySource) error
 	RawData() []byte

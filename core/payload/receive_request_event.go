@@ -19,11 +19,11 @@ func (e *ReceiveRequestEvent) TxType() TransactionType {
 	return ReceiveRequestEventType
 }
 
-func (e *ReceiveRequestEvent) RequestState() ReqState {
+func (e *ReceiveRequestEvent) RequestState() RequestState {
 	return ReqStateSent
 }
 
-func (e *ReceiveRequestEvent) RequestId() [32]byte {
+func (e *ReceiveRequestEvent) RequestId() RequestId {
 	return e.OriginData.ReqId
 }
 
@@ -37,6 +37,10 @@ func (e *ReceiveRequestEvent) SrcTxHash() []byte {
 
 func (e *ReceiveRequestEvent) DstChainId() (uint64, bool) {
 	return 0, true
+}
+
+func (e *ReceiveRequestEvent) Data() interface{} {
+	return e.OriginData
 }
 
 func (e *ReceiveRequestEvent) Deserialization(source *common.ZeroCopySource) error {

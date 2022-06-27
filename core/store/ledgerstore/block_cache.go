@@ -94,7 +94,7 @@ func (c *BlockCache) GetTransaction(txHash common.Uint256) (payload.Payload, uin
 }
 
 // GetTransactionByReqId return transaction by request id from cache
-func (c *BlockCache) GetTransactionByReqId(reqId [32]byte) (payload.Payload, uint64) {
+func (c *BlockCache) GetTransactionByReqId(reqId payload.RequestId) (payload.Payload, uint64) {
 	value, ok := c.requestIdCache.Get(string(reqId[:]))
 	if !ok {
 		return nil, 0
@@ -109,6 +109,6 @@ func (c *BlockCache) ContainTransaction(txHash common.Uint256) bool {
 }
 
 // ContainTransactionWithReqId return whether transaction is in cache
-func (c *BlockCache) ContainTransactionWithReqId(reqId [32]byte) bool {
+func (c *BlockCache) ContainTransactionWithReqId(reqId payload.RequestId) bool {
 	return c.transactionCache.Contains(string(reqId[:]))
 }

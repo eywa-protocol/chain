@@ -17,12 +17,12 @@ func (e *InvokeCode) TxType() TransactionType {
 	return InvokeType
 }
 
-func (e *InvokeCode) RequestState() ReqState {
+func (e *InvokeCode) RequestState() RequestState {
 	return ReqStateUnknown
 }
 
-func (e *InvokeCode) RequestId() [32]byte {
-	return [32]byte{}
+func (e *InvokeCode) RequestId() RequestId {
+	return RequestId{}
 }
 
 func (e *InvokeCode) ToJson() (json.RawMessage, error) {
@@ -38,6 +38,10 @@ func (e *InvokeCode) SrcTxHash() []byte {
 func (e *InvokeCode) DstChainId() (uint64, bool) {
 	// TODO implement me
 	panic("implement me")
+}
+
+func (e *InvokeCode) Data() interface{} {
+	return e
 }
 
 func (e *InvokeCode) Deserialization(source *common.ZeroCopySource) error {

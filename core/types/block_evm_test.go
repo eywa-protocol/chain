@@ -115,47 +115,45 @@ func Test_EvmHeaderRawData(t *testing.T) {
 }
 
 func Test_EvmOracleRequestTxRawData(t *testing.T) {
-	event := &payload.BridgeEvent{
-		OriginData: wrappers.BridgeOracleRequest{
-			RequestType: "setRequest",
-			Bridge:      ethcommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
-			ChainId:     big.NewInt(94),
-			Selector:    []byte("my selector"),
-		},
-	}
+	event := payload.NewBridgeEvent(&wrappers.BridgeOracleRequest{
+		RequestType: "setRequest",
+		Bridge:      ethcommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
+		ChainId:     big.NewInt(94),
+		Selector:    []byte("my selector"),
+	})
 
 	res, err := blockTest.OracleRequestTxRawDataTest(&bind.CallOpts{}, event.RawData())
 	assert.NoError(t, err)
 
 	tx := ToTransaction(event)
+	bevent := event.Data().(payload.BridgeEventData)
 	hash := tx.Hash()
 	assert.Equal(t, res.TxHash[:], hash.ToArray())
-	assert.Equal(t, res.ReqId, event.OriginData.RequestId)
-	assert.Equal(t, res.BridgeFrom[:20], event.OriginData.Bridge[:])
-	assert.Equal(t, res.ReceiveSide, event.OriginData.ReceiveSide)
-	assert.Equal(t, res.Sel, event.OriginData.Selector)
+	assert.Equal(t, res.ReqId[:], bevent.ReqId[:])
+	assert.Equal(t, res.BridgeFrom[:20], bevent.Bridge[:])
+	assert.Equal(t, res.ReceiveSide, bevent.ReceiveSide)
+	assert.Equal(t, res.Sel, bevent.Selector)
 }
 
 func Test_EvmSolanaRequestTxRawData(t *testing.T) {
-	event := &payload.BridgeSolanaEvent{
-		OriginData: wrappers.BridgeOracleRequestSolana{
-			RequestType: "setRequest",
-			Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
-			ChainId:     big.NewInt(94),
-			Selector:    []byte("my selector"),
-		},
-	}
+	event := payload.NewBridgeSolanaEvent(&wrappers.BridgeOracleRequestSolana{
+		RequestType: "setRequest",
+		Bridge:      [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 90, 1, 2, 3, 4, 5, 6, 7, 78, 9, 0, 1, 2, 2, 3, 43, 4, 4, 5, 5, 56, 23},
+		ChainId:     big.NewInt(94),
+		Selector:    []byte("my selector"),
+	})
 
 	res, err := blockTest.SolanaRequestTxRawDataTest(&bind.CallOpts{}, event.RawData())
 	assert.NoError(t, err)
 
 	tx := ToTransaction(event)
+	sevent := event.Data().(payload.BridgeSolanaEventData)
 	hash := tx.Hash()
 	assert.Equal(t, res.TxHash[:], hash.ToArray())
-	assert.Equal(t, res.ReqId, event.OriginData.RequestId)
-	assert.Equal(t, res.BridgeFrom, event.OriginData.Bridge)
-	assert.Equal(t, res.OppositeBridge, event.OriginData.OppositeBridge)
-	assert.Equal(t, res.Sel, event.OriginData.Selector)
+	assert.Equal(t, res.ReqId[:], sevent.ReqId[:])
+	assert.Equal(t, res.BridgeFrom[:], sevent.Bridge[:])
+	assert.Equal(t, res.OppositeBridge[:], sevent.OppositeBridge[:])
+	assert.Equal(t, res.Sel, sevent.Selector)
 }
 
 func Test_EvmSolanaToEvmRequestTxRawData(t *testing.T) {
@@ -207,40 +205,34 @@ func Test_EvmEpochRequestTxRawData(t *testing.T) {
 func TestEvmBlockMerkleProve(t *testing.T) {
 	hash := common.Uint256{0xCA, 0xFE, 0xBA, 0xBE}
 
-	payloads := []payload.BridgeEvent{
-		{
-			OriginData: wrappers.BridgeOracleRequest{
-				RequestType: "setRequest",
-				Bridge:      ethcommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
-				RequestId:   [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
-				Selector:    []byte{51, 52, 53},
-				ReceiveSide: ethcommon.HexToAddress("0x2122232425262728293031323334353637383940"),
-				ChainId:     big.NewInt(1111),
-			},
-		},
-		{
-			OriginData: wrappers.BridgeOracleRequest{
-				RequestType: "setRequest",
-				Bridge:      ethcommon.HexToAddress("0x0c760E9A85d3E957Dd1E189516b6658CfEcD3985"),
-				RequestId:   [32]byte{1, 3, 3, 4, 5, 6, 7, 8, 9, 10, 1, 3, 3, 4, 5, 6, 7, 8, 9, 10, 1, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13},
-				Selector:    []byte{51, 53, 53, 54, 55},
-				ReceiveSide: ethcommon.HexToAddress("0x3133333435363738393031333334353637383940"),
-				ChainId:     big.NewInt(1111),
-			},
-		},
-		{
-			OriginData: wrappers.BridgeOracleRequest{
-				RequestType: "setRequest",
-				Bridge:      ethcommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD4985"),
-				RequestId:   [32]byte{1, 2, 4, 4, 5, 6, 7, 8, 9, 10, 1, 2, 4, 4, 5, 6, 7, 8, 9, 10, 1, 2, 4, 4, 5, 6, 7, 8, 9, 10, 11, 12},
-				Selector:    []byte{51},
-				ReceiveSide: ethcommon.HexToAddress("0x2122242425262728294041424444454647484940"),
-				ChainId:     big.NewInt(1111),
-			},
-		},
+	payloads := []payload.Payload{
+		payload.NewBridgeEvent(&wrappers.BridgeOracleRequest{
+			RequestType: "setRequest",
+			Bridge:      ethcommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD3985"),
+			RequestId:   payload.RequestId{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+			Selector:    []byte{51, 52, 53},
+			ReceiveSide: ethcommon.HexToAddress("0x2122232425262728293031323334353637383940"),
+			ChainId:     big.NewInt(1111),
+		}),
+		payload.NewBridgeEvent(&wrappers.BridgeOracleRequest{
+			RequestType: "setRequest",
+			Bridge:      ethcommon.HexToAddress("0x0c760E9A85d3E957Dd1E189516b6658CfEcD3985"),
+			RequestId:   payload.RequestId{1, 3, 3, 4, 5, 6, 7, 8, 9, 10, 1, 3, 3, 4, 5, 6, 7, 8, 9, 10, 1, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13},
+			Selector:    []byte{51, 53, 53, 54, 55},
+			ReceiveSide: ethcommon.HexToAddress("0x3133333435363738393031333334353637383940"),
+			ChainId:     big.NewInt(1111),
+		}),
+		payload.NewBridgeEvent(&wrappers.BridgeOracleRequest{
+			RequestType: "setRequest",
+			Bridge:      ethcommon.HexToAddress("0x0c760E9A85d2E957Dd1E189516b6658CfEcD4985"),
+			RequestId:   payload.RequestId{1, 2, 4, 4, 5, 6, 7, 8, 9, 10, 1, 2, 4, 4, 5, 6, 7, 8, 9, 10, 1, 2, 4, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+			Selector:    []byte{51},
+			ReceiveSide: ethcommon.HexToAddress("0x2122242425262728294041424444454647484940"),
+			ChainId:     big.NewInt(1111),
+		}),
 	}
 
-	txs := Transactions{ToTransaction(&payloads[0]), ToTransaction(&payloads[1]), ToTransaction(&payloads[2])}
+	txs := Transactions{ToTransaction(payloads[0]), ToTransaction(payloads[1]), ToTransaction(payloads[2])}
 	block := NewBlock(1111, hash, hash, 100, 10, txs)
 
 	for i := range block.Transactions {
@@ -253,9 +245,10 @@ func TestEvmBlockMerkleProve(t *testing.T) {
 		assert.NoError(t, err)
 		// t.Log(res)
 
-		assert.Equal(t, res.BridgeFrom[:20], payloads[i].OriginData.Bridge[:])
-		assert.Equal(t, res.ReqId, payloads[i].OriginData.RequestId)
-		assert.Equal(t, res.Sel, payloads[i].OriginData.Selector)
-		assert.Equal(t, res.ReceiveSide, payloads[i].OriginData.ReceiveSide)
+		event := payloads[i].Data().(payload.BridgeEventData)
+		assert.Equal(t, res.BridgeFrom[:20], event.Bridge[:])
+		assert.Equal(t, res.ReqId[:], event.ReqId[:])
+		assert.Equal(t, res.Sel, event.Selector)
+		assert.Equal(t, res.ReceiveSide, event.ReceiveSide)
 	}
 }

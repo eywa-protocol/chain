@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
 	"github.com/near/borsh-go"
 
 	"github.com/eywa-protocol/chain/common"
@@ -19,12 +20,12 @@ func (e *SolanaToEVMEvent) TxType() TransactionType {
 	return SolanaToEVMEventType
 }
 
-func (e *SolanaToEVMEvent) RequestState() ReqState {
+func (e *SolanaToEVMEvent) RequestState() RequestState {
 	return ReqStateReceived
 }
 
-func (e *SolanaToEVMEvent) RequestId() [32]byte {
-	return e.OriginData.RequestId
+func (e *SolanaToEVMEvent) RequestId() RequestId {
+	return RequestId(e.OriginData.RequestId)
 }
 
 func (e *SolanaToEVMEvent) ToJson() (json.RawMessage, error) {
@@ -37,6 +38,10 @@ func (e *SolanaToEVMEvent) SrcTxHash() []byte {
 
 func (e *SolanaToEVMEvent) DstChainId() (uint64, bool) {
 	return e.OriginData.ChainId, false
+}
+
+func (e *SolanaToEVMEvent) Data() interface{} {
+	return e.OriginData
 }
 
 func (e *SolanaToEVMEvent) Deserialization(source *common.ZeroCopySource) error {

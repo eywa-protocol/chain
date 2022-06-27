@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/near/borsh-go"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
@@ -18,12 +19,12 @@ func (e *SolReceiveRequestEvent) TxType() TransactionType {
 	return SolReceiveRequestEventType
 }
 
-func (e *SolReceiveRequestEvent) RequestState() ReqState {
+func (e *SolReceiveRequestEvent) RequestState() RequestState {
 	return ReqStateSent
 }
 
-func (e *SolReceiveRequestEvent) RequestId() [32]byte {
-	return e.OriginData.RequestId
+func (e *SolReceiveRequestEvent) RequestId() RequestId {
+	return RequestId(e.OriginData.RequestId)
 }
 
 func (e *SolReceiveRequestEvent) ToJson() (json.RawMessage, error) {
@@ -36,6 +37,10 @@ func (e *SolReceiveRequestEvent) SrcTxHash() []byte {
 
 func (e *SolReceiveRequestEvent) DstChainId() (uint64, bool) {
 	return 0, true
+}
+
+func (e *SolReceiveRequestEvent) Data() interface{} {
+	return e.OriginData
 }
 
 func (e *SolReceiveRequestEvent) Deserialization(source *common.ZeroCopySource) error {

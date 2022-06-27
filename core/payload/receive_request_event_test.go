@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	reqId       [32]byte
+	reqId       RequestId
 	receiveSide ethCommon.Address
 	bridgeFrom  [32]byte
 	txHash      ethCommon.Hash

@@ -6,38 +6,68 @@ import (
 	"encoding/json"
 	"fmt"
 
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/wrappers"
 	"github.com/near/borsh-go"
 )
 
+type BridgeEventData struct {
+	RequestType    string
+	Bridge         ethcommon.Address
+	ReqId          RequestId
+	Selector       []byte
+	ReceiveSide    ethcommon.Address
+	OppositeBridge ethcommon.Address
+	ChainId        uint64
+}
+
 type BridgeEvent struct {
-	OriginData wrappers.BridgeOracleRequest
+	data   BridgeEventData
+	txHash []byte
+}
+
+func NewBridgeEvent(data *wrappers.BridgeOracleRequest) *BridgeEvent {
+	return &BridgeEvent{
+		data: BridgeEventData{
+			RequestType:    data.RequestType,
+			Bridge:         data.Bridge,
+			ReqId:          data.RequestId,
+			Selector:       data.Selector,
+			ReceiveSide:    data.ReceiveSide,
+			OppositeBridge: data.OppositeBridge,
+			ChainId:        data.ChainId.Uint64(),
+		},
+		txHash: data.Raw.TxHash[:],
+	}
 }
 
 func (e *BridgeEvent) TxType() TransactionType {
 	return BridgeEventType
 }
 
-func (e *BridgeEvent) RequestState() ReqState {
+func (e *BridgeEvent) RequestState() RequestState {
 	return ReqStateReceived
 }
 
-func (e *BridgeEvent) RequestId() [32]byte {
-	return e.OriginData.RequestId
+func (e *BridgeEvent) RequestId() RequestId {
+	return e.data.ReqId
 }
 
 func (e *BridgeEvent) ToJson() (json.RawMessage, error) {
-	return json.Marshal(e.OriginData)
+	return json.Marshal(e.data)
 }
 
 func (e *BridgeEvent) SrcTxHash() []byte {
-	return e.OriginData.Raw.TxHash[:]
+	return e.txHash
 }
 
 func (e *BridgeEvent) DstChainId() (uint64, bool) {
+	return e.data.ChainId, false
+}
 
-	return e.OriginData.ChainId.Uint64(), false
+func (e *BridgeEvent) Data() interface{} {
+	return e.data
 }
 
 func (e *BridgeEvent) Deserialization(source *common.ZeroCopySource) error {
@@ -45,7 +75,7 @@ func (e *BridgeEvent) Deserialization(source *common.ZeroCopySource) error {
 	if eof {
 		return fmt.Errorf("[InvokeCode] deserialize code error")
 	}
-	err := borsh.Deserialize(&e.OriginData, code)
+	err := borsh.Deserialize(&e.data, code)
 	if err != nil {
 		return err
 	}
@@ -53,7 +83,7 @@ func (e *BridgeEvent) Deserialization(source *common.ZeroCopySource) error {
 }
 
 func (e *BridgeEvent) Serialization(sink *common.ZeroCopySink) error {
-	oracleRequestBytes, err := MarshalBinary(&e.OriginData)
+	oracleRequestBytes, err := MarshalBinary(&e.data)
 	if err != nil {
 		return err
 	}
@@ -62,7 +92,7 @@ func (e *BridgeEvent) Serialization(sink *common.ZeroCopySink) error {
 }
 
 // MarshalBinary implements encoding.BinaryMarshaler
-func MarshalBinary(be *wrappers.BridgeOracleRequest) (data []byte, err error) {
+func MarshalBinary(be *BridgeEventData) (data []byte, err error) {
 	var (
 		b bytes.Buffer
 		w = bufio.NewWriter(&b)
@@ -81,13 +111,13 @@ func MarshalBinary(be *wrappers.BridgeOracleRequest) (data []byte, err error) {
 func (e *BridgeEvent) RawData() []byte {
 	// Must be binary compartible with SolanaToEVMEvent
 	var bridgeFrom [32]byte
-	copy(bridgeFrom[:], e.OriginData.Bridge[:])
+	copy(bridgeFrom[:], e.data.Bridge[:])
 
 	sink := common.NewZeroCopySink(nil)
-	sink.WriteBytes(e.OriginData.RequestId[:])   // 32 bytes
-	sink.WriteBytes(bridgeFrom[:])               // 32 bytes as in SolanaToEvmEvent
-	sink.WriteBytes(e.OriginData.ReceiveSide[:]) // 20 bytes
-	sink.WriteVarBytes(e.OriginData.Selector)
-	sink.WriteUint64(e.OriginData.ChainId.Uint64())
+	sink.WriteBytes(e.data.ReqId[:])       // 32 bytes
+	sink.WriteBytes(bridgeFrom[:])         // 32 bytes as in SolanaToEvmEvent
+	sink.WriteBytes(e.data.ReceiveSide[:]) // 20 bytes
+	sink.WriteVarBytes(e.data.Selector)
+	sink.WriteUint64(e.data.ChainId)
 	return sink.Bytes()
 }

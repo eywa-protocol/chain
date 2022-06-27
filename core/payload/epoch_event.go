@@ -34,12 +34,12 @@ func (e *EpochEvent) TxType() TransactionType {
 	return EpochType
 }
 
-func (e *EpochEvent) RequestState() ReqState {
+func (e *EpochEvent) RequestState() RequestState {
 	return ReqStateUnknown
 }
 
-func (e *EpochEvent) RequestId() [32]byte {
-	return [32]byte{}
+func (e *EpochEvent) RequestId() RequestId {
+	return RequestId{}
 }
 
 func (e *EpochEvent) ToJson() (json.RawMessage, error) {
@@ -52,6 +52,10 @@ func (e *EpochEvent) SrcTxHash() []byte {
 
 func (e *EpochEvent) DstChainId() (uint64, bool) {
 	return 0, true
+}
+
+func (e *EpochEvent) Data() interface{} {
+	return e
 }
 
 func (e *EpochEvent) Deserialization(source *common.ZeroCopySource) error {
