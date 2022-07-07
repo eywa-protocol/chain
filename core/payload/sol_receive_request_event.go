@@ -6,13 +6,28 @@ import (
 	"encoding/json"
 	"fmt"
 
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/eywa-protocol/chain/common"
 	"github.com/near/borsh-go"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
 )
 
 type SolReceiveRequestEvent struct {
-	OriginData bridge.BridgeReceiveEvent
+	ReqId       RequestId
+	ReceiveSide Bytes32
+	BridgeFrom  ethcommon.Address
+	Signature   Bytes64
+	Slot        uint64
+}
+
+func NewSolReceiveRequestEvent(data *bridge.BridgeReceiveEvent) *SolReceiveRequestEvent {
+	return &SolReceiveRequestEvent{
+		ReqId:       RequestId(data.RequestId),
+		ReceiveSide: Bytes32(data.ReceiveSide),
+		BridgeFrom:  data.BridgeFrom,
+		Signature:   Bytes64(data.Signature),
+		Slot:        data.Slot,
+	}
 }
 
 func (e *SolReceiveRequestEvent) TxType() TransactionType {
@@ -24,15 +39,15 @@ func (e *SolReceiveRequestEvent) RequestState() RequestState {
 }
 
 func (e *SolReceiveRequestEvent) RequestId() RequestId {
-	return RequestId(e.OriginData.RequestId)
+	return RequestId(e.ReqId)
 }
 
 func (e *SolReceiveRequestEvent) ToJson() (json.RawMessage, error) {
-	return json.Marshal(e.OriginData)
+	return json.Marshal(e)
 }
 
 func (e *SolReceiveRequestEvent) SrcTxHash() []byte {
-	return e.OriginData.Signature[:]
+	return e.Signature[:]
 }
 
 func (e *SolReceiveRequestEvent) DstChainId() (uint64, bool) {
@@ -40,7 +55,7 @@ func (e *SolReceiveRequestEvent) DstChainId() (uint64, bool) {
 }
 
 func (e *SolReceiveRequestEvent) Data() interface{} {
-	return e.OriginData
+	return e
 }
 
 func (e *SolReceiveRequestEvent) Deserialization(source *common.ZeroCopySource) error {
@@ -48,7 +63,7 @@ func (e *SolReceiveRequestEvent) Deserialization(source *common.ZeroCopySource) 
 	if eof {
 		return fmt.Errorf("[InvokeCode] deserialize code error")
 	}
-	err := borsh.Deserialize(&e.OriginData, code)
+	err := borsh.Deserialize(e, code)
 	if err != nil {
 		return err
 	}
@@ -56,7 +71,7 @@ func (e *SolReceiveRequestEvent) Deserialization(source *common.ZeroCopySource) 
 }
 
 func (e *SolReceiveRequestEvent) Serialization(sink *common.ZeroCopySink) error {
-	oracleRequestBytes, err := marshalBinarySolReceiveRequest(&e.OriginData)
+	oracleRequestBytes, err := marshalBinarySolReceiveRequest(e)
 	if err != nil {
 		return err
 	}
@@ -64,7 +79,7 @@ func (e *SolReceiveRequestEvent) Serialization(sink *common.ZeroCopySink) error 
 	return nil
 }
 
-func marshalBinarySolReceiveRequest(be *bridge.BridgeReceiveEvent) (data []byte, err error) {
+func marshalBinarySolReceiveRequest(be *SolReceiveRequestEvent) (data []byte, err error) {
 	var (
 		b bytes.Buffer
 		w = bufio.NewWriter(&b)
@@ -82,6 +97,6 @@ func marshalBinarySolReceiveRequest(be *bridge.BridgeReceiveEvent) (data []byte,
 
 func (e *SolReceiveRequestEvent) RawData() []byte {
 	var data []byte
-	data = append(data, e.OriginData.RequestId[:]...)
+	data = append(data, e.ReqId[:]...)
 	return data
 }

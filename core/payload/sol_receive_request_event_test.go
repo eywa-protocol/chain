@@ -2,25 +2,24 @@ package payload
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/eywa-protocol/chain/common"
 	"github.com/gagliardetto/solana-go"
 	"github.com/stretchr/testify/assert"
 	"gitlab.digiu.ai/blockchainlaboratory/eywa-solana/sdk/bridge"
-	"testing"
 )
 
 func TestSolReceiveRequestEvent_Serialization(t *testing.T) {
-	bEvt := SolReceiveRequestEvent{
-		OriginData: bridge.BridgeReceiveEvent{
-			ReceiveRequest: bridge.ReceiveRequest{
-				RequestId:   solana.PublicKey{},
-				ReceiveSide: solana.PublicKey{},
-				BridgeFrom:  common.Address{},
-			},
-			Signature: solana.Signature{},
-			Slot:      2,
+	bEvt := NewSolReceiveRequestEvent(&bridge.BridgeReceiveEvent{
+		ReceiveRequest: bridge.ReceiveRequest{
+			RequestId:   solana.PublicKey{1, 2, 3, 4, 5},
+			ReceiveSide: solana.PublicKey{},
+			BridgeFrom:  common.Address{},
 		},
-	}
+		Signature: solana.Signature{42},
+		Slot:      2,
+	})
 
 	sink := common.NewZeroCopySink(nil)
 	err := bEvt.Serialization(sink)
@@ -30,10 +29,10 @@ func TestSolReceiveRequestEvent_Serialization(t *testing.T) {
 	var bridgeEvent2 SolReceiveRequestEvent
 	err = bridgeEvent2.Deserialization(common.NewZeroCopySource(sink.Bytes()))
 	assert.NoError(t, err)
-	assert.Equal(t, bEvt, bridgeEvent2)
+	assert.Equal(t, bEvt, &bridgeEvent2)
 
 	// test ToJson
-	jbExpected := `{"req_id":"11111111111111111111111111111111","receive_side":"11111111111111111111111111111111","bridge_from":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"signature":"1111111111111111111111111111111111111111111111111111111111111111","slot":2}`
+	jbExpected := `{"ReqId":"0102030405000000000000000000000000000000000000000000000000000000","ReceiveSide":"0000000000000000000000000000000000000000000000000000000000000000","BridgeFrom":"0x0000000000000000000000000000000000000000","Signature":"2a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","Slot":2}`
 	jb, err := bEvt.ToJson()
 	fmt.Println(string(jb))
 	assert.NoError(t, err)
