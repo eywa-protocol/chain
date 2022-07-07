@@ -157,33 +157,32 @@ func Test_EvmSolanaRequestTxRawData(t *testing.T) {
 }
 
 func Test_EvmSolanaToEvmRequestTxRawData(t *testing.T) {
-	event := &payload.SolanaToEVMEvent{
-		OriginData: bridge.BridgeEvent{
-			OracleRequest: bridge.OracleRequest{
-				RequestType:    "test",
-				BridgePubKey:   solana.PublicKey{1, 2, 3},
-				RequestId:      solana.PublicKey{10, 11, 12},
-				Selector:       []byte("my selector"),
-				ReceiveSide:    common.Address{20, 21, 22},
-				OppositeBridge: common.Address{30, 31, 32},
-				ChainId:        uint64(3),
-			},
-			Signature: solana.Signature{},
-			Slot:      uint64(3),
+	event := payload.NewSolanaToEVMEvent(&bridge.BridgeEvent{
+		OracleRequest: bridge.OracleRequest{
+			RequestType:    "test",
+			BridgePubKey:   solana.PublicKey{1, 2, 3},
+			RequestId:      solana.PublicKey{10, 11, 12},
+			Selector:       []byte("my selector"),
+			ReceiveSide:    common.Address{20, 21, 22},
+			OppositeBridge: common.Address{30, 31, 32},
+			ChainId:        uint64(3),
 		},
-	}
+		Signature: solana.Signature{},
+		Slot:      uint64(3),
+	})
 
 	// BridgeEvent and SolanaToEvmEvent RawData must be binary compartible
 	res, err := blockTest.OracleRequestTxRawDataTest(&bind.CallOpts{}, event.RawData())
 	assert.NoError(t, err)
 
 	tx := ToTransaction(event)
+	bevent := event.Data().(payload.SolanaToEVMEventData)
 	hash := tx.Hash()
 	assert.Equal(t, res.TxHash[:], hash.ToArray())
-	assert.Equal(t, res.ReqId[:], event.OriginData.RequestId[:])
-	assert.Equal(t, res.BridgeFrom[:], event.OriginData.BridgePubKey[:])
-	assert.Equal(t, res.ReceiveSide[:], event.OriginData.ReceiveSide[:])
-	assert.Equal(t, res.Sel, event.OriginData.Selector)
+	assert.Equal(t, res.ReqId[:], bevent.RequestId[:])
+	assert.Equal(t, res.BridgeFrom[:], bevent.BridgePubKey[:])
+	assert.Equal(t, res.ReceiveSide[:], bevent.ReceiveSide[:])
+	assert.Equal(t, res.Sel, bevent.Selector)
 }
 
 func Test_EvmEpochRequestTxRawData(t *testing.T) {

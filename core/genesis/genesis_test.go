@@ -138,21 +138,19 @@ func TestSaveBridgeEventAsBlock(t *testing.T) {
 		ChainId:     big.NewInt(94),
 	})
 
-	sol2EVMEvent := &payload.SolanaToEVMEvent{
-		OriginData: bridge.BridgeEvent{
-			OracleRequest: bridge.OracleRequest{
-				RequestType:    "test",
-				BridgePubKey:   solana.PublicKey{},
-				RequestId:      solana.PublicKey{},
-				Selector:       []byte("test"),
-				ReceiveSide:    [20]uint8{},
-				OppositeBridge: [20]uint8{},
-				ChainId:        0,
-			},
-			Signature: solana.Signature{},
-			Slot:      20,
+	sol2EVMEvent := payload.NewSolanaToEVMEvent(&bridge.BridgeEvent{
+		OracleRequest: bridge.OracleRequest{
+			RequestType:    "test",
+			BridgePubKey:   solana.PublicKey{},
+			RequestId:      solana.PublicKey{},
+			Selector:       []byte("test"),
+			ReceiveSide:    [20]uint8{},
+			OppositeBridge: [20]uint8{},
+			ChainId:        0,
 		},
-	}
+		Signature: solana.Signature{},
+		Slot:      20,
+	})
 
 	solReceiveRequest := &payload.SolReceiveRequestEvent{
 		OriginData: bridge.BridgeReceiveEvent{

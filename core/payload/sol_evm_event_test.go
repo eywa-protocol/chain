@@ -10,21 +10,20 @@ import (
 )
 
 func TestBridgeSolToEvmEvent_Serialize(t *testing.T) {
-	bEvt := SolanaToEVMEvent{
-		OriginData: bridge.BridgeEvent{
-			OracleRequest: bridge.OracleRequest{
-				RequestType:    "test",
-				BridgePubKey:   solana.PublicKey{},
-				RequestId:      solana.PublicKey{},
-				Selector:       []byte("testselector"),
-				ReceiveSide:    common.Address{},
-				OppositeBridge: common.Address{},
-				ChainId:        uint64(3),
-			},
-			Signature: solana.Signature{},
-			Slot:      uint64(3),
+	bEvt := NewSolanaToEVMEvent(&bridge.BridgeEvent{
+		OracleRequest: bridge.OracleRequest{
+			RequestType:    "test",
+			BridgePubKey:   solana.PublicKey{},
+			RequestId:      solana.PublicKey{},
+			Selector:       []byte("testselector"),
+			ReceiveSide:    common.Address{},
+			OppositeBridge: common.Address{},
+			ChainId:        uint64(3),
 		},
-	}
+		Signature: solana.Signature{},
+		Slot:      uint64(3),
+	},
+	)
 
 	sink := common.NewZeroCopySink(nil)
 	err := bEvt.Serialization(sink)
@@ -34,10 +33,10 @@ func TestBridgeSolToEvmEvent_Serialize(t *testing.T) {
 	var bridgeEvent2 SolanaToEVMEvent
 	err = bridgeEvent2.Deserialization(common.NewZeroCopySource(sink.Bytes()))
 	assert.NoError(t, err)
-	assert.Equal(t, bEvt, bridgeEvent2)
+	assert.Equal(t, bEvt.Data(), bridgeEvent2.Data())
 
 	// test ToJson
-	jbExpected := `{"request_type":"test","bridge_pub_key":"11111111111111111111111111111111","request_id":"11111111111111111111111111111111","selector":"dGVzdHNlbGVjdG9y","receive_side":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"opposite_bridge":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"chain_id":3,"signature":"1111111111111111111111111111111111111111111111111111111111111111","slot":3}`
+	jbExpected := `{"RequestType":"test","BridgePubKey":"0000000000000000000000000000000000000000000000000000000000000000","RequestId":"0000000000000000000000000000000000000000000000000000000000000000","Selector":"dGVzdHNlbGVjdG9y","ReceiveSide":"0x0000000000000000000000000000000000000000","OppositeBridge":"0x0000000000000000000000000000000000000000","ChainId":3,"Signature":"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","Slot":3}`
 	jb, err := bEvt.ToJson()
 	assert.NoError(t, err)
 	assert.Equal(t, jbExpected, string(jb))

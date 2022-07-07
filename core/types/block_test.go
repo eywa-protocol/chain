@@ -72,8 +72,7 @@ func Test_BlockMarshal(t *testing.T) {
 			ReqId:       payload.RequestId{1, 2, 3, 4, 5},
 			ReceiveSide: ethcommon.Address{6, 7, 8, 9, 10},
 			BridgeFrom:  [32]byte{11, 12, 13, 14, 15},
-		},
-		)
+		})
 		txs = append(txs, ToTransaction(tx))
 	}
 	{
@@ -85,21 +84,19 @@ func Test_BlockMarshal(t *testing.T) {
 		txs = append(txs, ToTransaction(tx))
 	}
 	{
-		tx := &payload.SolanaToEVMEvent{
-			OriginData: bridge.BridgeEvent{
-				OracleRequest: bridge.OracleRequest{
-					RequestType:    "test",
-					BridgePubKey:   solana.PublicKey{},
-					RequestId:      solana.PublicKey{1, 2, 3, 4, 5},
-					Selector:       []byte("testselector"),
-					ReceiveSide:    common.Address{},
-					OppositeBridge: common.Address{},
-					ChainId:        uint64(3),
-				},
-				Signature: solana.Signature{},
-				Slot:      uint64(3),
+		tx := payload.NewSolanaToEVMEvent(&bridge.BridgeEvent{
+			OracleRequest: bridge.OracleRequest{
+				RequestType:    "test",
+				BridgePubKey:   solana.PublicKey{},
+				RequestId:      solana.PublicKey{1, 2, 3, 4, 5},
+				Selector:       []byte("testselector"),
+				ReceiveSide:    common.Address{},
+				OppositeBridge: common.Address{},
+				ChainId:        uint64(3),
 			},
-		}
+			Signature: solana.Signature{},
+			Slot:      uint64(3),
+		})
 		txs = append(txs, ToTransaction(tx))
 	}
 

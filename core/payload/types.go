@@ -19,6 +19,12 @@ func (u Bytes32) MarshalJSON() ([]byte, error) {
 	return json.Marshal(hex.EncodeToString(u[:]))
 }
 
+type Bytes64 [64]byte
+
+func (u Bytes64) MarshalJSON() ([]byte, error) {
+	return json.Marshal(hex.EncodeToString(u[:]))
+}
+
 type TransactionType byte
 
 const (
