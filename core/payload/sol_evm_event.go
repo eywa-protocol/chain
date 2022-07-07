@@ -13,10 +13,10 @@ import (
 	"github.com/eywa-protocol/chain/common"
 )
 
-type SolanaToEVMEventData struct {
+type SolanaToEVMEvent struct {
 	RequestType    string
 	BridgePubKey   Bytes32
-	RequestId      RequestId
+	ReqId          RequestId
 	Selector       []byte
 	ReceiveSide    ethcommon.Address
 	OppositeBridge ethcommon.Address
@@ -25,23 +25,17 @@ type SolanaToEVMEventData struct {
 	Slot           uint64
 }
 
-type SolanaToEVMEvent struct {
-	data SolanaToEVMEventData
-}
-
 func NewSolanaToEVMEvent(data *bridge.BridgeEvent) *SolanaToEVMEvent {
 	return &SolanaToEVMEvent{
-		data: SolanaToEVMEventData{
-			RequestType:    data.RequestType,
-			BridgePubKey:   Bytes32(data.BridgePubKey),
-			RequestId:      RequestId(data.RequestId),
-			Selector:       data.Selector,
-			ReceiveSide:    data.ReceiveSide,
-			OppositeBridge: data.OppositeBridge,
-			ChainId:        data.ChainId,
-			Signature:      Bytes64(data.Signature),
-			Slot:           data.Slot,
-		},
+		RequestType:    data.RequestType,
+		BridgePubKey:   Bytes32(data.BridgePubKey),
+		ReqId:          RequestId(data.RequestId),
+		Selector:       data.Selector,
+		ReceiveSide:    data.ReceiveSide,
+		OppositeBridge: data.OppositeBridge,
+		ChainId:        data.ChainId,
+		Signature:      Bytes64(data.Signature),
+		Slot:           data.Slot,
 	}
 }
 
@@ -54,23 +48,23 @@ func (e *SolanaToEVMEvent) RequestState() RequestState {
 }
 
 func (e *SolanaToEVMEvent) RequestId() RequestId {
-	return RequestId(e.data.RequestId)
+	return e.ReqId
 }
 
 func (e *SolanaToEVMEvent) ToJson() (json.RawMessage, error) {
-	return json.Marshal(e.data)
+	return json.Marshal(e)
 }
 
 func (e *SolanaToEVMEvent) SrcTxHash() []byte {
-	return e.data.Signature[:]
+	return e.Signature[:]
 }
 
 func (e *SolanaToEVMEvent) DstChainId() (uint64, bool) {
-	return e.data.ChainId, false
+	return e.ChainId, false
 }
 
 func (e *SolanaToEVMEvent) Data() interface{} {
-	return e.data
+	return e
 }
 
 func (e *SolanaToEVMEvent) Deserialization(source *common.ZeroCopySource) error {
@@ -78,7 +72,7 @@ func (e *SolanaToEVMEvent) Deserialization(source *common.ZeroCopySource) error 
 	if eof {
 		return fmt.Errorf("[InvokeCode] deserialize code error")
 	}
-	err := borsh.Deserialize(&e.data, code)
+	err := borsh.Deserialize(e, code)
 	if err != nil {
 		return err
 	}
@@ -86,7 +80,7 @@ func (e *SolanaToEVMEvent) Deserialization(source *common.ZeroCopySource) error 
 }
 
 func (e *SolanaToEVMEvent) Serialization(sink *common.ZeroCopySink) error {
-	oracleRequestBytes, err := marshalBinarySolanaToEVMEvent(&e.data)
+	oracleRequestBytes, err := marshalBinarySolanaToEVMEvent(e)
 	if err != nil {
 		return err
 	}
@@ -95,7 +89,7 @@ func (e *SolanaToEVMEvent) Serialization(sink *common.ZeroCopySink) error {
 }
 
 // marshalBinarySolanaToEVMEvent MarshalBinary implements encoding.BinaryMarshaler
-func marshalBinarySolanaToEVMEvent(be *SolanaToEVMEventData) (data []byte, err error) {
+func marshalBinarySolanaToEVMEvent(be *SolanaToEVMEvent) (data []byte, err error) {
 	var (
 		b bytes.Buffer
 		w = bufio.NewWriter(&b)
@@ -116,10 +110,10 @@ func marshalBinarySolanaToEVMEvent(be *SolanaToEVMEventData) (data []byte, err e
 func (e *SolanaToEVMEvent) RawData() []byte {
 	// Must be binary compartible with BridgeEvent
 	sink := common.NewZeroCopySink(nil)
-	sink.WriteBytes(e.data.RequestId[:])    // 32 bytes
-	sink.WriteBytes(e.data.BridgePubKey[:]) // 32 bytes
-	sink.WriteBytes(e.data.ReceiveSide[:])  // 20 bytes
-	sink.WriteVarBytes(e.data.Selector)
-	sink.WriteUint64(e.data.ChainId)
+	sink.WriteBytes(e.ReqId[:])        // 32 bytes
+	sink.WriteBytes(e.BridgePubKey[:]) // 32 bytes
+	sink.WriteBytes(e.ReceiveSide[:])  // 20 bytes
+	sink.WriteVarBytes(e.Selector)
+	sink.WriteUint64(e.ChainId)
 	return sink.Bytes()
 }

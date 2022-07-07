@@ -176,10 +176,10 @@ func Test_EvmSolanaToEvmRequestTxRawData(t *testing.T) {
 	assert.NoError(t, err)
 
 	tx := ToTransaction(event)
-	bevent := event.Data().(payload.SolanaToEVMEventData)
+	bevent := event.Data().(*payload.SolanaToEVMEvent)
 	hash := tx.Hash()
 	assert.Equal(t, res.TxHash[:], hash.ToArray())
-	assert.Equal(t, res.ReqId[:], bevent.RequestId[:])
+	assert.Equal(t, res.ReqId[:], bevent.ReqId[:])
 	assert.Equal(t, res.BridgeFrom[:], bevent.BridgePubKey[:])
 	assert.Equal(t, res.ReceiveSide[:], bevent.ReceiveSide[:])
 	assert.Equal(t, res.Sel, bevent.Selector)
