@@ -2,7 +2,6 @@ package payload
 
 import (
 	"math/rand"
-	"reflect"
 	"testing"
 
 	ethCommon "github.com/ethereum/go-ethereum/common"
@@ -19,7 +18,7 @@ var (
 	receiveSide ethCommon.Address
 	bridgeFrom  [32]byte
 	txHash      ethCommon.Hash
-	x           ReceiveRequestEvent
+	x           *ReceiveRequestEvent
 )
 
 func init() {
@@ -28,34 +27,33 @@ func init() {
 	rand.Read(bridgeFrom[:])
 	rand.Read(txHash[:])
 
-	x = ReceiveRequestEvent{
-		OriginData: wrappers.BridgeReceiveRequest{
-			ReqId:       reqId,
-			ReceiveSide: receiveSide,
-			BridgeFrom:  bridgeFrom,
-			Raw: types.Log{
-				Address:     receiveSide,
-				Topics:      nil,
-				Data:        nil,
-				BlockNumber: 0,
-				TxHash:      txHash,
-				TxIndex:     0,
-				BlockHash:   txHash,
-				Index:       0,
-				Removed:     false,
-			},
+	x = NewReceiveRequestEvent(&wrappers.BridgeReceiveRequest{
+		ReqId:       reqId,
+		ReceiveSide: receiveSide,
+		BridgeFrom:  bridgeFrom,
+		Raw: types.Log{
+			Address:     receiveSide,
+			Topics:      nil,
+			Data:        nil,
+			BlockNumber: 0,
+			TxHash:      txHash,
+			TxIndex:     0,
+			BlockHash:   txHash,
+			Index:       0,
+			Removed:     false,
 		},
-	}
+	},
+	)
 
 }
 
 func TestReceiveRequest_Borsh(t *testing.T) {
-	data, err := borsh.Serialize(x)
+	data, err := borsh.Serialize(x.Data())
 	require.NoError(t, err)
 	t.Log(data)
-	y := new(ReceiveRequestEvent)
+	y := new(ReceiveRequestEventData)
 	err = borsh.Deserialize(y, data)
-	require.True(t, reflect.DeepEqual(x, *y))
+	require.Equal(t, x.Data(), *y)
 	sink := common.NewZeroCopySink(nil)
 	err = x.Serialization(sink)
 	assert.NoError(t, err)
@@ -65,10 +63,10 @@ func TestReceiveRequest_Borsh(t *testing.T) {
 	var bridgeEvent2 ReceiveRequestEvent
 	err = bridgeEvent2.Deserialization(common.NewZeroCopySource(sink.Bytes()))
 	assert.NoError(t, err)
-	assert.Equal(t, x, bridgeEvent2)
+	assert.Equal(t, x.Data(), bridgeEvent2.Data())
 
 	// test ToJson
-	jbExpected := `{"ReqId":[3,124,77,123,187,4,7,209,226,198,73,129,133,90,216,104,29,13,134,209,233,30,0,22,121,57,203,102,148,210,196,34],"ReceiveSide":"0xacd208a0072939487f6999eb9d18a44784045d87","BridgeFrom":[243,198,124,242,39,70,233,149,175,90,37,54,121,81,186,162,255,108,212,113,196,131,241,95,185,11,173,179,124,88,33,182],"Raw":{"address":"0xacd208a0072939487f6999eb9d18a44784045d87","topics":null,"data":"0x","blockNumber":"0x0","transactionHash":"0xd95526a41a9504680b4e7c8b763a1b1d49d4955c8486216325253fec738dd7a9","transactionIndex":"0x0","blockHash":"0xd95526a41a9504680b4e7c8b763a1b1d49d4955c8486216325253fec738dd7a9","logIndex":"0x0","removed":false}}`
+	jbExpected := `{"ReqId":"037c4d7bbb0407d1e2c64981855ad8681d0d86d1e91e00167939cb6694d2c422","ReceiveSide":"0xacd208a0072939487f6999eb9d18a44784045d87","BridgeFrom":"f3c67cf22746e995af5a25367951baa2ff6cd471c483f15fb90badb37c5821b6"}`
 	jb, err := bridgeEvent2.ToJson()
 	assert.NoError(t, err)
 	assert.Equal(t, jbExpected, string(jb))
@@ -80,14 +78,13 @@ func TestReceiveRequest_Borsh(t *testing.T) {
 }
 
 func TestBridgeEvent_Serialize2(t *testing.T) {
-
 	sink := common.NewZeroCopySink(nil)
 	err := x.Serialization(sink)
 	assert.NoError(t, err)
 	var y ReceiveRequestEvent
 	err = y.Deserialization(common.NewZeroCopySource(sink.Bytes()))
 	assert.NoError(t, err)
-	assert.Equal(t, x, y)
+	assert.Equal(t, x.Data(), y.Data())
 }
 
 func TestBridgeEvent_Serialization_ReceiveRequestEvent(t *testing.T) {
@@ -97,5 +94,5 @@ func TestBridgeEvent_Serialization_ReceiveRequestEvent(t *testing.T) {
 	var recReqEvent2 ReceiveRequestEvent
 	err = recReqEvent2.Deserialization(common.NewZeroCopySource(sink.Bytes()))
 	assert.NoError(t, err)
-	assert.Equal(t, x, recReqEvent2)
+	assert.Equal(t, x.Data(), recReqEvent2.Data())
 }

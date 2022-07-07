@@ -68,13 +68,12 @@ func Test_BlockMarshal(t *testing.T) {
 		txs = append(txs, ToTransaction(tx))
 	}
 	{
-		tx := &payload.ReceiveRequestEvent{
-			OriginData: wrappers.BridgeReceiveRequest{
-				ReqId:       payload.RequestId{1, 2, 3, 4, 5},
-				ReceiveSide: ethcommon.Address{6, 7, 8, 9, 10},
-				BridgeFrom:  [32]byte{11, 12, 13, 14, 15},
-			},
-		}
+		tx := payload.NewReceiveRequestEvent(&wrappers.BridgeReceiveRequest{
+			ReqId:       payload.RequestId{1, 2, 3, 4, 5},
+			ReceiveSide: ethcommon.Address{6, 7, 8, 9, 10},
+			BridgeFrom:  [32]byte{11, 12, 13, 14, 15},
+		},
+		)
 		txs = append(txs, ToTransaction(tx))
 	}
 	{

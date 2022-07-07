@@ -6,13 +6,32 @@ import (
 	"encoding/json"
 	"fmt"
 
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/wrappers"
 	"github.com/near/borsh-go"
 )
 
+type ReceiveRequestEventData struct {
+	ReqId       RequestId
+	ReceiveSide ethcommon.Address
+	BridgeFrom  Bytes32
+}
+
 type ReceiveRequestEvent struct {
-	OriginData wrappers.BridgeReceiveRequest
+	data   ReceiveRequestEventData
+	txHash []byte
+}
+
+func NewReceiveRequestEvent(data *wrappers.BridgeReceiveRequest) *ReceiveRequestEvent {
+	return &ReceiveRequestEvent{
+		data: ReceiveRequestEventData{
+			ReqId:       RequestId(data.ReqId),
+			ReceiveSide: data.ReceiveSide,
+			BridgeFrom:  data.BridgeFrom,
+		},
+		txHash: data.Raw.TxHash[:],
+	}
 }
 
 func (e *ReceiveRequestEvent) TxType() TransactionType {
@@ -24,15 +43,15 @@ func (e *ReceiveRequestEvent) RequestState() RequestState {
 }
 
 func (e *ReceiveRequestEvent) RequestId() RequestId {
-	return e.OriginData.ReqId
+	return e.data.ReqId
 }
 
 func (e *ReceiveRequestEvent) ToJson() (json.RawMessage, error) {
-	return json.Marshal(e.OriginData)
+	return json.Marshal(e.data)
 }
 
 func (e *ReceiveRequestEvent) SrcTxHash() []byte {
-	return e.OriginData.Raw.TxHash[:]
+	return e.txHash
 }
 
 func (e *ReceiveRequestEvent) DstChainId() (uint64, bool) {
@@ -40,7 +59,7 @@ func (e *ReceiveRequestEvent) DstChainId() (uint64, bool) {
 }
 
 func (e *ReceiveRequestEvent) Data() interface{} {
-	return e.OriginData
+	return e.data
 }
 
 func (e *ReceiveRequestEvent) Deserialization(source *common.ZeroCopySource) error {
@@ -48,7 +67,7 @@ func (e *ReceiveRequestEvent) Deserialization(source *common.ZeroCopySource) err
 	if eof {
 		return fmt.Errorf("[InvokeCode] deserialize code error")
 	}
-	err := borsh.Deserialize(&e.OriginData, code)
+	err := borsh.Deserialize(&e.data, code)
 	if err != nil {
 		return err
 	}
@@ -56,7 +75,7 @@ func (e *ReceiveRequestEvent) Deserialization(source *common.ZeroCopySource) err
 }
 
 func (e *ReceiveRequestEvent) Serialization(sink *common.ZeroCopySink) error {
-	oracleRequestBytes, err := marshalBinaryRecievRequest(&e.OriginData)
+	oracleRequestBytes, err := marshalBinaryRecievRequest(&e.data)
 	if err != nil {
 		return err
 	}
@@ -64,7 +83,7 @@ func (e *ReceiveRequestEvent) Serialization(sink *common.ZeroCopySink) error {
 	return nil
 }
 
-func marshalBinaryRecievRequest(be *wrappers.BridgeReceiveRequest) (data []byte, err error) {
+func marshalBinaryRecievRequest(be *ReceiveRequestEventData) (data []byte, err error) {
 	var (
 		b bytes.Buffer
 		w = bufio.NewWriter(&b)
@@ -82,6 +101,6 @@ func marshalBinaryRecievRequest(be *wrappers.BridgeReceiveRequest) (data []byte,
 
 func (e *ReceiveRequestEvent) RawData() []byte {
 	var data []byte
-	data = append(data, e.OriginData.ReqId[:]...)
+	data = append(data, e.data.ReqId[:]...)
 	return data
 }
