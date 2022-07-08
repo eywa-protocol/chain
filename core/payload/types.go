@@ -73,14 +73,31 @@ func (tt TransactionType) String() string {
 }
 
 type Payload interface {
+	// Transaction type
 	TxType() TransactionType
+
+	// Received or Sent
 	RequestState() RequestState
+
+	// Request ID
 	RequestId() RequestId
+
+	// JSON representation of the transaction
 	ToJson() (json.RawMessage, error)
+
+	// Transaction hash in the source blockchain
+	// Note that this data is not saved to db
 	SrcTxHash() []byte
+
+	// Destination chain ID
 	DstChainId() (uint64, bool)
+
+	// Transaction persistent data
 	Data() interface{}
+
 	Serialization(*common.ZeroCopySink) error
 	Deserialization(*common.ZeroCopySource) error
+
+	// Transaction data represented for sending to smart contracts
 	RawData() []byte
 }
