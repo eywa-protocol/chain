@@ -5,8 +5,10 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
+	"time"
 
 	"github.com/eywa-protocol/bls-crypto/bls"
+	"github.com/sirupsen/logrus"
 
 	"github.com/eywa-protocol/chain/common"
 )
@@ -19,7 +21,9 @@ type Header struct {
 	SourceHeight     uint64
 	Height           uint64
 	Signature        bls.Multisig
-	hash             *common.Uint256
+	TimeStamp        time.Time
+
+	hash *common.Uint256
 }
 
 const BLOCK_SIZE = 124
@@ -39,12 +43,21 @@ func (bd *Header) serializationUnsigned(sink *common.ZeroCopySink) {
 	sink.WriteBytes(bd.TransactionsRoot[:])
 	sink.WriteUint64(bd.SourceHeight)
 	sink.WriteUint64(bd.Height)
+	timeBin, err := bd.TimeStamp.MarshalBinary()
+	if err != nil {
+		logrus.Errorf("error marhsal block.timestamp: %s", err)
+	} else {
+		sink.WriteBytes(timeBin)
+	}
 }
 
 func (bd *Header) Serialize(w io.Writer) error {
 	sink := common.NewZeroCopySink(nil)
-	bd.Serialization(sink)
-	_, err := w.Write(sink.Bytes())
+	err := bd.Serialization(sink)
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(sink.Bytes())
 	return err
 }
 
@@ -118,6 +131,24 @@ func (bd *Header) deserializationUnsigned(source *common.ZeroCopySource) error {
 	if eof {
 		return errors.New("[Header] read height error")
 	}
+
+	// Not error if deserialize without timestamp
+	ts := &(bd.TimeStamp)
+	err := ts.UnmarshalBinary(source.OffBytes())
+	if err != nil {
+		logrus.Warnf("can not unmarshal timestamp: %s", err)
+		return nil
+	}
+	// If timestamp present - skip timestamp bytes
+	switch source.OffBytes()[0] {
+	case 0x01:
+		// timeBinaryVersionV1
+		source.Skip(15)
+	case 0x02:
+		// timeBinaryVersionV2
+		source.Skip(16)
+	}
+
 	return nil
 }
 
@@ -135,6 +166,7 @@ func (bd *Header) RawData() []byte {
 	data = append(data, bd.TransactionsRoot.ToArray()...)
 	data = append(data, rawUint64(bd.SourceHeight)...)
 	data = append(data, rawUint64(bd.Height)...)
+	data = append(data, rawUint64(uint64(bd.TimeStamp.Unix()))...)
 	return data
 }
 
