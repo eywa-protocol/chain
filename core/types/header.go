@@ -145,8 +145,8 @@ func (bd *Header) deserializationUnsigned(source *common.ZeroCopySource) error {
 		ts := &(bd.TimeStamp)
 		err := ts.UnmarshalBinary(source.OffBytes())
 		if err != nil {
-			logrus.Warnf("can not unmarshal timestamp: %s", err)
-			return nil
+			logrus.Errorf("can not unmarshal timestamp: %s", err)
+			return errors.Wrap(err, "can not unmarshal timestamp")
 		}
 		// If timestamp present - skip timestamp bytes
 		switch source.OffBytes()[0] {
