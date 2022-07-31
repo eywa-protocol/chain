@@ -31,6 +31,10 @@ func (self *ZeroCopySource) Pos() uint64 {
 	return self.off
 }
 
+func (self *ZeroCopySource) Reset() {
+	self.off = 0
+}
+
 // Size returns the original length of the underlying byte slice.
 // Size is the number of bytes available for reading via ReadAt.
 // The returned value is always the same and is not affected by calls

@@ -13,7 +13,10 @@ import (
 	"github.com/eywa-protocol/chain/common"
 )
 
-var headerVersion = 2
+const (
+	BlockHeaderV1 = 1
+	BlockHeaderV2 = 2
+)
 
 type Header struct {
 	ChainID          uint64
@@ -31,21 +34,21 @@ type Header struct {
 const BLOCK_SIZE = 124
 
 func (bd *Header) Serialization(sink *common.ZeroCopySink) error {
-	bd.serializationUnsigned(sink)
+	bd.serializationUnsigned(sink, BlockHeaderV2)
 	sink.WriteVarBytes(bd.Signature.PartSignature.Marshal())
 	sink.WriteVarBytes(bd.Signature.PartPublicKey.Marshal())
 	sink.WriteVarBytes(bls.MarshalBitmask(bd.Signature.PartMask))
 	return nil
 }
 
-func (bd *Header) serializationUnsigned(sink *common.ZeroCopySink) {
+func (bd *Header) serializationUnsigned(sink *common.ZeroCopySink, version int8) {
 	sink.WriteUint64(bd.ChainID)
 	sink.WriteBytes(bd.PrevBlockHash[:])
 	sink.WriteBytes(bd.EpochBlockHash[:])
 	sink.WriteBytes(bd.TransactionsRoot[:])
 	sink.WriteUint64(bd.SourceHeight)
 	sink.WriteUint64(bd.Height)
-	if headerVersion > 1 {
+	if version > BlockHeaderV1 {
 		timeBin, err := bd.TimeStamp.MarshalBinary()
 		if err != nil {
 			logrus.Errorf("error marhsal block.timestamp: %s", err)
@@ -77,15 +80,24 @@ func HeaderFromRawBytes(raw []byte) (*Header, error) {
 }
 
 func (bd *Header) Deserialization(source *common.ZeroCopySource) error {
-	err := bd.deserializationUnsigned(source)
+	err := bd.tryDeserializationVersion(source, BlockHeaderV2)
 	if err != nil {
-		if headerVersion != 1 {
-			// Switch to header version 1 and repeat deserialize
-			logrus.Warnf("switch block version to 1")
-			headerVersion = 1
-			return bd.Deserialization(source)
+		// Try version 1 and repeat deserialize
+		logrus.Warnf("try block version to 1 for deserialize (%s)", err)
+		source.Reset()
+		err = bd.tryDeserializationVersion(source, BlockHeaderV1)
+		if err != nil {
+			return errors.Wrap(err, "error deserialize unsigned part")
 		}
-		return err
+	}
+
+	return nil
+}
+
+func (bd *Header) tryDeserializationVersion(source *common.ZeroCopySource, version int8) error {
+	err := bd.deserializationUnsigned(source, version)
+	if err != nil {
+		return errors.Wrap(err, "error deserialize unsigned part")
 	}
 
 	partSig, eof := source.NextVarBytes()
@@ -115,7 +127,7 @@ func (bd *Header) Deserialization(source *common.ZeroCopySource) error {
 	return nil
 }
 
-func (bd *Header) deserializationUnsigned(source *common.ZeroCopySource) error {
+func (bd *Header) deserializationUnsigned(source *common.ZeroCopySource, version int8) error {
 	var eof bool
 	bd.ChainID, eof = source.NextUint64()
 	if eof {
@@ -142,7 +154,7 @@ func (bd *Header) deserializationUnsigned(source *common.ZeroCopySource) error {
 		return errors.New("[Header] read height error")
 	}
 
-	if headerVersion == 2 {
+	if version == BlockHeaderV2 {
 		// Deserialize timestamp only if header version is 2
 		ts := &(bd.TimeStamp)
 		err := ts.UnmarshalBinary(source.OffBytes())
