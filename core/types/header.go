@@ -79,6 +79,7 @@ func (bd *Header) Deserialization(source *common.ZeroCopySource) error {
 	if err != nil {
 		if headerVersion != 1 {
 			// Switch to header version 1 and repeat deserialize
+			logrus.Warnf("switch block version to 1")
 			headerVersion = 1
 			return bd.Deserialization(source)
 		}
