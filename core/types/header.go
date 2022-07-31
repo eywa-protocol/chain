@@ -13,6 +13,8 @@ import (
 	"github.com/eywa-protocol/chain/common"
 )
 
+var headerVersion = 2
+
 type Header struct {
 	ChainID          uint64
 	PrevBlockHash    common.Uint256
@@ -75,6 +77,11 @@ func HeaderFromRawBytes(raw []byte) (*Header, error) {
 func (bd *Header) Deserialization(source *common.ZeroCopySource) error {
 	err := bd.deserializationUnsigned(source)
 	if err != nil {
+		if headerVersion != 1 {
+			// Switch to header version 1 and repeat deserialize
+			headerVersion = 1
+			return bd.Deserialization(source)
+		}
 		return err
 	}
 
@@ -132,21 +139,23 @@ func (bd *Header) deserializationUnsigned(source *common.ZeroCopySource) error {
 		return errors.New("[Header] read height error")
 	}
 
-	// Not error if deserialize without timestamp
-	ts := &(bd.TimeStamp)
-	err := ts.UnmarshalBinary(source.OffBytes())
-	if err != nil {
-		logrus.Warnf("can not unmarshal timestamp: %s", err)
-		return nil
-	}
-	// If timestamp present - skip timestamp bytes
-	switch source.OffBytes()[0] {
-	case 0x01:
-		// timeBinaryVersionV1
-		source.Skip(15)
-	case 0x02:
-		// timeBinaryVersionV2
-		source.Skip(16)
+	if headerVersion == 2 {
+		// Deserialize timestamp only if header version is 2
+		ts := &(bd.TimeStamp)
+		err := ts.UnmarshalBinary(source.OffBytes())
+		if err != nil {
+			logrus.Warnf("can not unmarshal timestamp: %s", err)
+			return nil
+		}
+		// If timestamp present - skip timestamp bytes
+		switch source.OffBytes()[0] {
+		case 0x01:
+			// timeBinaryVersionV1
+			source.Skip(15)
+		case 0x02:
+			// timeBinaryVersionV2
+			source.Skip(16)
+		}
 	}
 
 	return nil
