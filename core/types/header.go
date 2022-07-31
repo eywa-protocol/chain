@@ -45,11 +45,13 @@ func (bd *Header) serializationUnsigned(sink *common.ZeroCopySink) {
 	sink.WriteBytes(bd.TransactionsRoot[:])
 	sink.WriteUint64(bd.SourceHeight)
 	sink.WriteUint64(bd.Height)
-	timeBin, err := bd.TimeStamp.MarshalBinary()
-	if err != nil {
-		logrus.Errorf("error marhsal block.timestamp: %s", err)
-	} else {
-		sink.WriteBytes(timeBin)
+	if headerVersion > 1 {
+		timeBin, err := bd.TimeStamp.MarshalBinary()
+		if err != nil {
+			logrus.Errorf("error marhsal block.timestamp: %s", err)
+		} else {
+			sink.WriteBytes(timeBin)
+		}
 	}
 }
 
