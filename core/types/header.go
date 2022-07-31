@@ -3,13 +3,13 @@ package types
 import (
 	"crypto/sha256"
 	"encoding/binary"
-	"errors"
 	"io"
 	"time"
 
-	"github.com/eywa-protocol/bls-crypto/bls"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/common"
 )
 
