@@ -156,13 +156,21 @@ func (bd *Header) deserializationUnsigned(source *common.ZeroCopySource, version
 
 	if version == BlockHeaderV2 {
 		// Deserialize timestamp only if header version is 2
+		var err error
 		ts := &(bd.TimeStamp)
-		err := ts.UnmarshalBinary(source.OffBytes())
+		switch source.OffBytes()[0] {
+		case 0x01:
+			err = ts.UnmarshalBinary(source.OffBytes()[:15])
+		case 0x02:
+			err = ts.UnmarshalBinary(source.OffBytes()[:16])
+		default:
+			err = errors.New("bad version of timestamp binary")
+		}
 		if err != nil {
 			logrus.Errorf("can not unmarshal timestamp: %s", err)
 			return errors.Wrap(err, "can not unmarshal timestamp")
 		}
-		// If timestamp present - skip timestamp bytes
+		// If timestamp no unmarshal errors - skip timestamp bytes
 		switch source.OffBytes()[0] {
 		case 0x01:
 			// timeBinaryVersionV1

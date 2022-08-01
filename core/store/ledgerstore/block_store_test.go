@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"testing"
+	"time"
 
 	"github.com/eywa-protocol/bls-crypto/bls"
 
@@ -314,7 +315,14 @@ func TestHeaderIndexList(t *testing.T) {
 }
 
 func TestSaveHeader(t *testing.T) {
-	block := types.NewBlock(1111, common.Uint256{}, common.Uint256{}, 1, 1, types.Transactions{})
+	block := types.NewBlock(
+		1111,
+		common.Uint256{},
+		common.Uint256{},
+		1,
+		1,
+		time.Date(2022, 7, 31, 0, 0, 0, 0, time.UTC),
+		types.Transactions{})
 	blockHash := block.Hash()
 
 	testBlockStore.NewBatch()
@@ -347,7 +355,14 @@ func TestBlock(t *testing.T) {
 	_ = pld.Deserialization(common.NewZeroCopySource(sink.Bytes()))
 
 	tx := types.ToTransaction(pld)
-	block := types.NewBlock(1111, common.UINT256_EMPTY, common.UINT256_EMPTY, 2, 2, types.Transactions{tx})
+	block := types.NewBlock(
+		1111,
+		common.UINT256_EMPTY,
+		common.UINT256_EMPTY,
+		2,
+		2,
+		time.Date(2022, 7, 31, 0, 0, 0, 0, time.UTC),
+		types.Transactions{tx})
 	blockHash := block.Hash()
 	tx1Hash := tx.Hash()
 

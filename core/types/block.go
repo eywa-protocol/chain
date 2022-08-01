@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/eywa-protocol/bls-crypto/bls"
 	"github.com/eywa-protocol/chain/common"
@@ -25,13 +26,14 @@ func (b *Block) Serialization(sink *common.ZeroCopySink) error {
 	return b.Transactions.Serialization(sink)
 }
 
-func NewBlock(chainId uint64, prevHash common.Uint256, epochBlockHash common.Uint256, sourceHeight uint64, height uint64, transactions Transactions) *Block {
+func NewBlock(chainId uint64, prevHash common.Uint256, epochBlockHash common.Uint256, sourceHeight uint64, height uint64, timestamp time.Time, transactions Transactions) *Block {
 	header := &Header{
 		ChainID:        chainId,
 		PrevBlockHash:  prevHash,
 		EpochBlockHash: epochBlockHash,
 		SourceHeight:   sourceHeight,
 		Height:         height,
+		TimeStamp:      timestamp,
 		Signature:      bls.NewZeroMultisig(),
 	}
 	return NewBlockFromComponents(header, transactions)
