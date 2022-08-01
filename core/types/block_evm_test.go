@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/big"
 	"testing"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
@@ -70,6 +71,7 @@ func Test_EvmHeaderHash(t *testing.T) {
 		TransactionsRoot: hash,
 		SourceHeight:     100,
 		Height:           10,
+		TimeStamp:        time.Date(2022, 7, 31, 0, 0, 0, 0, time.UTC),
 	}
 
 	header.сalculateHash()
@@ -84,6 +86,7 @@ func Test_EvmHeaderHash(t *testing.T) {
 		header.TransactionsRoot,
 		header.SourceHeight,
 		header.Height,
+		uint64(header.TimeStamp.UTC().Unix()),
 	)
 
 	assert.NoError(t, err)
@@ -109,7 +112,7 @@ func Test_EvmHeaderRawData(t *testing.T) {
 	assert.NoError(t, err)
 	res, err := blockTest.BlockHeaderRawDataTest(&bind.CallOpts{}, header.RawData())
 	assert.NoError(t, err)
-	//t.Log(res)
+	// t.Log(res)
 	assert.Equal(t, res.AllBlockHash[:], blockHash.ToArray())
 	assert.Equal(t, res.BlockTxHash[:], header.PrevBlockHash.ToArray())
 }
@@ -241,7 +244,7 @@ func TestEvmBlockMerkleProve(t *testing.T) {
 	}
 
 	txs := Transactions{ToTransaction(&payloads[0]), ToTransaction(&payloads[1]), ToTransaction(&payloads[2])}
-	block := NewBlock(1111, hash, hash, 100, 10, txs)
+	block := NewBlock(1111, hash, hash, 100, 10, time.Date(2022, 7, 31, 0, 0, 0, 0, time.UTC), txs)
 
 	for i := range block.Transactions {
 		path, err := block.MerkleProve(i)

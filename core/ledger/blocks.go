@@ -2,6 +2,7 @@ package ledger
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/eywa-protocol/chain/common"
 	"github.com/eywa-protocol/chain/core/types"
@@ -11,7 +12,7 @@ import (
 func (l *Ledger) CreateBlockFromEvents(txs types.Transactions, sourceHeight uint64, epochBlockHash common.Uint256) (block *types.Block, err error) {
 	prevHash := l.GetCurrentBlockHash()
 	height := l.GetCurrentBlockHeight()
-	block = types.NewBlock(l.GetChainId(), prevHash, epochBlockHash, sourceHeight, height+1, txs)
+	block = types.NewBlock(l.GetChainId(), prevHash, epochBlockHash, sourceHeight, height+1, time.Now().UTC(), txs)
 	return block, nil
 }
 

@@ -3,6 +3,7 @@ package types
 import (
 	"math/big"
 	"testing"
+	"time"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/eywa-protocol/bls-crypto/bls"
@@ -41,7 +42,14 @@ func Test_HeaderMarshal(t *testing.T) {
 
 func Test_EmptyBlockMarshal(t *testing.T) {
 	hash := common.Uint256{0xCA, 0xFE, 0xBA, 0xBE}
-	block := NewBlock(1111, hash, hash, 100, 10, Transactions{})
+	block := NewBlock(
+		1111,
+		hash,
+		hash,
+		100,
+		10,
+		time.Date(2022, 7, 31, 0, 0, 0, 0, time.UTC),
+		Transactions{})
 
 	sink := common.NewZeroCopySink(nil)
 	err := block.Serialization(sink)
@@ -108,7 +116,14 @@ func Test_BlockMarshal(t *testing.T) {
 		txs = append(txs, ToTransaction(tx))
 	}
 
-	block := NewBlock(1111, hash, hash, 100, 10, txs)
+	block := NewBlock(
+		1111,
+		hash,
+		hash,
+		100,
+		10,
+		time.Date(2022, 7, 31, 0, 0, 0, 0, time.UTC),
+		txs)
 	block.Hash()
 	t.Logf("Transactions: %d, Block hash: %x", len(block.Transactions), block.Hash())
 
