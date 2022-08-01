@@ -61,8 +61,6 @@ func init() {
 	backend.Commit()
 }
 
-// TODO: Fix test after smart contract fix
-/*
 func Test_EvmHeaderHash(t *testing.T) {
 	hash := common.Uint256{0xCA, 0xFE, 0xBA, 0xBE}
 
@@ -88,6 +86,7 @@ func Test_EvmHeaderHash(t *testing.T) {
 		header.TransactionsRoot,
 		header.SourceHeight,
 		header.Height,
+		uint64(header.TimeStamp.UTC().Unix()),
 	)
 
 	assert.NoError(t, err)
@@ -95,7 +94,6 @@ func Test_EvmHeaderHash(t *testing.T) {
 	assert.NotNil(t, blockHash)
 	assert.Equal(t, solHash[:], blockHash.ToArray())
 }
-*/
 
 func Test_EvmHeaderRawData(t *testing.T) {
 	hash := common.Uint256{0xCA, 0xFE, 0xBA, 0xBE}
